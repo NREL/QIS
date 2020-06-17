@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>668</width>
+    <height>741</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="1">
+    <widget class="QSpinBox" name="number_terms_spinner">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="value">
+      <number>1</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="label_11">
+     <property name="text">
+      <string>Number of Terms:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QComboBox" name="fit_function_combobox">
+     <item>
+      <property name="text">
+       <string>Exponential</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Gaussian Modified Exponential</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Custom Equation</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="apply_btn">
+     <property name="text">
+      <string>Apply</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="offset_checkbox">
+     <property name="text">
+      <string>Include Constant Offset</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QPushButton" name="done_btn">
+     <property name="text">
+      <string>Done</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="0" colspan="3">
+    <widget class="QTableWidget" name="parameters_table">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="midLineWidth">
+      <number>1</number>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <column>
+      <property name="text">
+       <string>Parameter</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Guess</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Lower Bound</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Upper Bound</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Result</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QComboBox" name="fit_method_combobox">
+     <item>
+      <property name="text">
+       <string>Pseudolinear (recommended)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Fully Nonlinear Least Squares</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>fit_function_combobox</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>fit_model_selected(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>184</x>
+     <y>8</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>number_terms_spinner</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Form</receiver>
+   <slot>number_terms_changed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>229</x>
+     <y>54</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>310</x>
+     <y>37</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>apply_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>apply_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>113</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>375</x>
+     <y>87</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>done_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>done_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>185</x>
+     <y>113</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>258</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>offset_checkbox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Form</receiver>
+   <slot>offset_cb_toggled()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>15</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>52</x>
+     <y>61</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fit_method_combobox</sender>
+   <signal>activated(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>fit_method_selected(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>515</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>577</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>fit_model_selected(QString)</slot>
+  <slot>number_terms_changed(int)</slot>
+  <slot>apply_btn_clicked()</slot>
+  <slot>done_btn_clicked()</slot>
+  <slot>offset_cb_toggled()</slot>
+  <slot>fit_method_selected(QString)</slot>
+ </slots>
+</ui>
