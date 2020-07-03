@@ -31,6 +31,7 @@ QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 # 1. Make it so that the correct com port is automatically found
 # 2. Add an abort button to the initialization
 # 3. Scan functionality not currently working
+# 4. Get to open from another window (full program)
 
 
 @decorator
