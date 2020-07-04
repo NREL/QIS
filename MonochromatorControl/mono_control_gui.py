@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/Ryan/AppData/Local/Temp/moco_control_guiSjcbOJ.ui'
+# Form implementation generated from reading ui file 'C:/Users/Ryan/AppData/Local/Temp/moco_control_guiOQhuAw.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.0
 #
@@ -376,7 +376,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tab_container.setCurrentIndex(1)
+        self.tab_container.setCurrentIndex(3)
         self.groove_density_combobox.activated['QString'].connect(MainWindow.set_groove_density)
         self.set_home_wl_button.clicked.connect(MainWindow.clicked_home_button)
         self.mono_initialize_button.clicked.connect(MainWindow.clicked_initialize_button)
@@ -393,6 +393,33 @@ class Ui_MainWindow(object):
         self.debug_checkbox.stateChanged['int'].connect(MainWindow.state_changed_debug_checkbox)
         self.backlash_amount_spinner.valueChanged['QString'].connect(MainWindow.value_changed_backlash_spinner)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.tab_container, self.visa_resource_combobox)
+        MainWindow.setTabOrder(self.visa_resource_combobox, self.groove_density_combobox)
+        MainWindow.setTabOrder(self.groove_density_combobox, self.calib_wl_spinner)
+        MainWindow.setTabOrder(self.calib_wl_spinner, self.backlash_checkbox)
+        MainWindow.setTabOrder(self.backlash_checkbox, self.set_home_wl_button)
+        MainWindow.setTabOrder(self.set_home_wl_button, self.backlash_amount_spinner)
+        MainWindow.setTabOrder(self.backlash_amount_spinner, self.mono_initialize_button)
+        MainWindow.setTabOrder(self.mono_initialize_button, self.current_wl_output_lineedit)
+        MainWindow.setTabOrder(self.current_wl_output_lineedit, self.goto_wl_button)
+        MainWindow.setTabOrder(self.goto_wl_button, self.goto_wl_spinner)
+        MainWindow.setTabOrder(self.goto_wl_spinner, self.nudge_down_button)
+        MainWindow.setTabOrder(self.nudge_down_button, self.nudge_amount_spinner)
+        MainWindow.setTabOrder(self.nudge_amount_spinner, self.nudge_up_button)
+        MainWindow.setTabOrder(self.nudge_up_button, self.speed_set_button)
+        MainWindow.setTabOrder(self.speed_set_button, self.speed_value_spinner)
+        MainWindow.setTabOrder(self.speed_value_spinner, self.nudge_stop_button)
+        MainWindow.setTabOrder(self.nudge_stop_button, self.scan_start_wl_spinner)
+        MainWindow.setTabOrder(self.scan_start_wl_spinner, self.scan_stop_wl_spinner)
+        MainWindow.setTabOrder(self.scan_stop_wl_spinner, self.scan_step_spinner)
+        MainWindow.setTabOrder(self.scan_step_spinner, self.scan_pause_spinner)
+        MainWindow.setTabOrder(self.scan_pause_spinner, self.scan_cycles_spinner)
+        MainWindow.setTabOrder(self.scan_cycles_spinner, self.scan_start_button)
+        MainWindow.setTabOrder(self.scan_start_button, self.scan_stop_button)
+        MainWindow.setTabOrder(self.scan_stop_button, self.debug_write_button)
+        MainWindow.setTabOrder(self.debug_write_button, self.debug_write_str_textbox)
+        MainWindow.setTabOrder(self.debug_write_str_textbox, self.debug_read_textbox)
+        MainWindow.setTabOrder(self.debug_read_textbox, self.debug_checkbox)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
