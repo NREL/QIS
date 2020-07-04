@@ -30,8 +30,15 @@ QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 #TODO:
 # 1. Make it so that the correct com port is automatically found
 # 2. Add an abort button to the initialization
-# 3. Scan functionality not currently working
+# 3. If I want to import this class from another program and use the functions (not window),
+#       what changes do I have to make?
 # 4. Get to open from another window (full program)
+# 5. Clean up tasks:
+#   5a. Get rid of "status_message" in preference for showMessage (don't forget the time must be set)
+#   5b. check for redundancies in variable names that could be reused (like stop_moving, stop_motion_bool)
+#   5c. Clear stupid error_message variables out
+#   5d. Get rid of excessive print functions
+# 6. Get current wavelength after scan completes
 
 
 @decorator
@@ -72,9 +79,9 @@ class Worker(QRunnable):
     :param args: Arguments to pass to the callback function
     :param kwargs: Keywords to pass to the callback function
 
-    To use threading, simply use the following syntax, INSTEAD of just calling your function:
+    TO USE THREADING, simply use the following syntax, INSTEAD of just calling your function:
 
-        worker = Worker(self.mono_instance.method_name)  # Any other args, kwargs are passed to the run function
+        worker = Worker(self.mono_instance.method_name, arg1, arg2, etc.)  # args, kwargs are passed to the run function
 
         # Execute
         self.thread_pool.start(worker)
@@ -97,10 +104,12 @@ class Worker(QRunnable):
 
 
 def calculate_scan_points(start, stop, step):
-    num_wls = round((stop - start) / step)
+    num_wls = round((stop - start) / step) + 1
     stopping_points = np.empty(num_wls)
     for ii in range(0, num_wls):
         stopping_points[ii] = start + (step * ii)
+    print('stopping points: ' + str(stopping_points))
+    print('num_wls: ' + str(num_wls))
     return stopping_points, num_wls
 
 
@@ -125,6 +134,7 @@ class MainWindow(QMainWindow):
         self.backlash_amount = 10
         self.speed = 50
         self.initialized = False
+        self.stop_scan = False
         self.zero_wavelength = 0
 
         # ------------------------------- Initialize GUI Object States -------------------------------------------------
@@ -157,13 +167,11 @@ class MainWindow(QMainWindow):
             return
 
     def update_wavelength(self):
-        print('got inside update_wavelength')
         ii = 1
         while self.mono_instance.continue_updating is True:
             time.sleep(0.01)
             self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
             ii += 1
-        print('broke out of the while True while loop')
 
     def check_for_status_updates(self):
         print('in the check_for_status_updates fn')
@@ -186,48 +194,10 @@ class MainWindow(QMainWindow):
             self.ui.statusbar.showMessage(tmp_message, 10000)
             ii += 1
 
-    # ------------------------------------------------ HOOK UP SLOTS ---------------------------------------------------
-    # SET MONO TAB -------------------------------------
-    @QtCore.pyqtSlot()      # It's unclear if these decorators are actually needed, I think it works without them
-    def set_com_port(self):
-        if self.debug_mode is True:
-            print('...begin set_com_port...')
-            self.resource = self.ui.visa_resource_combobox.currentText()
-            if self.resource == self.select_resource_text:
-                self.resource = None
-            self.ui.statusbar.showMessage(self.resource, 2000)
-            print('...end set_com_port...')
-        else:
-            self.resource = self.ui.visa_resource_combobox.currentText()
-            if self.resource == self.select_resource_text:
-                self.resource = None
-            self.ui.statusbar.showMessage(self.resource, 2000)
-
-    @QtCore.pyqtSlot()
-    def set_groove_density(self):
-        if self.debug_mode is True:
-            print('...begin set_groove_density - debug mode...')
-            gr_dens_str = self.ui.groove_density_combobox.currentText()
-            self.gr_dens = int(gr_dens_str)
-            self.ui.statusbar.showMessage('Groove Density set to ' + gr_dens_str + ' gr/mm', 3000)
-            if isinstance(self.mono_instance, MonoDriver):
-                self.mono_instance.groove_density = self.gr_dens
-                self.mono_instance.get_k_number()
-            print('...end set_groove_density...')
-        else:
-            gr_dens_str = self.ui.groove_density_combobox.currentText()
-            self.gr_dens = int(gr_dens_str)
-            self.ui.statusbar.showMessage('Groove Density set to ' + gr_dens_str + ' gr/mm', 3000)
-            if isinstance(self.mono_instance, MonoDriver):
-                self.mono_instance.groove_density = self.gr_dens
-                self.mono_instance.get_k_number()
-
     def initialization_tasks_thread(self):
-        # self.ui.statusbar.showMessage('Attempting to Initialize Mono', 5000)
-        print('...showed message, attempted initialization')
         try:
             self.mono_instance.initialize_mono()
-
+            self.ui.statusbar.showMessage('Setting Parameters', 5000)
             print('Initialization Success, setting parameters...')
             # self.ui.statusbar.showMessage('Mono Initialized', 5000)
             # self.mono_instance.status_message = 'Setting Speed'
@@ -242,45 +212,77 @@ class MainWindow(QMainWindow):
 
         self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
         print('self.mono_instance.connected: ' + str(self.mono_instance.connected))
+        self.mono_instance.busy = False
+        self.ui.statusbar.showMessage('Initialization Complete - Remember to Set Home Wavelength', 5000)
+        print('-------------------------------------initialization Complete------------------------------------------')
+
+    def scan_worker(self, scan_points, cycles, delay):
+        num_wls = len(scan_points)
+        for jj in range(0, cycles):
+            if self.stop_scan is True:
+                break
+            else:
+                for ii in range(0, num_wls):
+                    if self.stop_scan is True:
+                        break
+                    else:
+                        self.ui.statusbar.showMessage('Moving to ' + str(scan_points[ii]) + ' nm', 5000)
+                        self.mono_instance.go_to_wavelength(scan_points[ii], self.mono_instance.speed,
+                                                            self.backlash_amount, self.backlash_compensation)
+                        self.ui.statusbar.showMessage('Pausing at ' + str(scan_points[ii]) + ' nm', 5000)
+                        time.sleep(delay)
+
+        time.sleep(0.1)     # This just felt right
+        self.ui.statusbar.showMessage('Scan Complete', 5000)
+        self.mono_instance.open_visa()
+        self.mono_instance.current_wavelength = self.mono_instance.get_current_pos()
+        self.mono_instance.close_visa()
+        self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
+        self.stop_scan = False
+        self.mono_instance.busy = False
+        print('----------------------------------Scanning Complete ---------------------------------------------')
+
+    # ------------------------------------------------ HOOK UP SLOTS ---------------------------------------------------
+    # SET MONO TAB -------------------------------------
+    @QtCore.pyqtSlot()      # It's unclear if these decorators are actually needed, I think it works without them
+    def set_com_port(self):
+        print('-----------------------------------Set Com Port ----------------------------------------------')
+        self.resource = self.ui.visa_resource_combobox.currentText()
+        if self.resource == self.select_resource_text:
+            self.resource = None
+        self.ui.statusbar.showMessage(self.resource, 2000)
+
+    @QtCore.pyqtSlot()
+    def set_groove_density(self):
+        print('-------------------------------------Set Groove Density-------------------------------------')
+        gr_dens_str = self.ui.groove_density_combobox.currentText()
+        self.gr_dens = int(gr_dens_str)
+        self.ui.statusbar.showMessage('Groove Density set to ' + gr_dens_str + ' gr/mm', 5000)
+        if isinstance(self.mono_instance, MonoDriver):
+            self.mono_instance.groove_density = self.gr_dens
+            self.mono_instance.get_k_number()
 
     @QtCore.pyqtSlot()
     def clicked_initialize_button(self):
-        if self.debug_mode is True:             # In debug mode, do not try to run mono_instance.initialize
-            print('...begin clicked_initialize_button - debug mode...')
-            if isinstance(self.resource, str):  # Ideally the conditions here would verify more clearly
-                print('...begin clicked_initialize_button if case (resource is a string)...')
-                self.mono_instance = MonoDriver(self.resource, self.gr_dens)
-                self.ui.statusbar.showMessage('Attempting to Initialize Mono', 5000)
-                try:
-                    self.mono_instance.establish_comms()
-                    print('Initialization Success')
-                except:  # Fix this to make it less broad sometime
-                    print('Exception Occurred During Initialization - Add this error to code')
-                    print(str(sys.exc_info()[0]))
-                    print(str(sys.exc_info()[1]))
-                    print(str(sys.exc_info()[2]))
-            else:
-                print('...begin clicked_initialize_button else case (resource is not a string)...')
-                self.ui.statusbar.showMessage('INITIALIZATION FAILED - Resource Selection Failed', 5000)
-                return
+        print('-----------------------------------------Initializing-------------------------------------------------')
+        if isinstance(self.resource, str):           # Ideally the conditions here would verify more clearly
+            self.mono_instance = MonoDriver(self.resource, self.gr_dens)
+            self.mono_instance.busy = True
+            self.ui.statusbar.showMessage('Initializing...')
+            # If first time initializing, add an updates thread to monitor status constantly
+            # This is nice in this script, but it is not exactly the best use of a thread...
+            # if self.initialized is False:
+            #     print('beginning constant status updates')
+            #     updates_thread = Worker(self.check_for_status_updates)
+            #     self.thread_pool.start(updates_thread)
+
+            initialization_thread = Worker(self.initialization_tasks_thread)
+            self.thread_pool.start(initialization_thread)
 
         else:
-            if isinstance(self.resource, str):           # Ideally the conditions here would verify more clearly
-                self.mono_instance = MonoDriver(self.resource, self.gr_dens)
-
-                # If first time initializing, add an updates thread to monitor status constantly
-                if self.initialized is False:
-                    print('beginning constant status updates')
-                    updates_thread = Worker(self.check_for_status_updates)
-                    self.thread_pool.start(updates_thread)
-
-                initialization_thread = Worker(self.initialization_tasks_thread)
-                self.thread_pool.start(initialization_thread)
-
-            else:
-                self.mono_instance.status_message = 'INITIALIZATION FAILED - Resource Selection Failed'
-                # self.ui.statusbar.showMessage('INITIALIZATION FAILED - Resource Selection Failed', 5000)
-                return
+            self.mono_instance.status_message = 'INITIALIZATION FAILED - Resource Selection Failed'
+            # self.ui.statusbar.showMessage('INITIALIZATION FAILED - Resource Selection Failed', 5000)
+            return
 
     @check_mono_instance
     @QtCore.pyqtSlot()
@@ -289,11 +291,8 @@ class MainWindow(QMainWindow):
          with respect to this position. I think it's ok if you move to a different wavelength than the "natural zero"
          i.e. the one it naturally arrives at after initialization, you just have to set the value to what wavelength
          the mono reads """
-        if self.debug_mode is True:
-            print('...begin clicked_home_button - debug mode...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-        else:
+        print('------------------------------------Setting Home ------------------------------------')
+        if self.mono_instance.busy is False:
             print('self.mono_instance.connected inside home btn: ' + str(self.mono_instance.connected))
             self.zero_wavelength = self.ui.calib_wl_spinner.value()
             self.mono_instance.calibration_wavelength = self.zero_wavelength
@@ -301,48 +300,34 @@ class MainWindow(QMainWindow):
             self.mono_instance.current_wavelength = self.mono_instance.calibration_wavelength
             print('Home wavelength is: ' + str(self.zero_wavelength))
             self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
+            self.ui.statusbar.showMessage('Home Wavelength Set', 5000)
 
     @QtCore.pyqtSlot()
     def state_changed_bl_compensation(self):
-        if self.debug_mode is True:
-            print('...begin state_changed_bl_compensation...')
-            self.backlash_compensation = self.ui.backlash_checkbox.isChecked()
-            print('Backlash Compensation is on? ' + str(self.backlash_compensation))
-        else:
-            self.backlash_compensation = self.ui.backlash_checkbox.isChecked()
+        self.backlash_compensation = self.ui.backlash_checkbox.isChecked()
 
     @QtCore.pyqtSlot()
     def value_changed_backlash_spinner(self):
         self.backlash_amount = self.ui.backlash_amount_spinner.value()
-        print('backlash amount changed to ' + str(self.backlash_amount))
-        print('backlash amount type: ' + str(type(self.backlash_amount)))
 
     # SETUP TAB -------------------------------------
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_go_to_wl_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_go_to_wl_button...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-            destination = self.ui.goto_wl_spinner.value()
-            print('Destination wavelength - ' + str(destination))
-        else:
-            destination = self.ui.goto_wl_spinner.value()
-            print('destination wavelength - ' + str(destination))
-            print('bl comp? ' + str(self.backlash_compensation))
-            print('Speed? ' + str(self.mono_instance.speed))
+        print('------------------------------------go to wavelength--------------------------------------')
+        destination = self.ui.goto_wl_spinner.value()
+
+        if self.mono_instance.busy is False:
+            self.mono_instance.busy = True
+
             self.mono_instance.open_visa()
-            print('opened visa main_gotowl')
-            # self.mono_instance.go_to_wavelength(destination, self.mono_instance.speed, self.backlash_amount,
-            #                                     self.backlash_compensation)
 
             worker = Worker(self.mono_instance.go_to_wavelength, destination, self.mono_instance.speed,
                             self.backlash_amount, self.backlash_compensation)
             self.thread_pool.start(worker)
 
             time.sleep(0.2)
-            # Note that I am currently doing this in a very shitty way, Since close visa is part of the second thread
+
             self.mono_instance.continue_updating = True
             get_pos_worker = Worker(self.update_wavelength)
             self.thread_pool.start(get_pos_worker)
@@ -350,13 +335,9 @@ class MainWindow(QMainWindow):
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_nudge_down_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_nudge_down_button...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-            nudge_amount = self.ui.nudge_amount_spinner.value()
-            print('nudge amount - ' + str(nudge_amount) + ' nm down')
-        else:
+        print('---------------------------------------nudge down---------------------------------------------')
+        if self.mono_instance.busy is False:
+            self.mono_instance.busy = True
             nudge_amount = self.ui.nudge_amount_spinner.value()
 
             nudge_thread = Worker(self.mono_instance.nudge, amount_nm=nudge_amount, higher=False)
@@ -375,15 +356,11 @@ class MainWindow(QMainWindow):
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_nudge_up_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_nudge_up_button...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-            nudge_amount = self.ui.nudge_amount_spinner.value()
-            print('nudge amount - ' + str(nudge_amount) + ' nm up')
-        else:
-            nudge_amount = self.ui.nudge_amount_spinner.value()
+        print('---------------------------------------nudge up---------------------------------------')
+        if self.mono_instance.busy is False:
+            self.mono_instance.busy = True
 
+            nudge_amount = self.ui.nudge_amount_spinner.value()
             nudge_thread = Worker(self.mono_instance.nudge, amount_nm=nudge_amount, higher=True)
             self.thread_pool.start(nudge_thread)
 
@@ -399,98 +376,55 @@ class MainWindow(QMainWindow):
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_stop_nudge_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_stop_nudge_button...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-        else:
-            self.mono_instance.stop_motion_bool = True
-            self.mono_instance.stop_motion()
-            self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
+        print('---------------------------------------stop nudge---------------------------------------')
+        self.mono_instance.stop_motion_bool = True
+        self.mono_instance.stop_motion()
+        self.ui.current_wl_output_lineedit.setText(str(self.mono_instance.current_wavelength))
+        self.mono_instance.busy = False
 
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_speed_set_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_speed_set_button - debug mode...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-            speed = self.ui.speed_value_spinner.value()
-            print('speed desired - ' + str(speed))
-        else:
-            speed = self.ui.speed_value_spinner.value()
-            self.mono_instance.set_speed(speed)
-            self.ui.statusbar.showMessage(self.mono_instance.status_message, 5000)
+        print('---------------------------------------speed set---------------------------------------')
+        speed = self.ui.speed_value_spinner.value()
+        self.mono_instance.set_speed(speed)
+        self.ui.statusbar.showMessage(self.mono_instance.status_message, 5000)
 
     # SCAN TAB -------------------------------------
-
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_start_scan_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_start_scan_button - debug mode...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-        else:
-            start_wl = self.ui.scan_start_wl_spinner.value()
-            stop_wl = self.ui.scan_stop_wl_spinner.value()
-            step_wl = self.ui.scan_step_spinner.value()
-            delay = self.ui.scan_pause_spinner.value()
+        print('----------------------------------Start Scan--------------------------------------------')
+        start_wl = self.ui.scan_start_wl_spinner.value()
+        stop_wl = self.ui.scan_stop_wl_spinner.value()
+        step_wl = self.ui.scan_step_spinner.value()
+        delay = self.ui.scan_pause_spinner.value()
+        cycles = self.ui.scan_cycles_spinner.value()
+        self.stop_scan = False
 
-            scan_points, number_wavelengths = calculate_scan_points(start_wl, stop_wl, step_wl)
-            for ii in range(0, number_wavelengths):
-                self.mono_instance.open_visa()
-                self.mono_instance.go_to_wavelength(scan_points[ii], self.mono_instance.speed, self.backlash_amount,
-                                                    self.backlash_compensation)
-
-                self.mono_instance.close_visa()
-                time.sleep(delay)
-
-
-                # worker = Worker(self.mono_instance.go_to_wavelength, destination, self.mono_instance.speed,
-                #                 self.backlash_amount, self.backlash_compensation)
-                # self.thread_pool.start(worker)
-
-                # time.sleep(0.2)
-                # Note that I am currently doing this in a very shitty way, Since close visa is part of the second thread
-                # self.mono_instance.continue_updating = True
-                # get_pos_worker = Worker(self.update_wavelength)
-                # self.thread_pool.start(get_pos_worker)
+        scan_points, number_wavelengths = calculate_scan_points(start_wl, stop_wl, step_wl)
+        if self.mono_instance.busy is False:
+            self.mono_instance.busy = True
+            worker = Worker(self.scan_worker, scan_points, cycles, delay)
+            self.thread_pool.start(worker)
 
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_stop_scan_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_stop_scan_button - debug mode...')
-            self.mono_instance.do_nothing()
-            self.ui.statusbar.showMessage('Does nothing in Debug mode', 5000)
-        else:
-            self.ui.statusbar.showMessage('No code exists for this button', 5000)
-            pass
+        print('-------------------------------------Stop Scan------------------------------------------')
+        self.stop_scan = True
 
     # DEBUG TAB ----------------------------------
     @check_mono_instance
     @QtCore.pyqtSlot()
     def clicked_debug_write_button(self):
-        if self.debug_mode is True:
-            print('...begin clicked_debug_write_button - debug mode...')
-            string_to_write = self.ui.debug_write_str_textbox.toPlainText()
-            print(string_to_write)
-            self.mono_instance.open_visa()
-            self.mono_instance.write_str(string_to_write)
-            print('made it past write_str')
-            self.mono_instance.end_session()
-            print('made it past end_session')
-            self.ui.debug_read_textbox.setPlainText(self.mono_instance.readout)
-            print('text set')
-            self.ui.statusbar.showMessage('Debug mode', 3000)
-        else:
-            string_to_write = self.ui.debug_write_str_textbox.toPlainText()
-            self.mono_instance.open_visa()
-            self.mono_instance.write_str(string_to_write)
-            print('closing visa (debug write)')
-            self.mono_instance.close_visa()
-            self.ui.debug_read_textbox.setPlainText(self.mono_instance.readout)
+        print('---------------------------------------debug write---------------------------------------')
+        string_to_write = self.ui.debug_write_str_textbox.toPlainText()
+        self.mono_instance.open_visa()
+        self.mono_instance.write_str(string_to_write)
+        print('closing visa (debug write)')
+        self.mono_instance.close_visa()
+        self.ui.debug_read_textbox.setPlainText(self.mono_instance.readout)
 
     @QtCore.pyqtSlot()
     def state_changed_debug_checkbox(self):
@@ -508,9 +442,9 @@ class MainWindow(QMainWindow):
 
 
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
-
-app = QApplication(sys.argv)        # Defines the instance of the whole application
-moco_window = MainWindow()          # Declares the instance of the main window class (moco_window.__init__ is called)
-# This ^ is where the gui is prepared before being presented in the next line\/
-moco_window.show()
-sys.exit(app.exec_())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)        # Defines the instance of the whole application
+    moco_window = MainWindow()          # Declares the instance of the main window class (moco_window.__init__ is called)
+    # This ^ is where the gui is prepared before being presented in the next line\/
+    moco_window.show()
+    sys.exit(app.exec_())
