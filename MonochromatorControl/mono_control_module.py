@@ -87,6 +87,7 @@ class MonoDriver(QRunnable):
         self.stop_motion_bool = False
         self.continue_updating = False
         self.stop_moving = False
+        self.busy = False
         # Run instantiation Functions
         self.get_k_number()
         self.in_motion = False
@@ -175,6 +176,7 @@ class MonoDriver(QRunnable):
         # Decide which direction the move is:
         # print('current wavelength: ' + str(self.current_wavelength))
         self.status_message = 'Moving to ' + str(destination) + ' nm'
+        print('Moving to: ' + str(destination))
         if destination < self.current_wavelength:
             direction = 'Down'
         elif destination > self.current_wavelength:
@@ -191,9 +193,11 @@ class MonoDriver(QRunnable):
         self.open_visa()
         self.write_str(tmp_string)
         self.check_position_loop()
+        print('Finished check position loop')
         self.close_visa()
-
-        if direction == 'Down' and backlash_bool is True:
+        print('closed visa in go to wl')
+        if direction == 'Down' and backlash_bool is True and self.stop_moving is False:
+            print('attempting to correct')
             self.status_message = 'Correcting for Backlash'
             self.nudge(backlash_amount, higher=False, stop_updating_at_finish=False)
 
@@ -201,8 +205,9 @@ class MonoDriver(QRunnable):
 
         time.sleep(0.01)
         self.continue_updating = False
+        self.busy = False
         self.status_message = 'Movement Complete'
-        # print('Made it through go_to_wavelength')
+        print('Movement Complete')
 
     def nudge(self, amount_nm, higher, stop_updating_at_finish=True):
         """Give amount in nm, higher as a boolean (true for higher false for lower), and speed
@@ -235,7 +240,7 @@ class MonoDriver(QRunnable):
         if stop_updating_at_finish is True:
             time.sleep(0.01)
             self.continue_updating = False
-
+        self.busy = False
         self.status_message = 'Nudge Completed'
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -320,6 +325,7 @@ class MonoDriver(QRunnable):
             i += 1
         self.in_motion = False
         self.close_visa()
+        self.busy = False
 
     def set_speed(self, speed):
         """ speed is given in nm/sec, a string is output and sent to the stepper"""
@@ -368,9 +374,11 @@ class MonoDriver(QRunnable):
         time.sleep(0.1)
         self.open_visa()
         self.write_str('XZ', read=False)
+        print('wrote stop motion command')
         self.continue_updating = False
         time.sleep(0.1)
         self.close_visa()
+        print('closed visa after stop motion')
 
         # try:
         #     self.close_visa()
@@ -383,7 +391,9 @@ class MonoDriver(QRunnable):
         self.status_message = 'Move Aborted'
         time.sleep(0.1)
         self.open_visa()
+        print('getting current position...')
         self.current_wavelength = self.get_current_pos()
+        print('closing visa after getting position')
         self.close_visa()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -513,6 +523,7 @@ class MonoDriver(QRunnable):
 
     def convert_wl_to_steps_absolute(self, wavelength):
         steps = round((wavelength - self.calibration_wavelength) * self.k_number)
+        steps = int(steps)
         return steps
 
     def convert_steps_absolute_to_wavelength(self, steps):
