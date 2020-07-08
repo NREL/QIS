@@ -1,0 +1,64 @@
+# Keysight 81150A Pulse Function Arbitrary Generator
+# instrument website:
+# https://www.keysight.com/main/techSupport.jspx?cc=US&lc=eng&nid=-536902255.748669&pid=1287544&pageMode=PL# Manual:
+# download manual and page 340 provide the code
+# https://pyvisa.readthedocs.io/en/latest/
+
+import pyvisa
+# from pyvisa.constants import StopBits, Parity
+import time
+import matplotlib.pylab as plt
+import numpy as np
+
+filename = 'ys20070238'
+
+if __name__ == "__main__":
+    set=1  #set parameters
+    rm = pyvisa.ResourceManager()
+    # rm = pyvisa.ResourceManager('C:/windows/system32/visa64.dll')
+    print(rm.list_resources())
+    print(rm)
+    # exit()
+    # inst=rm.open_resource('GPIB0::28::INSTR')    #GBIP cable, Rohde&Schwarz
+    # inst = rm.open_resource('USB0::0x0AAD::0x0054::181799::INSTR')    #USB-B cable, Rohde&Schwarz
+    # inst = rm.open_resource('GPIB0::7::INSTR')     #GBIP cable, Agilent infiniium scope
+    inst = rm.open_resource('USB0::0x0957::0x4108::MY53821982::INSTR')  #USB-B cable, Keysight 81150A Pulse Function Arbitrary Generator
+
+
+    print(inst)
+
+    if (set):
+        print('set parameters')
+
+        # inst.write(':APPL:PULS 10kHz')   #SQU, SIN, RAMP, NOIS, DC
+        # inst.write(':FREQuency 10kHz')
+        inst.write(':APPL:USER 10kHz')     #AWG, arbitrary waveform
+        x=inst.query(':APPL?')  #The function, frequency, amplitude, and offset are returned
+        print(x)
+        # wave=[8192, -8192, 8192, -8192, -8192]
+
+        #create double pulse, period=100us, first pulse 3us, gap 10us, second pulse 3us
+        wave=[-8192]*100
+        wave[0]=8192
+        wave[1]=8192
+        wave[2]=8192
+        wave[13]=8192
+        wave[14]=8192
+        wave[15]=8192
+        # print(wave)
+
+        temp=str(wave)
+        # print((temp[19]))  ##"["
+        temp=temp.replace('[', '')
+        waveform=temp.replace(']', '')
+        inst.write(":DATA:DAC VOLATILE,"+waveform)
+        # inst.write(":DATA:DAC VOLATILE, 8192, -8192, 8192, -8192, -8192")
+
+
+
+
+
+
+
+
+
