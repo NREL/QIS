@@ -1,0 +1,74 @@
+# Agilent infiniium scope
+# Export data using GPIB cable
+# Write down time resolution, us/div, Or check the saved csv file
+
+import pyvisa
+# from pyvisa.constants import StopBits, Parity
+import time
+import matplotlib.pylab as plt
+
+
+def AgilentScope(channel, folder, filename):
+    rm = pyvisa.ResourceManager()
+    print(rm.list_resources())
+    print(rm)
+    inst = rm.open_resource('GPIB1::7::INSTR')  ##GBIP, Agilent infiniium scope, 1GBIP cable,0; 2 GBIP cables,1
+    print(inst)
+
+    y = inst.query(":WAVEFORM:PREAMBLE?")
+    print("data", y)  # format, type,
+    print("# points: " + y[4:11])
+    print("x time base, s: " + y[13:28])
+    # print("counts (averages): " + y[3])
+
+    inst.write(":WAVeform:SOURce CHANnel"+str(channel))
+    # inst.write(":ACQuire:COUNt 10")
+    x = inst.query(":WAV:DATA?")  ##only reads 1 channel
+
+    with open(folder + filename + ".txt", "w") as txt_file:
+        for line in x:
+            txt_file.write(" ".join(line))  # space doesn't matter, use + "\n"
+
+    flu = np.genfromtxt(folder + filename + '.txt', delimiter=',')  #, fmt='%f'
+
+    # file = open(folder + filename + ".txt", 'r')  ##400730 pts
+    # for line in file.readlines():
+    #     fname = line.split(',')  # , \t
+    # n = len(fname)  ## n=200 3336, 80 1336, 801457, 400730 same as saved csv on scope, but need to write down points and x-axis
+    # print("# points: ", n)
+    # flu = [None] * n
+    # for k in range(n):
+    #     flu[k] = float(fname[k])
+
+    plt.plot(flu)
+    plt.xlabel('Index')
+    plt.ylabel('Signal Amplitude, AU')
+    plt.title('Infiniium Oscilloscope, AWG ouput Arbitrary,double pulse ' + filename)
+    plt.show()
+
+
+
+if __name__ == "__main__":
+    folder = '/Users/yshi2/Documents/2020.8.12H/'
+    # folder = ''   #current folder
+    filename = 'ys20081406'
+    channel = 1
+    AgilentScope(channel, folder, filename)
+
+
+
+##  ":WAVEFORM:PREAMBLE?" return:
+# FORMAT        : int16 - 0 = BYTE, 1 = WORD, 2 = ASCII.
+# TYPE          : int16 - 0 = NORMAL, 1 = PEAK DETECT, 2 = AVERAGE
+# POINTS        : int32 - number of data points transferred.
+# COUNT         : int32 - 1 and is always 1.
+# XINCREMENT    : float64 - time difference between data points.
+# XORIGIN       : float64 - always the first data point in memory.
+# XREFERENCE    : int32 - specifies the data point associated with XORIGIN
+# YINCREMENT    : float32 - voltage diff between data points.
+# YORIGIN       : float32 - value is the voltage at center screen.
+# YREFERENCE    : int32 - specifies the data point where y-origin occurs
+
+
+
+
