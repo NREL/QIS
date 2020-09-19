@@ -11,18 +11,15 @@ import pyvisa
 import time
 import numpy as np
 
-# from PySide2.QtUiTools import QUiLoader
-# from PySide2.QtCore import QFile
-
 from decorator import decorator
 import PyQt5
 
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QThreadPool, QRunnable
 
-from mono_control_module import MonoDriver
-from mono_control_gui import Ui_MainWindow
+from MonochromatorControl.mono_control_module import MonoDriver
+from MonochromatorControl.mono_control_gui import Ui_MainWindow
 
 pyqt = os.path.dirname(PyQt5.__file__)          # This and the following line are essential to make guis run
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))

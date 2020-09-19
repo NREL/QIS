@@ -1,0 +1,1029 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>646</width>
+    <height>609</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QTabWidget" name="tab_widget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>631</width>
+     <height>501</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>5</number>
+   </property>
+   <widget class="QWidget" name="general_tab">
+    <attribute name="title">
+     <string>General</string>
+    </attribute>
+    <widget class="QWidget" name="formLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>9</y>
+       <width>301</width>
+       <height>461</height>
+      </rect>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label_21">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Connected Instruments</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_22">
+        <property name="text">
+         <string>SR844 Lock-in Amplifier</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="sr844_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_23">
+        <property name="text">
+         <string>SR830 Lock-in Amplifier</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="sr830_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="md2000_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="cg635_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QCheckBox" name="smb100a_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QCheckBox" name="montana_instr_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QCheckBox" name="toptica_checkbox">
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_24">
+        <property name="text">
+         <string>Monochromator Driver (MD2000)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_25">
+        <property name="text">
+         <string>Clock Generator (CG 635)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_26">
+        <property name="text">
+         <string>RF (Microwave) Source (SMB100A)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_27">
+        <property name="text">
+         <string>Cryostat/Magnet (Montana Instruments)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_28">
+        <property name="text">
+         <string>Pump Laser (Toptica iBeam Smart)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="lockin_tab">
+    <attribute name="title">
+     <string>Lock-in</string>
+    </attribute>
+    <widget class="QWidget" name="formLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>399</x>
+       <y>9</y>
+       <width>211</width>
+       <height>205</height>
+      </rect>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0" colspan="2">
+       <widget class="QPushButton" name="auto_sens_btn">
+        <property name="text">
+         <string>Auto Sensitivity Adjust</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QPushButton" name="auto_creserve_btn">
+        <property name="text">
+         <string>Auto Close Reserve (SR844)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QPushButton" name="auto_wreserve_btn">
+        <property name="text">
+         <string>Auto Wide Reserve (SR844)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Auto Phase</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="text">
+         <string>Auto Offset X/Y</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QPushButton" name="auto_dyn_reserve_btn">
+        <property name="text">
+         <string>Auto Reserve (SR830)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>381</width>
+       <height>451</height>
+      </rect>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>358</width>
+        <height>634</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Filter Slope</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>GPIB Address (SR844)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Input Impedance</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>Com Port</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Sensitivity</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QComboBox" name="filter_slope_combobox">
+         <item>
+          <property name="text">
+           <string>No Filter</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>6 dB/Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>12 dB/Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>18 dB/Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>24 dB/Octave</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="14" column="1">
+        <widget class="QComboBox" name="ref_impedance_combobox">
+         <item>
+          <property name="text">
+           <string>50 Ω</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>10 kΩ / 40 pF</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="sr844_gpib_address_spinner"/>
+       </item>
+       <item row="12" column="1">
+        <widget class="QComboBox" name="sampling_rate_combobox">
+         <item>
+          <property name="text">
+           <string>0.0625 (16 s)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.125 (8 s)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.250 (4 s)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>0.500 (2 s)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>8</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>16</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>32</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>64</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>128</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>256</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>512</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Trigger</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QComboBox" name="dynamic_reserve_combobox">
+         <item>
+          <property name="text">
+           <string>High Reserve (Max)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Normal</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Low Noise (Min)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Time Constant</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Expand</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Sampling Rate</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Wide Reserve (SR844)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSpinBox" name="sr830_gpib_address_spinner"/>
+       </item>
+       <item row="19" column="1">
+        <widget class="QComboBox" name="expand_combobox">
+         <item>
+          <property name="text">
+           <string>x1 (off)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>x10</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>x100</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="15" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Reference Source</string>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Reference Impedance</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="1">
+        <widget class="QComboBox" name="ref_source_combobox">
+         <item>
+          <property name="text">
+           <string>External</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Internal</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2F (External Ref)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2F (Internal Ref)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QComboBox" name="wide_reserve_combobox">
+         <item>
+          <property name="text">
+           <string>High</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Normal</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Low Noise</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QComboBox" name="close_reserve_combobox">
+         <item>
+          <property name="text">
+           <string>High</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Normal</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Low Noise</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="16" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>2F Detect Mode (SR844)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>GPIB Address (SR830)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="lockin_com_port_spinner"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="lockin_model_combobox">
+         <item>
+          <property name="text">
+           <string>SR844 (25 kHz-200 MHz)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>SR830 (1 mHz-102 kHz)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="16" column="1">
+        <widget class="QComboBox" name="sr844_harmonic_combobox">
+         <item>
+          <property name="text">
+           <string>Off</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>On</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="sensitivity_combobox">
+         <item>
+          <property name="text">
+           <string>UNDER CONSTRUCTION</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="21" column="0" colspan="2">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>Note: Sensitivity default cannot be changed (damage risk)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="18" column="1">
+        <widget class="QDoubleSpinBox" name="phase_spinner"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Lock-in Model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QComboBox" name="time_constant_combobox">
+         <item>
+          <property name="text">
+           <string>100  μs</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>300  μs</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1     ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3     ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>10   ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>30   ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>100 ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>300 ms</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1        s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3        s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>10      s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>30      s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>100    s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>300    s</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1      ks</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3      ks</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>10    ks</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>30    ks</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Outputs</string>
+         </property>
+        </widget>
+       </item>
+       <item row="18" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Phase</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="outputs_combobox">
+         <item>
+          <property name="text">
+           <string>R / θ (V/degrees)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>X / Y</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Manual</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>Dynamic Reserve (SR830)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="20" column="0" colspan="2">
+        <widget class="QPushButton" name="save_as_dflt_btn">
+         <property name="text">
+          <string>Save as Default Values</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="1">
+        <widget class="QComboBox" name="input_impedance_combobox">
+         <item>
+          <property name="text">
+           <string>50 Ω</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1 MΩ / 30 pF</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Close Reserve (SR844)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="17" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>Harmonic (SR830)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="17" column="1">
+        <widget class="QSpinBox" name="harmonic_spinner"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="mono_tab">
+    <attribute name="title">
+     <string>Monochromator</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Rohde &amp;&amp; Schwarz</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>CG635 (Clock Generator)</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tab_3">
+    <attribute name="title">
+     <string>Magnet/Cryostat</string>
+    </attribute>
+   </widget>
+  </widget>
+  <widget class="QFrame" name="frame">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>510</y>
+     <width>629</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(255, 255, 255);</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>611</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="1" column="2">
+      <widget class="QPushButton" name="cancel_btn">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(225, 225, 225);</string>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="set_all_params_btn">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(225, 225, 225);</string>
+       </property>
+       <property name="text">
+        <string>All Tabs</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="set_tab_params_btn">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(225, 225, 225);</string>
+       </property>
+       <property name="text">
+        <string>Current Tab</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_29">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Set Parameters</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>save_as_dflt_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>save_as_dflt_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>359</x>
+     <y>460</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>384</x>
+     <y>494</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>set_all_params_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>set_all_params_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>302</x>
+     <y>571</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>458</x>
+     <y>511</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancel_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>cancel_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>494</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>633</x>
+     <y>494</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>auto_sens_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>auto_sens_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>531</x>
+     <y>61</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>652</x>
+     <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lockin_model_combobox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>Form</receiver>
+   <slot>lockin_model_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>280</x>
+     <y>-114</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>445</x>
+     <y>0</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>set_tab_params_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>set_tab_params_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>132</x>
+     <y>560</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>656</x>
+     <y>422</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>save_as_dflt_btn_clicked()</slot>
+  <slot>set_all_params_btn_clicked()</slot>
+  <slot>auto_sens_btn_clicked()</slot>
+  <slot>cancel_btn_clicked()</slot>
+  <slot>lockin_model_changed()</slot>
+  <slot>set_tab_params_btn_clicked()</slot>
+ </slots>
+</ui>

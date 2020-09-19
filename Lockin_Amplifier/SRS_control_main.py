@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT, FigureCanvasQTAgg
 
 from Lockin_Amplifier.SRS_844_UI import Ui_Form as LockinUiForm
-from Lockin_Amplifier.SR_844_using_Prologix_Module import PrologixAdaptedSR844
+from Lockin_Amplifier.SR_Lockin_using_Prologix_Module import PrologixAdaptedSRLockin
 
 #TODO:
 # 1. Figure out why the hell the query button doesn't allow me to query, when it worked immediately before during setup
