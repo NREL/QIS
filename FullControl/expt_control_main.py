@@ -1,7 +1,7 @@
 #TODO:
 # Critical:
-# Left off Friday: "Laser on" command is not receiving a prompt in the response.Unsure if laser is turning on or not,
-# but after rerunning the module, laser status shows up as off.
+# -1. Laser initialization tests should be updated at the settings window.
+# 0. Add laser on indicator light to the MAIN Window as well.
 # 0. Add a "check for connectivity" error handler for functions which require it. (e.g. using self.cg635_connected)
 # 0a. self.cg635_connected may be better as self.cg635.connected (attribute of the instrument)
 # 1. Figure out how to remove dependency-type conflicts (e.g. several instrument control programs have separate Worker
