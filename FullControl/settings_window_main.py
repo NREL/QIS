@@ -91,12 +91,14 @@ class SettingsWindowForm(QWidget):
         self.relevant_instruments = param_lines[1].split('#')[0].split()[2].split(',')
         self.prologix_com_port = param_lines[2].split('#')[0].split()[2]
         self.lockin_model_preference = param_lines[3].split('#')[0].split()[2]
+        self.lockin_delay_scaling_factor = int(param_lines[4].split('#')[0].split()[2])
+        self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
         print(self.lockin_model_preference)
         print("prologix com port: " + str(self.prologix_com_port))
 
         # SR844 Settings
         self.sr844_gpib_address = int(param_lines[20].split('#')[0].split()[2])
-        self.sr844_outputs = int(param_lines[21].split('#')[0].split()[2])
+        # self.sr844_outputs = int(param_lines[21].split('#')[0].split()[2])      # This is now deprecated
         self.sr844_sensitivity = int(param_lines[22].split('#')[0].split()[2])
         self.sr844_filter_slope = int(param_lines[23].split('#')[0].split()[2])
         self.sr844_time_constant = int(param_lines[24].split('#')[0].split()[2])
@@ -111,7 +113,7 @@ class SettingsWindowForm(QWidget):
 
         # SR830 Settings
         self.sr830_gpib_address = int(param_lines[40].split('#')[0].split()[2])
-        self.sr830_outputs = int(param_lines[41].split('#')[0].split()[2])
+        # self.sr830_outputs = int(param_lines[41].split('#')[0].split()[2])      # This is now deprecated
         self.sr830_sensitivity = int(param_lines[42].split('#')[0].split()[2])
         self.sr830_filter_slope = int(param_lines[43].split('#')[0].split()[2])
         self.sr830_time_constant = int(param_lines[44].split('#')[0].split()[2])
@@ -183,6 +185,10 @@ class SettingsWindowForm(QWidget):
 
         self.ui.lockin_model_lineedit.setDisabled(True)
         try:
+            com_number = int(self.prologix_com_port.split('L')[1].split(':')[0])
+            self.ui.prologix_com_port_spinner.setValue(com_number)
+
+            self.ui.outputs_combobox.setCurrentIndex(self.lockin_outputs)
             if self.lockin_model_preference == 'SR844':
                 self.ui.lockin_model_lineedit.setText('SR844 (25 kHz - 200 MHz)')
                 self.ui.sr844_checkbox.setChecked(True)
@@ -198,15 +204,6 @@ class SettingsWindowForm(QWidget):
                 self.ui.harmonic_spinner.setDisabled(True)
                 self.ui.sr844_harmonic_combobox.setDisabled(False)
                 print('(en)(dis)abling done')
-
-                # print('lockin model pref was SR844')
-                # self.ui.lockin_model_combobox.setCurrentIndex(0)
-
-                com_number = int(self.prologix_com_port.split('L')[1].split(':')[0])
-                self.ui.prologix_com_port_spinner.setValue(com_number)
-
-                print('first set done')
-                self.ui.outputs_combobox.setCurrentIndex(self.sr844_outputs)
 
                 # Sensitivity
                 self.ui.sensitivity_combobox.clear()
@@ -248,14 +245,6 @@ class SettingsWindowForm(QWidget):
 
                 print('(en)(dis)abling done')
 
-                # print('lockin model pref was SR830')
-                # self.ui.lockin_model_combobox.setCurrentIndex(1)
-
-                com_number = int(self.prologix_com_port.split('L')[1].split(':')[0])
-                self.ui.prologix_com_port_spinner.setValue(com_number)
-
-                print('first set done')
-                self.ui.outputs_combobox.setCurrentIndex(self.sr830_outputs)
                 # Sensitivity
                 self.ui.sensitivity_combobox.clear()
                 self.ui.sensitivity_combobox.addItems(self.sr830_sens_list)
@@ -437,11 +426,11 @@ class SettingsWindowForm(QWidget):
             self.prologix_com_port = 'ASRL' + str(com_idx) + '::INSTR'
             print('General Settings tab not set up')
         elif which_tab == 1:
+            self.lockin_outputs = self.ui.outputs_combobox.currentIndex()
             if self.lockin_model_preference == 'SR844':
                 # self.lockin_model_preference = 'SR844'
 
                 self.sr844_gpib_address = self.ui.sr844_gpib_address_spinner.value()
-                self.sr844_outputs = self.ui.outputs_combobox.currentIndex()
                 self.sr844_sensitivity = self.ui.sensitivity_combobox.currentIndex()
                 self.sr844_filter_slope = self.ui.filter_slope_combobox.currentIndex()
                 self.sr844_time_constant = self.ui.time_constant_combobox.currentIndex()
@@ -455,9 +444,7 @@ class SettingsWindowForm(QWidget):
                 self.sr844_expand = self.ui.expand_combobox.currentIndex()
 
             elif self.lockin_model_preference == 'SR830':
-
                 self.sr830_gpib_address = self.ui.sr830_gpib_address_spinner.value()
-                self.sr830_outputs = self.ui.outputs_combobox.currentIndex()
                 self.sr830_sensitivity = self.ui.sensitivity_combobox.currentIndex()
                 self.sr830_filter_slope = self.ui.filter_slope_combobox.currentIndex()
                 self.sr830_time_constant = self.ui.time_constant_combobox.currentIndex()

@@ -1,5 +1,14 @@
 #TODO:
 # Critical:
+# -10. Merge lock-in settings that are shared (like sampling rate)
+# -9. Reoptimize lock-in parameters (like sensitivity) after every frequency change (make this a setting?)
+# -8. Lock-in delay should be scaled by a factor chosen by the user in settings (usually 10x time constant)
+# -7. Get all massive lock-in write/updates into the control module instead of this main window script
+# -6. Associate an attribute with every lockin attribute. In that module.
+# -5. Should I incorporate a "serial poll" type approach to the errors? (i.e. each bit means something different)
+# -4. Incorporate the frequency mismatch warning into a window (At the end of the experiment?)
+# -3. Incorporate better error handling into the CG635 module
+# -2. Aggressive precision on floats will be a problem since the last digits may be random values(eg.25.000000000000007)
 # -1. Laser initialization tests should be updated at the settings window.
 # 0. Add laser on indicator light to the MAIN Window as well.
 # 0. Add a "check for connectivity" error handler for functions which require it. (e.g. using self.cg635_connected)
@@ -11,18 +20,12 @@
 # (e.g. self.cg635.err, self.toptica.err, which are either None or an integer
 # 4. Error checking should be more frequent. All new visa operations should require error input and generate output
 # 3. Test the CG635 stuff and finish integrating it
-# 4. Incorporate actual pump modulation frequency scanning
-# 6. Add the choice of abscissa to the data_collection_tasks thread
 # 4. Incorporate a scan probe wavelength (at set pump mod frequency) option (TA Spectrum)
-# 5. Add a "units" indicator to the scan start and end inputs
-# 6. Hz or kHz? (probably want to plot in Hz but enter values in kHz?)
 # 7. Get all the settings windows buttons to work
 # 9. Incorporate an "if ...connected" before "set params"
 # 10. Get slots for all the CG635 signals (make CG635 control module)
 # Niceties:
-# 1. Should the "connect instruments" stuff go into a worker (so the lights update independently when one instrument
-# is done (may be only a nicety)
-# 1. Add a "connect all" button to the settings window/general tab
+# 0. Delete the "cancel" button in the settings (a "restore this tab" to default would be better)
 # 1. Add live error bars could be put on each point based on standard deviation or something.
 # This would be awesome for knowing when to stop an experiment
 # 2. Live fitting with uncertainties would be a nice feature
@@ -189,6 +192,9 @@ class Presets:              # Presumably I should incorporate these into the Set
 
 
 class MainWindow(QMainWindow):
+    lockin_error_signal = QtCore.pyqtSignal(str)
+    general_error_signal = QtCore.pyqtSignal(dict)
+
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
@@ -218,6 +224,7 @@ class MainWindow(QMainWindow):
         self.start = None
         self.end = None
         self.step_count = None
+        self.lockin_delay = 0
 
         self.scaling_pref = 'linear'
         self.x_axis_label = None
@@ -234,6 +241,8 @@ class MainWindow(QMainWindow):
         self.toptica = TopticaInstr()
 
         # ---------------------------------- CONNECT INTER-WINDOW SIGNALS AND SLOTS ------------------------------------
+        self.lockin_error_signal.connect(self.lockin_error_window)
+        self.general_error_signal.connect(self.general_error_window)
         self.settings.update_all_signal.connect(self.update_all_slot)
         self.settings.update_tab_signal.connect(self.update_tab_slot)
         self.settings.cg635_set_freq_signal.connect(self.cg635_set_freq_slot)
@@ -268,14 +277,14 @@ class MainWindow(QMainWindow):
             print('SR830 Is Selected')
             # Disable SR844 Stuff
             # Set Settings:
-            if self.settings.sr830_outputs == 0:
+            if self.settings.lockin_outputs == 0:
                 print('attempting to set outputs to R and Theta')
                 self.lockin.write_string('DDEF 1, 1, 0\n', read=False)
                 self.lockin.write_string('DDEF 2, 1, 0\n', read=False)
 
                 # self.lockin.write_string('TRCD 1, 3, 0, 0, 1\n', read=False)
                 # self.lockin.write_string('TRCD 2, 4, 0, 0, 1\n', read=False)
-            elif self.settings.sr830_outputs == 1:
+            elif self.settings.lockin_outputs == 1:
                 print('attempting to set Outputs to X and Y')
                 self.lockin.write_string('DDEF 1, 0, 0\n', read=False)
                 self.lockin.write_string('DDEF 2, 0, 0\n', read=False)
@@ -290,6 +299,7 @@ class MainWindow(QMainWindow):
             print('setting the TC')
             print(self.settings.sr830_time_constant)
             self.lockin.write_string('OFLT %d\n' % self.settings.sr830_time_constant, read=False)
+            self.lockin.time_constant = self.lockin.tc_options(self.settings.sr830_time_constant)
 
             print('seting dynamic reserve')
             self.lockin.write_string('RMOD %d\n' % self.settings.sr830_dyn_reserve_mode, read=False)
@@ -307,11 +317,11 @@ class MainWindow(QMainWindow):
             print('SR844 is Selected')
             # Disable SR830 Stuff
 
-            if self.settings.sr844_outputs == 0:
+            if self.settings.lockin_outputs == 0:
                 print('attempting to set outputs to R and Theta')
                 self.lockin.write_string('DDEF 1, 1\n', read=False)
                 self.lockin.write_string('DDEF 2, 1\n', read=False)
-            elif self.settings.sr844_outputs == 1:
+            elif self.settings.lockin_outputs == 1:
                 self.lockin.write_string('DDEF 1, 0\n', read=False)
                 self.lockin.write_string('DDEF 2, 0\n', read=False)
 
@@ -322,6 +332,8 @@ class MainWindow(QMainWindow):
             print('setting the time constant')
             # Set the time constant
             self.lockin.write_string('OFLT %d\n' % self.settings.sr844_time_constant, read=False)
+            self.lockin.time_constant = self.lockin.tc_options[self.settings.sr844_time_constant]
+
             print('setting the reserves')
             self.lockin.write_string('WRSV %d; CRSV %d\n' % (self.settings.sr844_wide_reserve,
                                                              self.settings.sr844_close_reserve), read=False)
@@ -351,11 +363,16 @@ class MainWindow(QMainWindow):
             print('lockin settings set')
         else:
             print('Invalid Lockin Preference')
-            error_message_window(text='Lock-in Could Not Be Updated',
-                                 inform_text='Check that selected lock-in is connected and powered on,'
-                                             ' then reestablish communications')
+            # error_message_window(text='Lock-in Could Not Be Updated',
+            #                      inform_text='Check that selected lock-in is connected and powered on,'
+            #                                  ' then reestablish communications')
+            self.general_error_signal.emit({'Title': ' - Warning - ',
+                                       'Text': 'Lock-in could not be updated',
+                                       'Informative Text': 'Check that selected lock-in is connected and powered on,'
+                                                           ' then reestablish communications',
+                                       'Details': None})
         # Select the outputs displayed on the lock-in display
-
+        self.lockin_delay = self.lockin.time_constant * self.settings.lockin_delay_scaling_factor
 
 
     # -------------------------------------------SLOT DEFINITIONS ------------------------------------------------------
@@ -442,14 +459,21 @@ class MainWindow(QMainWindow):
                 self.set_lockin_settings()
                 print('Lockin Settings Set')
             except:
-                error_message_window(text='Lock-in Settings Could Not Be Set!',
-                                     inform_text='Unknown error',
-                                     details=str(sys.exc_info()[:]))
+                # error_message_window(text='Lock-in Settings Could Not Be Set!',
+                #                      inform_text='Unknown error',
+                                     # details=str(sys.exc_info()[:]))
+                # self.general_error_signal.emit([' - Warning - ', 'Lock-in Settings Could Not be Set!', 'Unknown Error',
+                #                                 str(sys.exc_info)[:]])
+                self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Lock-in Settings Could not be Set!',
+                                                'Informative Text': 'Unknown Error', 'Details': str(sys.exc_info()[:])})
                 print(sys.exc_info()[:])
         elif did_comms_fail is True:
-            error_message_window(text='Communication with Lock-in Failed!',
-                                 inform_text='Check that selected lock-in model is connected and powered on',
-                                 details=str(traceback[:]))
+            # error_message_window(text='Communication with Lock-in Failed!',
+            #                      inform_text='Check that selected lock-in model is connected and powered on',
+            #                      details=str(traceback[:]))
+            self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Communication with Lock-in Failed!',
+                                           'Informative Text': 'Check that selected lock-in model is connected and powered on',
+                                           'Details': str(sys.exc_info()[:])})
 
     def connect_md2000(self):
         try:
@@ -468,7 +492,9 @@ class MainWindow(QMainWindow):
         except pyvisa.VisaIOError:
             print(sys.exc_info()[:])
             self.settings.instrument_status_changed('md2000', 2)
-            error_message_window('Mono Communications Failed', 'You Lose', 'Try again')
+            self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Communication with Mono Failed!',
+                                            'Informative Text': 'Check that instrument is connected and powered on',
+                                            'Details': str(sys.exc_info()[:])})
 
     def connect_toptica(self):
         print('---------------------------------- CONNECTING TOPTICA LASER -------------------------------------------')
@@ -477,9 +503,9 @@ class MainWindow(QMainWindow):
         if comms_error is not None:
             self.toptica_connected = False
             self.settings.instrument_status_changed('toptica', 2)
-            error_message_window(text='Communication with Toptica Laser Failed!',
-                                 inform_text='Check that instrument is connected and powered on.',
-                                 details='Toptica module comm_error: ' + str(comms_error))
+            self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Communication with Laser Failed!',
+                                            'Informative Text': 'Check that instrument is connected and powered on',
+                                            'Details': str(sys.exc_info()[:])})
         else:
             self.toptica_connected = True
             self.settings.instrument_status_changed('toptica', 1)
@@ -498,17 +524,21 @@ class MainWindow(QMainWindow):
         if did_comms_fail is True:
             self.cg635_connected = False
             self.settings.instrument_status_changed('cg635', 2)
-            error_message_window(text='Communication with CG635 Failed!',
-                                 inform_text='Check that instrument is connected and powered on.\n\n'
+            # error_message_window(text='Communication with CG635 Failed!',
+            #                      inform_text='Check that instrument is connected and powered on.\n\n'
+            #                                  'Check that GPIB/RS232 control is enabled on device.\n\n'
+            #                                  'Check GPIB address and COM port are correct (settings)',
+            #                      details=str(traceback[:]))
+            self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Communication with CG635 Failed!',
+                                            'Informative Text': 'Check that instrument is connected and powered on.\n\n'
                                              'Check that GPIB/RS232 control is enabled on device.\n\n'
                                              'Check GPIB address and COM port are correct (settings)',
-                                 details=str(traceback[:]))
+                                            'Details': str(traceback[:])})
         else:
             self.cg635_connected = True
             self.settings.instrument_status_changed('cg635', 1)
 
-    @QtCore.pyqtSlot()
-    def connect_instruments(self):
+    def connect_instruments_worker(self):
         print('------------------------------------- CONNECTING INSTRUMENTS --------------------------------------\n\n')
         if self.settings.ui.md2000_checkbox.isChecked():  # Initialize Monochromator
             self.connect_md2000()
@@ -518,6 +548,18 @@ class MainWindow(QMainWindow):
             self.connect_cg635()
         if self.settings.ui.toptica_checkbox.isChecked():
             self.connect_toptica()
+
+    @QtCore.pyqtSlot()
+    def connect_instruments(self):
+        self.settings.ui.status_ind_smb100a.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_toptica.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_sr844.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_sr830.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_md2000.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_cg635.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_cryostat.setText(self.settings.off_led_str)
+        connect_worker = Worker(self.connect_instruments_worker)
+        self.thread_pool.start(connect_worker)
 
     @QtCore.pyqtSlot(str)
     def cg635_freq_changed_slot(self, new_freq):
@@ -554,6 +596,9 @@ class MainWindow(QMainWindow):
 
     def data_collection_tasks(self, filename=None, filetype=None):
         #TODO: Incorporate 2D Data
+        # 1. SAMPLING Rate for the SR844 is currently used no matter which lock-in you choose (bad)
+        print('---------------------------------- BEGINNING EXPERIMENT THREAD ----------------------------------------')
+        print('----------------------------------- Preparing Data Storage Arrays -------------------------------------')
 
         # -------------------------------------- PREPARE DATA STORAGE VARIABLES ----------------------------------------
         num_steps = self.ui.num_steps_spinner.value()
@@ -579,37 +624,54 @@ class MainWindow(QMainWindow):
         stored_ch1_data_matrix = np.zeros((num_steps, num_scans + 1))  # I think I could rid myself of this..  but 4 now
         stored_ch2_data_matrix = np.zeros((num_steps, num_scans + 1))
 
+        actual_x_values = np.zeros((num_steps, 1))
         ch_1_col_headers = [self.column_headers[0]] + (np.arange(1, num_scans + 1)).tolist()
         ch_2_col_headers = [self.column_headers[0]] + (np.arange(1, num_scans + 1)).tolist()
 
-        print('axes cleared')
         steps_array = np.array(self.step_pts)
 
         self.axis_1.clear()
         self.axis_2.clear()
         self.set_plot_properties()
 
+        print('---------------------------------- BEGINNING MAIN EXPERIMENT LOOP -------------------------------------')
         for jj in range(0, num_scans):
+            print('---------------------------------------- SCAN %d ---------------------------------------------' % jj)
             if self.abort_scan is True:
                 break
             else:
                 for ii in range(0, num_steps):
-                    print('jj = ' + str(jj))
-                    print('ii = ' + str(ii))
+                    t0_ii_loop = time.time()
                     if self.abort_scan is True:
                         break
                     else:
                         next_step = self.step_pts[ii]
-                        print('Next Step is: ' + str(next_step))
+                        print('Next Step is: ' + str(next_step) + '(Step ' + str(ii+1) + ' of ' + str(num_steps) + ')')
 
                         if self.abscissa_1 is 0:  # Empty Header line
                             pass
                         elif self.abscissa_1 is 1:  # Pump Modulation Frequency
-                            print('Setting Pump Mod Freq')
-                            # ------------ SET THE PUMP MODULATION FREQUENCY-----------------------
-                            # print('mod_freq: ' + str(mod_freq))
-                            self.cg635.set_freq(freq_to_set=next_step)
-                            print('Frequency is now at: ' + str(self.cg635.current_freq))
+                            print('------------------------ SETTING CG635 MODULATION FREQUENCY -----------------------')
+
+                            if self.cg635_connected is False:
+                                print('Cg635 was not connected')
+
+                                self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                                'Text': ' Experiment Aborted',
+                                                                'Informative Text': 'CG635 Communication is not set up',
+                                                                'Details': None})
+                                return
+                            else:
+                                error = self.cg635.set_freq(freq_to_set=next_step)
+                                if error is not None:
+                                    # error_message_window('Scan Aborted, CG635 Error', inform_text=error)
+                                    self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                                    'Text': 'Scan Aborted, CG635 Error',
+                                                                    'Informative Text': error})
+                                    return
+                                print('Frequency is now at: ' + str(self.cg635.current_freq))
+                                if jj == 0:
+                                    actual_x_values[ii] = self.cg635.current_freq
 
                         elif self.abscissa_1 is 2:  # Probe Wavelength
                             print('Setting Probe Wavelength')
@@ -626,11 +688,37 @@ class MainWindow(QMainWindow):
                         else:
                             print('there are this many possible abscissae?')
 
-                        # ---------------------- RECORD THE LOCKIN RESULTS ----------------------------
+                        dt_set_freq = time.time() - t0_ii_loop
+                        print('dt_set_freq: ' + str(dt_set_freq))
+
+                        print('---------------------------- CHECKING FOR LOCKIN ISSUES -------------------------------')
+                        # As in overloads, phase locking to reference.
+                        self.lockin.open()      # Open also sets the correct GPIB address
+                        self.lockin.lockin_instance.write('*CLS\n')
                         self.lockin.clear_buffers()
+                        lia_error = self.lockin.check_status()
+                        kk = 0
+                        # It may take some time for the lockin internal oscillator  to lock to the reference freq
+                        while lia_error is not None and kk < 200:
+                            lia_error = self.lockin.check_status()
+                            # print('lia error' + str(lia_error))
+                            # print('loop iteration: ' + str(kk))
+                            time.sleep(0.001)
+                            kk = kk+1
+
+                        if lia_error is not None:
+                            self.lockin_error_signal.emit(str(lia_error))
+                        dt_check_lia = (time.time() - t0_ii_loop) - dt_set_freq
+                        print('dt_check_lia' + str(dt_check_lia))
+
+                        t0_record_data = time.time()
+                        # ---------------------- RECORD THE LOCKIN RESULTS ----------------------------
+                        print('----------------------------- PAUSING FOR LOCK-IN SETTLING ----------------------------')
+                        time.sleep(self.lockin_delay)   # Wait for the lock-in output to settle
+                        print('------------------------------- COLLECTING DATA ---------------------------------------')
                         ch1_data, ch2_data = self.lockin.collect_data(duration, self.settings.sr844_sampling_rate,
                                                                       record_both_channels=True)
-                        print('survived the collection')
+                        print('-------------------------- AVERAGING AND PLOTTING NEW DATA ----------------------------')
 
                         # Average all the data in each channel
                         try:
@@ -650,88 +738,99 @@ class MainWindow(QMainWindow):
                         except:
                             print(sys.exc_info()[:])
                             break
+                        dt_record_data = time.time() - t0_record_data
+                        print('dt_record_data: ' + str(dt_record_data))
+
+                        t0_plot_data = time.time()
 
                         # Plot the lock-in results
                         mod_freqs = steps_array[0:ii+1].flatten()
                         all_mod_freqs = steps_array.flatten()
+
+                        actual_x_values_current = actual_x_values[0:ii+1].flatten()
+                        actual_x_values_all = actual_x_values.flatten()
+
                         ch_1_array_current = ch_1_ave[jj, 0:ii+1].flatten()  # If multiple scans are along the 2nd dimension this won't work
                         ch_2_array_current = ch_2_ave[jj, 0:ii+1].flatten()  # But for now it seems like a viable option.
 
-                        print('ch_1_ave_flattened' + str(ch_1_array_current))
-                        print('ch_2_ave_flattened' + str(ch_2_array_current))
-                        print('mod_freqs_flattened' + str(mod_freqs))
+                        # print('ch_1_ave_flattened' + str(ch_1_array_current))
+                        # print('ch_2_ave_flattened' + str(ch_2_array_current))
+                        # print('mod_freqs_flattened' + str(mod_freqs))
+                        print('actual x values: ' + str(actual_x_values))
+                        # print('actual x values ALL: ' + str(actual_x_values_all))
+                        # print('actual x values_SC!: ' + str(actual_x_values_current))
 
                         ch_1_array_average[ii] = np.average(ch_1_ave[0:jj+1, ii], 0).flatten()
                         ch_2_array_average[ii] = np.average(ch_2_ave[0:jj+1, ii], 0).flatten()
 
-                        print('shape of ch_1_Array_ave: ' + str(np.shape(ch_1_array_average)))
-
-                        print('')
-                        print('Array AVerages:')
-                        print(ch_1_array_average)
-                        print(ch_2_array_average)
-
-                        # self.axis_1.clear()       # Since color is chosen this may not be needed. If unused, can move much
-                        # self.axis_2.clear()       # of the figure stuff to before the loop
-                        print('plot cleared')
+                        # print('shape of ch_1_Array_ave: ' + str(np.shape(ch_1_array_average)))
+                        #
+                        # print('')
+                        # print('Array AVerages:')
+                        # print(ch_1_array_average)
+                        # print(ch_2_array_average)
+                        #
+                        # print('plot cleared')
 
                         color1 = '#0000FF'  # Blue
                         color2 = '#FF0000'  # Red
-                        self.axis_1.set_xlabel('Pump Modulation Frequency (kHz)')
-                        self.axis_1.set_ylabel('Channel 1 Value', c=color1)
+                        self.axis_1.set_xlabel(self.column_headers[0])
+                        self.axis_1.set_ylabel(self.column_headers[1], c=color1)
 
                         self.axis_1.tick_params(axis='y', labelcolor=color1)
 
-
-                        self.axis_2.set_ylabel('Channel 2 Value', c=color2)
+                        self.axis_2.set_ylabel(self.column_headers[2], c=color2)
 
                         self.axis_2.tick_params(axis='y', labelcolor=color2)
-
 
                         if jj == 0:
                             if ii > 0:
                                 line1.remove()
                                 line2.remove()
-                                print('lines 1 and 2 should have been removed')
+
                             color_plot1 = '#0000FF'  # Blue
                             color_plot2 = '#FF0000'  # Red
-                            line1, = self.axis_1.plot(mod_freqs, ch_1_array_current, ls='None', marker='o',
+                            line1, = self.axis_1.plot(actual_x_values_current, ch_1_array_current, ls='None', marker='o',
                                                       markersize=5, c=color_plot1, label='Current Scan')
-                            line2, = self.axis_2.plot(mod_freqs, ch_2_array_current, ls='None', marker='o',
+                            line2, = self.axis_2.plot(actual_x_values_current, ch_2_array_current, ls='None', marker='o',
                                                       markersize=5, c=color_plot2, label='Current Scan')
                             self.axis_1.legend(loc=2)
                             self.axis_2.legend(loc=1)
-                        if jj > 0:
+                        elif jj > 0:
                             line1.remove()
                             line2.remove()
-                            print('lines 1-2 removed in jj>0')
+
                             if ii > 0 or jj > 1:
                                 line3.remove()
                                 line4.remove()
-                                print('lines 1-4 should have been removed')
+
                             color_plot1 = '#AFAFFF'
                             color_plot2 = '#FFAFAF'
-                            print('about to remove line')
 
-                            line1, = self.axis_1.plot(mod_freqs, ch_1_array_current, ls='None', marker='o',
+                            line1, = self.axis_1.plot(actual_x_values_current, ch_1_array_current, ls='None', marker='o',
                                                       markersize=5, c=color_plot1, label='Current Scan')
-                            line2, = self.axis_2.plot(mod_freqs, ch_2_array_current, ls='None', marker='o',
+                            line2, = self.axis_2.plot(actual_x_values_current, ch_2_array_current, ls='None', marker='o',
                                                       markersize=5, c=color_plot2, label='Current Scan')
                             # Averages
-                            line3, = self.axis_1.plot(all_mod_freqs, ch_1_array_average, ls='None', marker='o',
+                            line3, = self.axis_1.plot(actual_x_values_all, ch_1_array_average, ls='None', marker='o',
                                                       markersize=5, c='#0000FF', label='Average')
-                            line4, = self.axis_2.plot(all_mod_freqs, ch_2_array_average, ls='None', marker='o',
+                            line4, = self.axis_2.plot(actual_x_values_all, ch_2_array_average, ls='None', marker='o',
                                                       markersize=5, c='#FF0000', label='Average')
 
                             self.axis_1.legend(loc=2)
                             self.axis_2.legend(loc=1)
 
-                        print('plot fns occurred')
                         self.ui.PlotWidget.canvas.draw()
+                        dt_plot_data = time.time() - t0_plot_data
+                        print('dt_plot_data: ' + str(dt_plot_data))
+                        dt_full_ii = time.time() - t0_ii_loop
+                        print('dt_full_ii: ' + str(dt_full_ii))
+
                 if filename is None:
                     pass
                 else:
-                    current_scan_data_matrix[:, 0] = all_mod_freqs
+                    # current_scan_data_matrix[:, 0] = all_mod_freqs
+                    current_scan_data_matrix[:, 0] = actual_x_values_all
                     current_scan_data_matrix[:, 1] = ch_1_array_current.flatten()
                     current_scan_data_matrix[:, 2] = ch_2_array_current.flatten()
                     current_scan_data_frame = pd.DataFrame(data=current_scan_data_matrix,
@@ -796,6 +895,42 @@ class MainWindow(QMainWindow):
             self.save_data(data_frame=self.stored_ave_data_frame, filename=(filename + ', Ave'), filetype=filetype)
         self.abort_scan = False
 
+    @QtCore.pyqtSlot(dict)
+    def general_error_window(self, window_details):
+        """
+        Expected details(/format) are(/is): {'Title': '<INSERT TITLE HERE>', 'Text': '<INSERT TEXT HERE>',
+         'Informative Text': '<INSERT TEXT HERE>', 'Details': '<INSERT DETAILS HERE>'}
+        """
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Warning)
+        msg.setWindowTitle(window_details['Title'])
+        msg.setText(window_details['Text'])
+        msg.setInformativeText(window_details['Informative Text'])
+        msg.setDetailedText(window_details['Details'])
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        ret_val = msg.exec()
+
+    @QtCore.pyqtSlot(str)
+    def lockin_error_window(self, error_message):
+        print('Trying to generate error_message_window')
+        # error_message_window('WARNING - Lock-in Status Issues',
+        #                      inform_text='Something is wrong with the lockin.\n LIAS? Response is: '
+        #                                  + str(error_message) + '\nContinue Anyway?')
+
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Warning)
+        msg.setText('Lock-in Status Issues')
+        msg.setInformativeText('Something is wrong with the lockin.\n LIAS? Response is: ' +
+                               str(error_message) + '\nContinue Anyway?')
+        msg.setWindowTitle(' - Warning - ')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Abort)
+        # msg.buttonClicked.connect(msgbtn)
+        return_value = msg.exec()
+        print('msg.clickedButton(): ' + str(msg.clickedButton()))
+        print('msg box return value: ' + str(return_value))
+        if return_value == QtWidgets.QMessageBox.Abort:
+            self.abort_scan = True
+
     def save_file_dialog(self):
         #TODO: Check what happens when no file is selected
         print('inside save file dialog')
@@ -847,6 +982,7 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def start_btn_clicked(self):
         #TODO: Save notes and details to file before the worker
+        print('------------------------------------ STARTING EXPERIMENT ----------------------------------------------')
         self.abscissa_1 = self.ui.variable_1_combobox.currentIndex()
         print('x axis is index: ' + str(self.abscissa_1))
 
@@ -860,6 +996,18 @@ class MainWindow(QMainWindow):
         self.abort_scan = False     # This should probably go before the if/elif statement
 
         # Add here a save Experiment Notes and details to file
+        if self.settings.lockin_outputs == 0:       # 0 is R/Theta
+            self.column_headers[1] = 'R (V)'
+            self.column_headers[2] = 'Theta (Degrees)'
+        elif self.settings.lockin_outputs == 1:
+            self.column_headers[1] = 'X (V)'
+            self.column_headers[2] = 'Y (V)'
+        else:
+            self.column_headers[1] = 'Channel 1 Display'
+            self.column_headers[2] = 'Channel 2 Display'
+        print('Lockin time Constant: ' + str(self.lockin.time_constant))
+        self.lockin_delay = self.settings.lockin_delay_scaling_factor * self.lockin.time_constant
+        print('lockin_delay: ' + str(self.lockin_delay))
         data_collection_worker = Worker(self.data_collection_tasks, filename, filetype)
         self.thread_pool.start(data_collection_worker)
 
@@ -918,8 +1066,9 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def calc_steps_from_num(self):
         print('inside calc_from_num')
-        self.end = self.ui.sweep_end_spinner.value()
-        self.start = self.ui.sweep_start_spinner.value()
+        self.scale = 10**(3*self.ui.sweep_units_combobox.currentIndex())
+        self.end = (self.ui.sweep_end_spinner.value()) * self.scale
+        self.start = (self.ui.sweep_start_spinner.value()) * self.scale
         self.step_count = self.ui.num_steps_spinner.value()
         self.scan_range = self.end - self.start
 
@@ -964,7 +1113,7 @@ class MainWindow(QMainWindow):
                 if self.step_count is not 1:
                     step_size = np.abs(self.end - self.start) / (self.step_count - 1)
                     self.step_size = step_size
-                    self.ui.step_size_display.setText(str(round(step_size, 4)))
+                    self.ui.step_size_display.setText(str(round(step_size / self.scale, 4)))
                     step_pts = []
                     if self.start < self.end:
                         for ii in range(0, self.step_count):
@@ -988,6 +1137,25 @@ class MainWindow(QMainWindow):
             print('about to rescale plot')
         # self.axis_1.set_xscale(self.scaling_pref)
         # self.ui.PlotWidget.canvas.draw()
+        # Estimate Experiment duration
+        averaging_time = self.ui.averaging_time_spinner.value()
+        data_transfer_time = self.settings.sr844_sampling_rate*averaging_time*0.00132   #This estimate is good
+        # 0.00132 is for transferring both channels using TRCL (1.32 ms per sample)
+        freq_set_delay = 0.44           # Estimated using the CG635
+        check_lia_delay = 0.44          # Very rough estimate. This one depends a lot on situation
+        plot_data_delay = 0.16
+        record_data_delay = self.lockin_delay + averaging_time + data_transfer_time + 0.139
+        num_scans = self.ui.num_scans_spinner.value()
+        print('--------------------- Expt Duration Estimate-----------------')
+        print('lockin_delay: ' + str(self.lockin_delay))
+        print('ave_time: ' + str(averaging_time))
+        print('Sampling rate: ' + str(self.settings.sr844_sampling_rate))
+        print("num_scans: " + str(num_scans))
+        print('self.step_count: ' + str(self.step_count))
+        expt_duration_estimate = self.step_count*num_scans*(freq_set_delay + check_lia_delay +
+                                                            record_data_delay + plot_data_delay)
+
+        self.ui.experiment_duration_lineedit.setText(str(expt_duration_estimate) + 'Sec')
         self.set_plot_properties()
 
     @QtCore.pyqtSlot(bool)
@@ -1007,13 +1175,17 @@ class MainWindow(QMainWindow):
 
         if indep_variable_str == 'Pump Modulation Frequency':
             print('Pump Mod Selected')
-            self.x_axis_label = 'Pump Modulation Frequency (kHz)'
+            self.x_axis_label = 'Pump Modulation Frequency (Hz)'
             self.column_headers[0] = self.x_axis_label
 
             try:
                 self.ui.sweep_start_spinner.setValue(self.presets.pump_mod_freq_start)
                 self.ui.sweep_end_spinner.setValue(self.presets.pump_mod_freq_end)
                 self.ui.num_steps_spinner.setValue(self.presets.pump_mod_freq_steps)
+
+                self.ui.sweep_units_combobox.clear()
+                self.ui.sweep_units_combobox.addItems(['Hz', 'kHz', 'MHz', 'GHz'])
+                self.ui.sweep_units_combobox.setCurrentIndex(1)
 
                 self.ui.log_spacing_checkbox.setChecked(True)
                 self.log_spacing = True

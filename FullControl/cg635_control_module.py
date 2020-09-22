@@ -23,6 +23,8 @@ class CG635Instrument:
         self.current_freq = None
         self.current_phase = None
         self.max_freq = 2.05E9
+        self.frequency_tolerance = 0.00000001   # As a percent deviation from intended frequency
+        self.error = None
 
         if self.com_format == 0:
             print('CG635 GPIB Stylezz Selected')
@@ -116,24 +118,53 @@ class CG635Instrument:
         print('------------------------------------- Setting Frequency -----------------------------------------------')
         print(freq_to_set)
         if freq_to_set < 10000:
-            freq_to_set = '{0:.12f}'.format(freq_to_set)
+            freq_adjusted = '{0:.12f}'.format(freq_to_set)
         # Truncate to 16 digits (decimal -> 17 characters) at high freqs
         # Floats are only stored to 16 digits so will automatically truncate to last nonzero significant digit within 16
         elif 10000 <= freq_to_set <= self.max_freq:
-            freq_to_set = "%.17s" % str(freq_to_set)
+            freq_adjusted = "%.17s" % str(freq_to_set)
         else:
             print('Invalid frequency requested')
-            freq_to_set = '10000000'                        # Set to 10 MHz if needed
+            freq_adjusted = '10000000'                        # Set to 10 MHz if needed
 
         # Frequencies must be numeric only (in Hz)
-        freq_str = 'FREQ ' + str(freq_to_set) + '\n'
+        freq_str = 'FREQ ' + str(freq_adjusted) + '\n'
         print('freq_str: ' + freq_str + 'writing string')
-        self.write_string(freq_str, read=False)
-        time.sleep(0.01)    # Large frequency changes have a small changing time
-        self.current_freq = self.write_string('FREQ?\n')
+        # self.write_string(freq_str, read=False)
+        self.comms.open()
+        self.comms.write('++addr %d\n' % self.gpib_address)
+        self.comms.write(freq_str)
+        pll_locked = False
+        ii = 0
+        # self.comms.write('*CLS')
+        while pll_locked is False and ii < 20:
+            print('loop iteration: ' + str(ii))
+            pll_lock_status = self.comms.query('LCKR?\n')
+            print('pll_lock_status: ' + str(pll_lock_status))
+            if int(pll_lock_status) == 0:
+                print('pll_locked')
+                pll_locked = True
+            ii = ii+1
+
+        if pll_locked is False:
+            print('PLL never locked. Final LCKR? Response: ' + str(pll_lock_status))
+            self.error = 'PLL Did Not Lock'
+
+        self.current_freq = self.comms.query('FREQ?\n')   # This adds time and may not be needed
+        current_freq_float = float(self.current_freq)
         print('returned freq: ' + self.current_freq)
+        if not (freq_to_set - (freq_to_set*self.frequency_tolerance)) < current_freq_float <\
+                (freq_to_set + (freq_to_set*self.frequency_tolerance)):
+            self.warning = 'Actual Frequency Deviates Significantly from Desired Frequency'
+            print(self.warning)
+        else:
+            self.error = None
+            self.warning = None
+        self.comms.before_close()
+        self.comms.close()
         # Emit a signal saying the current frequency has changed
         # self.freq_changed_signal.emit(self.current_freq)
+        return self.error
 
     def check_for_errors(self):
         pass
@@ -149,7 +180,7 @@ if __name__ == '__main__':
     # current_freq = test_instr.write_string('FREQ?\n')
     # print("current_freq: " + str(current_freq))
     # print(type(current_freq))
-    test_instr.set_freq(9E6)
+    error = test_instr.set_freq(1000)
     # test_instr.check_for_errors()
     # test_instr.set_phase(10)
     # test_instr.set_phase_as_zero()
