@@ -3,102 +3,183 @@ import pyvisa
 import sys
 import time
 from pyvisa.constants import VI_WRITE_BUF_DISCARD, VI_READ_BUF_DISCARD
+from PyQt5 import QtCore
 
+class LockinError(BaseException):
+    pass
 
 class PrologixAdaptedSRLockin:
-    def __init__(self, resource, gpib_address=8, lockin_model='SR844'):
-        self.resource = resource
+    send_error_signal = QtCore.pyqtSignal(dict)
+    def __init__(self):
+        self.error_dict = {'Status': False, 'Code': 0, 'Details': ''}
 
+        self.connected = False
+        self.resource = None
+        self.lockin_model = None
+        self.gpib_address = None
+
+        self.comms = None
+        self.time_constant = None
+        self.sensitivity = None
+        self.outputs = None
+        self.filter_slope = None
+
+        self.tc_options = None
+        # Etc...
+
+    def open(self):
+        """
+        Open VISA communications and set the GPIB address so the Prologix adapter knows who to communicate with.
+        The latter would be unnecessary if only one Prologix/GPIB connected instrument was used "simultaneously".
+        """
+        if self.error_dict['Status'] == False:
+            try:
+                self.comms.open()
+                self.comms.write('++addr %d\n' % self.gpib_address)
+                print('Opened Communications')
+            except pyvisa.VisaIOError as err:
+                self.error_dict['Status'] = True
+                self.error_dict['Code'] = 3001
+                self.error_dict['Details'] = 'Error attempting to reopen communication with lock-in.\n' + str(err)
+                self.send_error_signal.emit(self.error_dict)
+
+    def write_string(self, string_to_write, read=True):
+        response = None
+        if not self.error_dict['Status']:
+            try:
+                self.comms.open()
+                self.comms.write('++addr %d\n' % self.gpib_address)
+                self.comms.write(string_to_write)
+                if read is True:
+                    time.sleep(0.1)
+                    response = self.comms.read()
+            except pyvisa.VisaIOError as err:
+                self.error_dict['Status'] = True
+                self.error_dict['Code'] = 3002
+                self.error_dict['Details'] = 'Error attempting to write to lock-in.\n' + str(err)
+                self.send_error_signal.emit(self.error_dict)
+        else:       # An error existed before the function call
+            return response
+
+        # The following is separate because I think we should attempt to close communications even if an error occurs
+        try:
+            self.comms.before_close()
+            self.comms.close()
+        except pyvisa.VisaIOError as err:
+            self.error_dict['Status'] = True
+            self.error_dict['Code'] = 3003
+            self.error_dict['Details'] = 'Error attempting to close lock-in.\n' + str(err)
+            self.send_error_signal.emit(self.error_dict)
+
+        return response
+
+    # def test_comms(self):
+    #     if not self.error_dict['Status']:
+    #         try:
+    #             self.comms = self.rm.open_resource(self.resource)
+    #             ver_test = self.comms.query('++ver\n')
+    #             self.comms.write('++addr %d\n' % self.gpib_address)
+    #             print('Prologix GPIB address set: ' + str(self.gpib_address))
+    #             self.comms.write('OUTX 1\n')
+    #             identity = self.comms.query('*IDN?\n')
+    #             print('Lockin Identified: ' + identity)
+    #             self.comms.before_close()
+    #             self.comms.close()
+    #             comms_failed = False
+    #         except pyvisa.VisaIOError as err:
+    #             self.error_dict['Status'] = True
+    #             self.error_dict['Code'] = 3004
+    #             self.error_dict['Details'] = 'Error attempting to start communications with lock-in.\n' + str(err)
+    #             self.send_error_signal.emit(self.error_dict)
+    #             comms_failed = True
+    #     else:       # An error occurred before the function was called
+    #         comms_failed = True
+    #
+    #     return comms_failed
+
+    def start_comms(self, resource, gpib_address=8, lockin_model='SR844'):
+        self.resource = resource
         self.lockin_model = lockin_model
         self.gpib_address = int(gpib_address)
 
-        self.lockin_instance = None
+        if lockin_model == 'SR844':
+            self.tc_options = [100E-6, 300E-6, 1E-3, 3E-3, 10E-3, 30E-3, 100E-3, 300E-3,
+                               1, 3, 10, 30, 100, 300, 1000, 3000, 10E3, 30E3]
+        elif lockin_model == 'SR830':
+            self.tc_options = [10E-6, 30E-6, 100E-6, 300E-6, 1E-3, 3E-3, 10E-3, 30E-3, 100E-3, 300E-3,
+                               1, 3, 10, 30, 100, 300, 1000, 3000, 10E3, 30E3]
 
         self.rm = pyvisa.ResourceManager()
-        # self.test_comms()   # I like it to be able to return the error
 
-    def test_comms(self):
-        try:
-            print(self.resource)
-            self.lockin_instance = self.rm.open_resource(self.resource)
-            ver_test = self.lockin_instance.query('++ver\n')
-            print(ver_test)
-            self.lockin_instance.write('++addr %d\n' % self.gpib_address)
-            print('address set: ' + str(self.gpib_address))
-            self.lockin_instance.write('OUTX 1\n')
-            print('outx write successful')
-            identity = self.lockin_instance.query('*IDN?\n')
-            print(identity)
-            self.lockin_instance.before_close()
-            self.lockin_instance.close()
-            comms_failed = False
-            traceback = None
-        except:
-            print('Communications Test Failed')
-            traceback = sys.exc_info()
-            print(str(sys.exc_info()[:]))
-            comms_failed = True
-        return comms_failed, traceback
-
-    def write_string(self, string_to_write, read=True):
-        error = False
-        response = None
-        self.lockin_instance.open()
-        print('updating the gpib address')
-        self.lockin_instance.write('++addr %d\n' % self.gpib_address)
-        try:
-            self.lockin_instance.write(string_to_write)
-        except:
-            print(str(sys.exc_info()[:]))
-            error = True
-
-        time.sleep(0.1)
-        if read is True:
+        if not self.error_dict['Status']:
             try:
-                response = self.lockin_instance.read()
-            except pyvisa.errors.VisaIOError:
-                print(str(sys.exc_info()[:]))
-                error = True
+                self.comms = self.rm.open_resource(self.resource)
+                # ver_test = self.comms.query('++ver\n')
+                self.comms.write('++addr %d\n' % self.gpib_address)
+                print('Prologix GPIB address set: ' + str(self.gpib_address))
+                self.comms.write('OUTX 1\n')
+                identity = self.comms.query('*IDN?\n')
+                print('Lockin Identified: ' + identity)
+                self.comms.before_close()
+                self.comms.close()
+                comms_failed = False
+                self.connected = True
+            except pyvisa.VisaIOError as err:
+                self.error_dict['Status'] = True
+                self.error_dict['Code'] = 3004
+                self.error_dict['Details'] = 'Error attempting to start communications with lock-in.\n' + str(err)
+                self.send_error_signal.emit(self.error_dict)
+                comms_failed = True
+        else:  # An error occurred before the function was called
+            comms_failed = True
 
-        self.lockin_instance.before_close()
-        self.lockin_instance.close()
-        return response, error
+        return comms_failed
+
+    def check_status(self):
+        try:
+            status = self.comms.query('LIAS?\n')
+        except pyvisa.VisaIOError:
+            self.error = 'VISA Error'
+            return self.error
+
+        status = int(status)
+        print('Lock-in Status: ' + str(status))
+
+        if not status == 0:
+            print('LIAS Error')
+            self.error = 'LIAS Status' + str(status)
+        else:
+            self.error = None
+
+        return self.error
 
     def clear_buffers(self):
-        self.lockin_instance.open()
-        print('updating the gpib address')
-        self.lockin_instance.write('++addr %d\n' % self.gpib_address)
-        self.lockin_instance.flush(VI_WRITE_BUF_DISCARD)
-        self.lockin_instance.flush(VI_READ_BUF_DISCARD)
-        self.lockin_instance.flush(VI_WRITE_BUF_DISCARD)
-        self.lockin_instance.flush(VI_READ_BUF_DISCARD)
-        self.lockin_instance.write('REST\n')
-        self.lockin_instance.before_close()
-        self.lockin_instance.close()
+        self.comms.flush(VI_WRITE_BUF_DISCARD)
+        self.comms.flush(VI_READ_BUF_DISCARD)
+        self.comms.flush(VI_WRITE_BUF_DISCARD)
+        self.comms.flush(VI_READ_BUF_DISCARD)
+        print('Cleared Buffers')
 
     def collect_data(self, duration, sampling_rate_idx, record_both_channels=True):
         """ Sampling rate must be a power of 2 (or it will round). This function should be run as a separate thread
         unless the duration is very short"""
-        # Clear the buffers (self.lockin_instance first, then clear the SR844 buffers)
-        self.lockin_instance.open()
-        print('updating the gpib address')
-        self.lockin_instance.write('++addr %d\n' % self.gpib_address)
-        self.lockin_instance.flush(VI_WRITE_BUF_DISCARD)
-        self.lockin_instance.flush(VI_READ_BUF_DISCARD)
-        self.lockin_instance.flush(VI_WRITE_BUF_DISCARD)
-        self.lockin_instance.flush(VI_READ_BUF_DISCARD)
-        self.lockin_instance.write('REST\n')
+        # Clear the buffers (self.comms first, then clear the SR844 buffers)
+        self.comms.flush(VI_WRITE_BUF_DISCARD)
+        self.comms.flush(VI_READ_BUF_DISCARD)
+        self.comms.flush(VI_WRITE_BUF_DISCARD)
+        self.comms.flush(VI_READ_BUF_DISCARD)
+        self.comms.write('REST\n')
 
-        self.lockin_instance.timeout = 3000
+        self.comms.timeout = 3000
 
         # sampling_rate_index = int(round(np.log2(sampling_rate)) + 4) # See SR844 manual p 4-24
 
-        self.lockin_instance.write('SRAT %d\n' % sampling_rate_idx)  # Set the data sample rate to the desired rate
+        self.comms.write('SRAT %d\n' % sampling_rate_idx)  # Set the data sample rate to the desired rate
 
-        self.lockin_instance.write('STRT\n')  # Start a scan
+        self.comms.write('STRT\n')  # Start a scan
         time.sleep(duration)  # Wait while SR844 collects data
 
-        self.lockin_instance.write('PAUS\n')  # Pause the scan
+        self.comms.write('PAUS\n')  # Pause the scan
 
         print('Scan Paused')
         # Transfer rates:
@@ -111,26 +192,25 @@ class PrologixAdaptedSRLockin:
 
         if self.lockin_model == 'SR844' or self.lockin_model == 'SR830':
             print('SR844 or SR830')
-            samples_to_read = int(self.lockin_instance.query('SPTS?\n'))
+            samples_to_read = int(self.comms.query('SPTS?\n'))
 
             # Assumes 1 millisecond to read each sample (actual is ~0.66 ms), want at least 1 second if few samples
             sampling_rate = 2**(sampling_rate_idx - 4)
-            self.lockin_instance.timeout = 1000 + 1 * (duration*sampling_rate)
+            self.comms.timeout = 1000 + 1 * (duration*sampling_rate)
 
             # Transfer the channel 1 data stored in the buffer
             data_bytes = []
-            print('about to read data')
-            self.lockin_instance.write('TRCL? 1,0,%d\n' % samples_to_read)
+            print('----------------------------------- TRANSFERRING DATA TO COMPUTER ---------------------------------')
+            self.comms.write('TRCL? 1,0,%d\n' % samples_to_read)
             for ii in range(0, samples_to_read):
                 try:
-                    appendix = self.lockin_instance.read_bytes(4)
+                    appendix = self.comms.read_bytes(4)
                     data_bytes.append(appendix)
                 except:
                     print(sys.exc_info()[:])
                     break
-
-            print('data read')
-            ## Now convert these values into something useful:
+            # Now the data has been read by the computer
+            # Now convert these values into something useful (the format for TRCL is quite strange but is much faster):
             mantissas_ch1 = []
             exponents_ch1 = []
             values_ch1 = []
@@ -140,16 +220,14 @@ class PrologixAdaptedSRLockin:
 
                 values_ch1.append(mantissas_ch1[ii] * 2 ** (exponents_ch1[ii] - 124))
 
-            print('data converted')
             values_ch1_arr = np.array(values_ch1)
 
             if record_both_channels:
-                print('recording channel 2')
                 data_bytes_ch2 = []
-                self.lockin_instance.write('TRCL? 2,0,%d\n' % samples_to_read)
+                self.comms.write('TRCL? 2,0,%d\n' % samples_to_read)
                 for ii in range(0, samples_to_read):
                     try:
-                        appendix = self.lockin_instance.read_bytes(4)
+                        appendix = self.comms.read_bytes(4)
                         data_bytes_ch2.append(appendix)
                     except:
                         print(sys.exc_info()[:])
@@ -171,9 +249,7 @@ class PrologixAdaptedSRLockin:
             else:
                 values_ch2_arr = None
 
-            self.lockin_instance.timeout = 3000
-            self.lockin_instance.before_close()
-            self.lockin_instance.close()
-            print('lockin closed')
-
+            self.comms.timeout = 3000
+            self.comms.before_close()
+            self.comms.close()
         return values_ch1_arr, values_ch2_arr

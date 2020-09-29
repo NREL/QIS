@@ -1,14 +1,13 @@
 import os
 import sys
 import PyQt5
-from PyQt5.QtWidgets import QApplication, QWidget, QDoubleSpinBox
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5 import QtCore
 
 from FullControl.settings_window_ui import Ui_Form as Settings_Ui_Form
 from FullControl import led_icons_rc
 from Lockin_Amplifier.lockin_control_module import LockinSettings
-from FullControl.cg635_control_module import CG635Settings
-from Toptica.toptica_control_module import TopticaSettings
+
 
 #TODO:
 # 1. Split "initialize_settings_window" to create also an "update_settings_window"
@@ -19,9 +18,8 @@ QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 
 
 class SettingsWindowForm(QWidget):
-
-    lockin_property_updated_signal = QtCore.pyqtSignal(str, int)
-    cg635_property_updated_signal = QtCore.pyqtSignal(str, int)
+    update_all_signal = QtCore.pyqtSignal(bool)
+    update_tab_signal = QtCore.pyqtSignal(int)
 
     test_signal = QtCore.pyqtSignal(str)
     cg635_set_phase_signal = QtCore.pyqtSignal(bool)  # Do I need the bools here?
@@ -36,6 +34,7 @@ class SettingsWindowForm(QWidget):
     toptica_stop_signal = QtCore.pyqtSignal()
 
     connect_instr_signal = QtCore.pyqtSignal()
+    clear_instr_errors_signal = QtCore.pyqtSignal()
 
     # Lockin Signals
     lockin_2f_signal = QtCore.pyqtSignal(int)
@@ -68,12 +67,7 @@ class SettingsWindowForm(QWidget):
 
         self.ui.tab_widget.setCurrentIndex(0)
 
-        # Prepare settings objects for each instrument. These are redundant at the moment (each instrument has
-        # an identical settings object), but for the moment, this seems like the best way to do things.
         self.lia = LockinSettings()
-        self.cg = CG635Settings()
-        self.toptica = TopticaSettings()
-
         self.read_ini_file()
 
         if '0' in self.relevant_instruments:
@@ -107,8 +101,8 @@ class SettingsWindowForm(QWidget):
         self.lockin_model_preference = param_lines[3].split('#')[0].split()[2]
         self.lia.model = self.lockin_model_preference
 
-        self.lia.settling_delay_factor = int(param_lines[4].split('#')[0].split()[2])
-        # self.lia.settling_delay_factor = self.lockin_delay_scaling_factor
+        self.lockin_delay_scaling_factor = int(param_lines[4].split('#')[0].split()[2])
+        self.lia.settling_delay_factor = self.lockin_delay_scaling_factor
 
         self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
         self.lia.outputs = self.lockin_outputs
@@ -211,8 +205,6 @@ class SettingsWindowForm(QWidget):
         self.ui.sr830_gpib_address_spinner.setValue(gpib_address)
 
         self.ui.lockin_model_lineedit.setDisabled(True)
-
-        self.ui.lockin_delay_scale_spinner.setValue(self.lia.settling_delay_factor)
         try:
             print('Inside Try')
             # First set the values that do not depend on which lock-in you're using
@@ -256,7 +248,6 @@ class SettingsWindowForm(QWidget):
                 self.lia.tc_numeric_list = self.lia.sr844_tc_options
                 self.lia.slope_list = self.lia.sr844_slope_list
 
-                self.lia.gpib_address = self.sr844_gpib_address
                 self.lia.sensitivity = self.sr844_sensitivity
                 self.lia.time_constant = self.sr844_time_constant
                 self.lia.filter_slope = self.sr844_filter_slope
@@ -283,7 +274,6 @@ class SettingsWindowForm(QWidget):
                 self.lia.tc_numeric_list = self.lia.sr830_tc_options
                 self.lia.slope_list = self.lia.sr830_slope_list
 
-                self.lia.gpib_address = self.sr830_gpib_address
                 self.lia.sensitivity = self.sr830_sensitivity
                 self.lia.time_constant = self.sr830_time_constant
                 self.lia.filter_slope = self.sr830_filter_slope
@@ -301,8 +291,8 @@ class SettingsWindowForm(QWidget):
             self.ui.time_constant_combobox.addItems(self.lia.tc_list)
             self.ui.time_constant_combobox.setCurrentIndex(self.lia.time_constant)
 
-            self.ui.filter_slope_combobox.clear()
-            self.ui.filter_slope_combobox.addItems(self.lia.slope_list)
+            self.ui.sensitivity_combobox.clear()
+            self.ui.sensitivity_combobox.addItems(self.lia.sens_list)
             self.ui.filter_slope_combobox.setCurrentIndex(self.lia.filter_slope)
 
             # self.lockin_model_changed()
@@ -315,6 +305,11 @@ class SettingsWindowForm(QWidget):
             print(str(sys.exc_info()[:]))
         except Exception:
             print(str(sys.exc_info()[:]))
+
+    @QtCore.pyqtSlot()
+    def connect_instr_btn_clicked(self):
+        print('Emitting Signal to connect instruments')
+        self.connect_instr_signal.emit()
 
     @QtCore.pyqtSlot(str, int)
     def instrument_status_changed(self, which_instrument, new_status):
@@ -348,25 +343,18 @@ class SettingsWindowForm(QWidget):
         elif which_instrument == 'smb100a':
             self.ui.status_ind_smb100a.setText(text_str)
 
-    # @QtCore.pyqtSlot(str, int)
-    # def lockin_property_updated(self, property_name, new_value):
-    #     print('Updating ' + property_name + ' Stored Setting')
-    #     print('old value: ' + str(getattr(self.lia, property_name)))
-    #     setattr(self.lia, property_name, new_value)
-    #     print('new value: ' + str(getattr(self.lia, property_name)))
-    #
-    # @QtCore.pyqtSlot(str, int)
-    # def cg635_property_updated(self, property_name, new_value):
-    #     print('Updating ' + property_name + ' Stored Setting')
-    #     print('old value: ' + str(getattr(self.cg, property_name)))
-    #     setattr(self.cg, property_name, new_value)
-    #     print('new value: ' + str(getattr(self.cg, property_name)))
+    @QtCore.pyqtSlot(str, int)
+    def lockin_property_updated(self, property_name, new_value):
+        print('Updating ' + property_name + ' Stored Setting')
+        print('old value: ' + str(getattr(self.lia, property_name)))
+        setattr(self.lia, property_name, new_value)
+        print('new value: ' + str(getattr(self.lia, property_name)))
 
     @QtCore.pyqtSlot()
     def toptica_start_btn_clicked(self):
         print('------------------------------------ STARTING LASER EMISSION ------------------------------------------')
         self.ui.toptica_emission_indicator.setText(self.laser_on_str)
-        # self.toptica_start_signal.emit()
+        self.toptica_start_signal.emit()
         print('ATM, button does not engage laser')
 
     @QtCore.pyqtSlot()
@@ -395,31 +383,115 @@ class SettingsWindowForm(QWidget):
     def toptica_ext_en_btn_clicked(self):
         pass
 
-    # @QtCore.pyqtSlot()
-    # def cg635_set_phase_btn_clicked(self):
-    #     pass
+    @QtCore.pyqtSlot()
+    def cg635_write_manual_cmd_btn_clicked(self):
+        pass
 
-    # @QtCore.pyqtSlot()
-    # def cg635_set_freq_btn_clicked(self):
-    #     freq_to_set = self.ui.cg635_set_freq_spinner.value()
-    #     self.cg635_set_freq_signal.emit(freq_to_set)
+    @QtCore.pyqtSlot()
+    def cg635_set_phase_btn_clicked(self):
+        pass
 
-    # @QtCore.pyqtSlot()
-    # def cg635_define_phase_as_zero_btn_clicked(self):
-    #     pass
+    @QtCore.pyqtSlot()
+    def cg635_set_freq_btn_clicked(self):
+        freq_to_set = self.ui.cg635_set_freq_spinner.value()
+        self.cg635_set_freq_signal.emit(freq_to_set)
 
-    # @QtCore.pyqtSlot(int)
-    # def cg635_freq_units_changed(self, units_index):
-    #     pass
+    @QtCore.pyqtSlot()
+    def cg635_define_phase_as_zero_btn_clicked(self):
+        pass
 
-    # @QtCore.pyqtSlot()
-    # def cg635_check_for_errors_btn_clicked(self):
-    #     self.cg635_check_errors_signal.emit(True)
+    @QtCore.pyqtSlot(int)
+    def cg635_freq_units_changed(self, units_index):
+        pass
+
+    @QtCore.pyqtSlot()
+    def cg635_check_for_errors_btn_clicked(self):
+        self.cg635_check_errors_signal.emit(True)
 
     @QtCore.pyqtSlot()
     def save_as_dflt_btn_clicked(self):
         print('btn does nothing')
         pass
+
+    # @QtCore.pyqtSlot(int)
+    # def lockin_2f_detect_changed(self, idx):
+    #     self.lockin_2f_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_auto_crsrv_clicked(self):
+    #     self.lockin_auto_crsrv_signal.emit()
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_auto_dyn_rsrv_clicked(self):
+    #     self.lockin_auto_dyn_rsrv_signal.emit()
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_auto_wrsrv_clicked(self):
+    #     self.lockin_auto_wrsrv_signal.emit()
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_auto_offset_clicked(self):
+    #     self.lockin_auto_offset_signal.emit()
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_auto_phase_clicked(self):
+    #     self.lockin_auto_phase_signal.emit()
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_close_reserve_changed(self, idx):
+    #     self.lockin_close_reserve_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_dynamic_reserve_changed(self, idx):
+    #     self.lockin_dynamic_reserve_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_expand_changed(self, idx):
+    #     self.lockin_expand_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_filter_slope_changed(self, idx):
+    #     self.lockin_filter_slope_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_harmonic_spinner_changed(self, value):
+    #     self.lockin_harmonic_signal.emit(value)
+    #
+    # @QtCore.pyqtSlot()
+    # def lockin_phase_spinner_changed(self):
+    #     self.lockin_phase_signal.emit()
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_input_impedance_changed(self, idx):
+    #     self.lockin_input_impedance_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_outputs_changed(self, idx):
+    #     self.lockin_outputs_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_ref_impedance_changed(self, idx):
+    #     self.lockin_ref_impedance_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_ref_source_changed(self, idx):
+    #     self.lockin_ref_source_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_sampling_rate_changed(self, idx):
+    #     self.lockin_sampling_rate_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_sensitivity_changed(self, idx):
+    #     self.lockin_sensitivity_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_time_constant_changed(self, idx):
+    #     self.lockin_time_constant_signal.emit(idx)
+    #
+    # @QtCore.pyqtSlot(int)
+    # def lockin_wide_reserve_changed(self, idx):
+    #     self.lockin_wide_reserve_signal.emit(idx)
 
     @QtCore.pyqtSlot(bool)
     def sr830_checkbox_clicked(self, checked):
@@ -451,22 +523,19 @@ class SettingsWindowForm(QWidget):
 
     @QtCore.pyqtSlot(int)
     def cg635_comm_format_changed(self, value):
-        # self.cg635_com_format = value
-        self.cg635_property_updated_signal.emit('com_format', value)
+        self.cg635_com_format = value
 
     @QtCore.pyqtSlot(int)
     def sr844_gpib_address_changed(self, new_addr):
         self.sr844_gpib_address = new_addr
-        self.lockin_property_updated_signal.emit('gpib_address', new_addr)
 
     @QtCore.pyqtSlot(int)
     def sr830_gpib_address_changed(self, new_addr):
         self.sr830_gpib_address = new_addr
-        self.lockin_property_updated_signal.emit('gpib_address', new_addr)
 
     @QtCore.pyqtSlot(int)
     def cg635_gpib_address_changed(self, new_addr):
-        self.cg635_property_updated_signal.emit('gpib_address', new_addr)
+        self.cg635_gpib_address = new_addr
 
     @QtCore.pyqtSlot(int)
     def prologix_com_port_changed(self, new_port):
@@ -492,6 +561,9 @@ class SettingsWindowForm(QWidget):
     def toptica_com_port_changed(self, new_port):
         self.toptica_com_port = 'ASRL%d::INSTR' % new_port
 
+    @QtCore.pyqtSlot()
+    def clear_instr_errors_btn_clicked(self):
+        self.clear_instr_errors_signal.emit()
 
     # @QtCore.pyqtSlot()
     # def lockin_model_changed(self):
@@ -564,11 +636,11 @@ class SettingsWindowForm(QWidget):
     #
     #     # Then tell the main window to talk to the instruments
     #     self.update_all_signal.emit(True)
-    #
-    # @QtCore.pyqtSlot()
-    # def auto_sens_btn_clicked(self):
-    #     print('btn does nothing')
-    #     pass
+
+    @QtCore.pyqtSlot()
+    def auto_sens_btn_clicked(self):
+        print('btn does nothing')
+        pass
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
 if __name__ == '__main__':
     app = QApplication(sys.argv)  # Defines the instance of the whole application

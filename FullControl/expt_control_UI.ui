@@ -30,9 +30,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-137</y>
          <width>477</width>
-         <height>1415</height>
+         <height>1410</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -60,7 +60,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="experiment_presets_combobox">
+         <widget class="CustomComboBox" name="experiment_presets_combobox">
           <item>
            <property name="text">
             <string>-Manual Setup-</string>
@@ -193,7 +193,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="variable_1_combobox">
+         <widget class="CustomComboBox" name="variable_1_combobox">
           <property name="minimumSize">
            <size>
             <width>300</width>
@@ -262,7 +262,7 @@
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QSpinBox" name="num_steps_spinner">
+           <widget class="CustomSpinBox" name="num_steps_spinner">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -292,7 +292,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QDoubleSpinBox" name="sweep_start_spinner">
+           <widget class="CustomDoubleSpinBox" name="sweep_start_spinner">
             <property name="minimum">
              <double>-100000.000000000000000</double>
             </property>
@@ -302,7 +302,7 @@
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QDoubleSpinBox" name="sweep_end_spinner">
+           <widget class="CustomDoubleSpinBox" name="sweep_end_spinner">
             <property name="minimum">
              <double>-100000000.000000000000000</double>
             </property>
@@ -312,7 +312,7 @@
            </widget>
           </item>
           <item row="1" column="4">
-           <widget class="QComboBox" name="sweep_units_combobox"/>
+           <widget class="CustomComboBox" name="sweep_units_combobox"/>
           </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_15">
@@ -365,7 +365,7 @@
            <number>10</number>
           </property>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="num_scans_spinner">
+           <widget class="CustomSpinBox" name="num_scans_spinner">
             <property name="maximum">
              <number>1000</number>
             </property>
@@ -377,7 +377,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_26">
             <property name="text">
-             <string>Estimated Duration:</string>
+             <string>Estimated Duration (h:m:s):</string>
             </property>
            </widget>
           </item>
@@ -396,7 +396,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QDoubleSpinBox" name="averaging_time_spinner">
+           <widget class="CustomDoubleSpinBox" name="averaging_time_spinner">
             <property name="maximum">
              <double>1000.000000000000000</double>
             </property>
@@ -463,7 +463,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="variable_2_combobox">
+         <widget class="CustomComboBox" name="variable_2_combobox">
           <item>
            <property name="text">
             <string/>
@@ -502,7 +502,7 @@
            <number>0</number>
           </property>
           <item row="0" column="3" rowspan="4">
-           <widget class="QTextEdit" name="steps_display_var_2">
+           <widget class="QTextEdit" name="steps_display_dim2">
             <property name="maximumSize">
              <size>
               <width>100</width>
@@ -512,46 +512,26 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="sweep_end_spinner_var_2">
+           <widget class="CustomDoubleSpinBox" name="sweep_end_spinner_dim2">
             <property name="minimum">
              <double>-100000.000000000000000</double>
             </property>
             <property name="maximum">
-             <double>100000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>Number of Steps</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Step Size</string>
+             <double>2050000000.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QDoubleSpinBox" name="sweep_start_spinner_var_2"/>
+           <widget class="CustomDoubleSpinBox" name="sweep_start_spinner_dim2">
+            <property name="maximum">
+             <double>2050000000.000000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_19">
             <property name="text">
              <string>Sweep Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QSpinBox" name="num_steps_spinner_var_2">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>100000</number>
             </property>
            </widget>
           </item>
@@ -562,8 +542,11 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="step_size_display_var_2">
+          <item row="1" column="2">
+           <widget class="CustomComboBox" name="sweep_units_combobox_dim2"/>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLineEdit" name="step_size_display_dim2">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -575,8 +558,36 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="sweep_units_combobox_var_2"/>
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Step Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="CustomSpinBox" name="num_steps_spinner_dim2">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Number of Steps</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="log_spacing_checkbox_dim2">
+            <property name="text">
+             <string>Log Spacing</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -798,7 +809,7 @@
           <item row="10" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Pump Modulation Frequency (MHz)</string>
+             <string>Pump Modulation Frequency</string>
             </property>
            </widget>
           </item>
@@ -844,7 +855,7 @@
            </widget>
           </item>
           <item row="8" column="0">
-           <widget class="QDoubleSpinBox" name="static_field_spinner">
+           <widget class="CustomDoubleSpinBox" name="static_field_spinner">
             <property name="maximum">
              <double>100000.000000000000000</double>
             </property>
@@ -868,12 +879,18 @@
            </widget>
           </item>
           <item row="11" column="0">
-           <widget class="QDoubleSpinBox" name="pump_mod_freq_spinner">
+           <widget class="CustomDoubleSpinBox" name="pump_mod_freq_spinner">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="keyboardTracking">
+             <bool>false</bool>
+            </property>
             <property name="decimals">
              <number>4</number>
             </property>
             <property name="maximum">
-             <double>250.000000000000000</double>
+             <double>2050000000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -946,7 +963,7 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QDoubleSpinBox" name="temp_spinner">
+           <widget class="CustomDoubleSpinBox" name="temp_spinner">
             <property name="maximum">
              <double>500.000000000000000</double>
             </property>
@@ -980,7 +997,7 @@
            </widget>
           </item>
           <item row="6" column="0">
-           <widget class="QDoubleSpinBox" name="rf_freq_spinner">
+           <widget class="CustomDoubleSpinBox" name="rf_freq_spinner">
             <property name="decimals">
              <number>4</number>
             </property>
@@ -1000,7 +1017,7 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QDoubleSpinBox" name="probe_wl_spinner">
+           <widget class="CustomDoubleSpinBox" name="probe_wl_spinner">
             <property name="minimum">
              <double>-10000.000000000000000</double>
             </property>
@@ -1011,23 +1028,6 @@
           </item>
           <item row="2" column="1" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="go_to_temp_btn">
-            <property name="maximumSize">
-             <size>
-              <width>30</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>arrow.png</normaloff>arrow.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="1" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="go_to_pump_mod_freq_btn">
             <property name="maximumSize">
              <size>
               <width>30</width>
@@ -1066,13 +1066,37 @@
            </widget>
           </item>
           <item row="13" column="0">
-           <widget class="QDoubleSpinBox" name="rf_mod_freq_spinner">
+           <widget class="CustomDoubleSpinBox" name="rf_mod_freq_spinner">
             <property name="decimals">
              <number>4</number>
             </property>
             <property name="maximum">
              <double>250.000000000000000</double>
             </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
+           <widget class="CustomComboBox" name="pump_mod_freq_units_combobox">
+            <item>
+             <property name="text">
+              <string>Hz</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>kHz</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>MHz</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>GHz</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
@@ -1167,7 +1191,20 @@
       <item>
        <widget class="QPushButton" name="pause_btn">
         <property name="text">
-         <string>Pause</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>play_pause_icon.png</normaloff>play_pause_icon.png</iconset>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="default">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1307,8 +1344,23 @@
   <customwidget>
    <class>PlotWidget</class>
    <extends>QWidget</extends>
-   <header>plotwidget.h</header>
+   <header>CustomWidgets.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>CustomWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>CustomWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomComboBox</class>
+   <extends>QComboBox</extends>
+   <header>CustomWidgets.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -1416,8 +1468,8 @@
    <slot>go_to_temp_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>290</x>
-     <y>1206</y>
+     <x>273</x>
+     <y>1069</y>
     </hint>
     <hint type="destinationlabel">
      <x>516</x>
@@ -1432,8 +1484,8 @@
    <slot>go_to_probe_wl_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>290</x>
-     <y>1265</y>
+     <x>273</x>
+     <y>1128</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
@@ -1448,8 +1500,8 @@
    <slot>go_to_rf_freq_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>290</x>
-     <y>1324</y>
+     <x>273</x>
+     <y>1187</y>
     </hint>
     <hint type="destinationlabel">
      <x>516</x>
@@ -1464,28 +1516,12 @@
    <slot>go_to_static_field_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>290</x>
-     <y>1383</y>
+     <x>273</x>
+     <y>1246</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
      <y>621</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>go_to_pump_mod_freq_btn</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>go_to_pump_mod_freq_btn_clicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>290</x>
-     <y>1452</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>517</x>
-     <y>692</y>
     </hint>
    </hints>
   </connection>
@@ -1496,8 +1532,8 @@
    <slot>go_to_rf_mod_freq_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>290</x>
-     <y>1511</y>
+     <x>273</x>
+     <y>1369</y>
     </hint>
     <hint type="destinationlabel">
      <x>514</x>
@@ -1512,44 +1548,12 @@
    <slot>set_all_constants_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>322</x>
-     <y>1147</y>
+     <x>305</x>
+     <y>1010</y>
     </hint>
     <hint type="destinationlabel">
      <x>514</x>
      <y>395</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>variable_1_combobox</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>primary_indep_var_combobox_activated(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>477</x>
-     <y>326</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>515</x>
-     <y>182</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>variable_2_combobox</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>secondary_indep_var_combobox_activated(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>477</x>
-     <y>665</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>517</x>
-     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -1560,8 +1564,8 @@
    <slot>experiment_preset_combobox_activated(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>471</x>
-     <y>198</y>
+     <x>477</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1577,7 +1581,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>139</x>
-     <y>399</y>
+     <y>262</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1593,7 +1597,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>262</x>
-     <y>399</y>
+     <y>262</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1608,8 +1612,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>250</x>
-     <y>441</y>
+     <x>262</x>
+     <y>319</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
@@ -1624,27 +1628,11 @@
    <slot>autosave_checkbox_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>44</x>
-     <y>141</y>
+     <x>55</x>
+     <y>18</y>
     </hint>
     <hint type="destinationlabel">
      <x>77</x>
-     <y>107</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>log_spacing_checkbox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>log_spacing_checkbox_toggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>57</x>
-     <y>439</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>10</x>
      <y>107</y>
     </hint>
    </hints>
@@ -1704,8 +1692,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>319</x>
-     <y>397</y>
+     <x>369</x>
+     <y>261</y>
     </hint>
     <hint type="destinationlabel">
      <x>512</x>
@@ -1720,8 +1708,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>389</x>
-     <y>545</y>
+     <x>476</x>
+     <y>422</y>
     </hint>
     <hint type="destinationlabel">
      <x>514</x>
@@ -1736,8 +1724,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>149</x>
-     <y>539</y>
+     <x>161</x>
+     <y>422</y>
     </hint>
     <hint type="destinationlabel">
      <x>516</x>
@@ -1762,8 +1750,8 @@
   <slot>go_to_pump_mod_freq_btn_clicked()</slot>
   <slot>go_to_rf_mod_freq_btn_clicked()</slot>
   <slot>set_all_constants_btn_clicked()</slot>
-  <slot>primary_indep_var_combobox_activated(QString)</slot>
-  <slot>secondary_indep_var_combobox_activated(QString)</slot>
+  <slot>primary_indep_var_combobox_changed(int)</slot>
+  <slot>secondary_indep_var_combobox_changed(int)</slot>
   <slot>experiment_preset_combobox_activated(QString)</slot>
   <slot>calc_steps()</slot>
   <slot>calc_steps_from_num()</slot>

@@ -1,11 +1,25 @@
+self.update_harmonic(value)
 
 
-def function_name():
-    return 1, 2
+self.update_phase(phase_to_set)
 
 
-response, response_2 = function_name()
-print(response)
-print(response_2)
-print(type(response))
-print(type(response_2))
+self.update_input_impedance(idx)
+
+
+self.update_outputs(idx)
+
+
+self.update_ref_impedance(idx)
+
+
+self.update_ref_source(idx)
+
+
+self.update_sampling_rate(idx)
+
+
+self.update_sensitivity(idx)
+
+
+self.update_time_constant(idx)
