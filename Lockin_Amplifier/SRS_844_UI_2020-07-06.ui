@@ -22,7 +22,7 @@
     </widget>
    </item>
    <item row="14" column="6" colspan="2">
-    <widget class="QLineEdit" name="ref_lineedit">
+    <widget class="QLineEdit" name="ref_lnedt">
      <property name="font">
       <font>
        <pointsize>16</pointsize>
@@ -41,7 +41,7 @@
     </widget>
    </item>
    <item row="14" column="2" colspan="2">
-    <widget class="QLineEdit" name="ch1_lineedit">
+    <widget class="QLineEdit" name="ch1_lnedt">
      <property name="maximumSize">
       <size>
        <width>16777215</width>
@@ -80,7 +80,7 @@
     </widget>
    </item>
    <item row="14" column="4" colspan="2">
-    <widget class="QLineEdit" name="ch2_lineedit">
+    <widget class="QLineEdit" name="ch2_lnedt">
      <property name="font">
       <font>
        <pointsize>16</pointsize>
@@ -92,7 +92,7 @@
     </widget>
    </item>
    <item row="9" column="0">
-    <widget class="QComboBox" name="time_constant_combobox">
+    <widget class="QComboBox" name="time_constant_cbx">
      <item>
       <property name="text">
        <string>100 μs</string>
@@ -186,7 +186,7 @@
     </widget>
    </item>
    <item row="9" column="1">
-    <widget class="QComboBox" name="filter_slope_combobox">
+    <widget class="QComboBox" name="filter_slope_cbx">
      <item>
       <property name="text">
        <string>6</string>
@@ -231,7 +231,7 @@
     </widget>
    </item>
    <item row="12" column="0">
-    <widget class="QComboBox" name="sensitivity_combobox"/>
+    <widget class="QComboBox" name="sensitivity_cbx"/>
    </item>
    <item row="13" column="0" colspan="2">
     <widget class="QPushButton" name="update_settings_btn">
@@ -264,7 +264,7 @@
     </widget>
    </item>
    <item row="8" column="6" colspan="2">
-    <widget class="QLineEdit" name="write_str_lineedit">
+    <widget class="QLineEdit" name="write_str_lnedt">
      <property name="maximumSize">
       <size>
        <width>300</width>
@@ -313,7 +313,7 @@
     <widget class="PlotWidget" name="PlotWidget" native="true"/>
    </item>
    <item row="7" column="0">
-    <widget class="QComboBox" name="visa_resource_combobox"/>
+    <widget class="QComboBox" name="visa_resource_cbx"/>
    </item>
    <item row="6" column="0">
     <widget class="QLabel" name="label_3">
@@ -368,10 +368,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>visa_resource_combobox</sender>
+   <sender>visa_resource_cbx</sender>
    <signal>activated(QString)</signal>
    <receiver>Form</receiver>
-   <slot>com_port_combobox_activated(QString)</slot>
+   <slot>com_port_cbx_activated(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>84</x>
@@ -466,7 +466,7 @@
  </connections>
  <slots>
   <slot>query_btn_clicked()</slot>
-  <slot>com_port_combobox_activated(QString)</slot>
+  <slot>com_port_cbx_activated(QString)</slot>
   <slot>update_settings_btn_clicked()</slot>
   <slot>output_selector_activated(int)</slot>
   <slot>start_btn_clicked()</slot>

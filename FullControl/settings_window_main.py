@@ -5,10 +5,12 @@ from PyQt5.QtWidgets import QApplication, QWidget, QDoubleSpinBox
 from PyQt5 import QtCore
 
 from FullControl.settings_window_ui import Ui_Form as Settings_Ui_Form
+from FullControl.label_strings import LabelStrings
 from FullControl import led_icons_rc
 from Lockin_Amplifier.lockin_control_module import LockinSettings
 from FullControl.cg635_control_module import CG635Settings
-from Toptica.toptica_control_module import TopticaSettings
+from Toptica.toptica_control_module import TopticaSettings, TopticaInstr
+from MonochromatorControl.mono_control_module import MonoSettings
 
 #TODO:
 # 1. Split "initialize_settings_window" to create also an "update_settings_window"
@@ -73,6 +75,9 @@ class SettingsWindowForm(QWidget):
         self.lia = LockinSettings()
         self.cg = CG635Settings()
         self.toptica = TopticaSettings()
+        self.md2000 = MonoSettings()
+
+        self.label_strings = LabelStrings()
 
         self.read_ini_file()
 
@@ -150,9 +155,12 @@ class SettingsWindowForm(QWidget):
         self.sr830_harmonic_mode = int(param_lines[48].split('#')[0].split()[2])
         self.lia.harmonic = self.sr830_harmonic_mode
         # Mono Settings
-        self.mono_resource_name = param_lines[60].split('#')[0].split()[2]
-        self.mono_groove_density = int(param_lines[61].split('#')[0].split()[2])
-        self.mono_home_wavelength = float(param_lines[62].split('#')[0].split()[2])
+        self.md2000.com_port = param_lines[60].split('#')[0].split()[2]
+        self.md2000.gr_dens_idx = int(param_lines[61].split('#')[0].split()[2])
+        self.md2000.cal_wl = float(param_lines[62].split('#')[0].split()[2])
+        self.md2000.bl_amt = float(param_lines[63].split('#')[0].split()[2])
+        self.md2000.bl_bool = bool(param_lines[64].split('#')[0].split()[2])
+        self.md2000.speed = float(param_lines[65].split('#')[0].split()[2])
 
         # CG635 Settings
         self.cg635_com_format = int(param_lines[70].split('#')[0].split()[2])
@@ -167,89 +175,55 @@ class SettingsWindowForm(QWidget):
         print('CG635 Com Format: ' + str(self.cg635_com_format))
         print('toptica com_port: ' + str(self.toptica_com_port))
 
-    def initialize_settings_window(self):
-        # Initialize the general tab
-        self.grn_led_str = "<html><head/><body><p><img src=\":/led_icons/GREEN_LED_ON.png\"/></p></body></html>"
-        self.red_led_str = "<html><head/><body><p><img src=\":/led_icons/RED_LED_ON.png\"/></p></body></html>"
-        self.off_led_str = "<html><head/><body><p><img src=\":/led_icons/RED_LED_OFF.png\"/></p></body></html>"
-
-        self.laser_off_str = "<html><head/><body><p><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "<img src=\":/led_icons/RED_LED_OFF.png\"/><img src=\":/led_icons/RED_LED_OFF.png\"/>" \
-                             "</p><p>laser OFF</p></body></html>"
-
-        self.laser_on_str = "<html><head/><body><p><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
-                            "</p><p> ! LASER ON ! </p></body></html>"
-
-        self.ui.status_ind_cg635.setText(self.off_led_str)
-        self.ui.status_ind_sr830.setText(self.off_led_str)
-        self.ui.status_ind_sr844.setText(self.off_led_str)
-        self.ui.status_ind_cryostat.setText(self.off_led_str)
-        self.ui.status_ind_md2000.setText(self.off_led_str)
-        self.ui.status_ind_toptica.setText(self.off_led_str)
-        self.ui.status_ind_smb100a.setText(self.off_led_str)
-
-
+    def init_lockin_tab(self):
         # Initialize the lock-in tab
         print('----------------------------------Initializing the lock-in Tab-----------------------------------------')
         gpib_address = int(self.sr844_gpib_address)
-        self.ui.sr844_gpib_address_spinner.setValue(gpib_address)
+        self.ui.sr844_gpib_address_spbx.setValue(gpib_address)
 
         gpib_address = int(self.sr830_gpib_address)
-        self.ui.sr830_gpib_address_spinner.setValue(gpib_address)
+        self.ui.sr830_gpib_address_spbx.setValue(gpib_address)
 
-        self.ui.lockin_model_lineedit.setDisabled(True)
+        self.ui.lockin_model_lnedt.setDisabled(True)
 
-        self.ui.lockin_delay_scale_spinner.setValue(self.lia.settling_delay_factor)
+        self.ui.lockin_delay_scale_spbx.setValue(self.lia.settling_delay_factor)
         try:
             print('Inside Try')
             # First set the values that do not depend on which lock-in you're using
             com_number = int(self.prologix_com_port.split('L')[1].split(':')[0])
-            self.ui.prologix_com_port_spinner.setValue(com_number)
-            self.ui.outputs_combobox.setCurrentIndex(self.lia.outputs)
-            self.ui.sampling_rate_combobox.setCurrentIndex(self.lia.sampling_rate)
-            self.ui.ref_source_combobox.setCurrentIndex(self.lia.reference_source)
-            self.ui.expand_combobox.setCurrentIndex(self.lia.expand)
+            self.ui.prologix_com_port_spbx.setValue(com_number)
+            self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
+            self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate)
+            self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
+            self.ui.expand_cbx.setCurrentIndex(self.lia.expand)
 
             # These are specific to the SR830 but do not interfere with the SR844
-            self.ui.dynamic_reserve_combobox.setCurrentIndex(self.lia.dynamic_reserve)
-            self.ui.harmonic_spinner.setValue(self.lia.harmonic)
+            self.ui.dynamic_reserve_cbx.setCurrentIndex(self.lia.dynamic_reserve)
+            self.ui.harmonic_spbx.setValue(self.lia.harmonic)
 
             # These are specific to the SR844, but do not interfere with the SR830:
-            self.ui.wide_reserve_combobox.setCurrentIndex(self.lia.wide_reserve)
-            self.ui.close_reserve_combobox.setCurrentIndex(self.lia.close_reserve)
-            self.ui.input_impedance_combobox.setCurrentIndex(self.lia.input_impedance)
-            self.ui.ref_impedance_combobox.setCurrentIndex(self.lia.reference_impedance)
-            self.ui.sr844_harmonic_combobox.setCurrentIndex(self.lia.twoF_detect_mode)
+            self.ui.wide_reserve_cbx.setCurrentIndex(self.lia.wide_reserve)
+            self.ui.close_reserve_cbx.setCurrentIndex(self.lia.close_reserve)
+            self.ui.input_impedance_cbx.setCurrentIndex(self.lia.input_impedance)
+            self.ui.ref_impedance_cbx.setCurrentIndex(self.lia.reference_impedance)
+            self.ui.sr844_harmonic_cbx.setCurrentIndex(self.lia.twoF_detect_mode)
             print('About to start if statement')
             if self.lia.model == 'SR844':
                 # Disable ui objects that relate only to the SR830
                 print('lockin.model == SR844')
-                self.ui.lockin_model_lineedit.setText('SR844 (25 kHz - 200 MHz)')
+                self.ui.lockin_model_lnedt.setText('SR844 (25 kHz - 200 MHz)')
                 self.ui.sr844_checkbox.setChecked(True)
                 self.ui.sr830_checkbox.setChecked(False)
 
-                self.ui.sr844_gpib_address_spinner.setDisabled(False)
-                self.ui.sr830_gpib_address_spinner.setDisabled(True)
-                self.ui.wide_reserve_combobox.setDisabled(False)
-                self.ui.close_reserve_combobox.setDisabled(False)
-                self.ui.dynamic_reserve_combobox.setDisabled(True)
-                self.ui.ref_impedance_combobox.setDisabled(False)
-                self.ui.input_impedance_combobox.setDisabled(False)
-                self.ui.harmonic_spinner.setDisabled(True)
-                self.ui.sr844_harmonic_combobox.setDisabled(False)
+                self.ui.sr844_gpib_address_spbx.setDisabled(False)
+                self.ui.sr830_gpib_address_spbx.setDisabled(True)
+                self.ui.wide_reserve_cbx.setDisabled(False)
+                self.ui.close_reserve_cbx.setDisabled(False)
+                self.ui.dynamic_reserve_cbx.setDisabled(True)
+                self.ui.ref_impedance_cbx.setDisabled(False)
+                self.ui.input_impedance_cbx.setDisabled(False)
+                self.ui.harmonic_spbx.setDisabled(True)
+                self.ui.sr844_harmonic_cbx.setDisabled(False)
 
                 self.lia.sens_list = self.lia.sr844_sens_list
                 self.lia.tc_list = self.lia.sr844_tc_list
@@ -264,19 +238,19 @@ class SettingsWindowForm(QWidget):
             elif self.lia.model == 'SR830':
                 print('lockin_model=SR830')
                 # Disable ui objects that relate only to the SR830
-                self.ui.lockin_model_lineedit.setText('SR830 (1 mHz - 102 kHz)')
+                self.ui.lockin_model_lnedt.setText('SR830 (1 mHz - 102 kHz)')
                 self.ui.sr830_checkbox.setChecked(True)
                 self.ui.sr844_checkbox.setChecked(False)
 
-                self.ui.sr844_gpib_address_spinner.setDisabled(True)
-                self.ui.sr830_gpib_address_spinner.setDisabled(False)
-                self.ui.wide_reserve_combobox.setDisabled(True)
-                self.ui.close_reserve_combobox.setDisabled(True)
-                self.ui.dynamic_reserve_combobox.setDisabled(False)
-                self.ui.ref_impedance_combobox.setDisabled(True)
-                self.ui.input_impedance_combobox.setDisabled(True)
-                self.ui.harmonic_spinner.setDisabled(False)
-                self.ui.sr844_harmonic_combobox.setDisabled(True)
+                self.ui.sr844_gpib_address_spbx.setDisabled(True)
+                self.ui.sr830_gpib_address_spbx.setDisabled(False)
+                self.ui.wide_reserve_cbx.setDisabled(True)
+                self.ui.close_reserve_cbx.setDisabled(True)
+                self.ui.dynamic_reserve_cbx.setDisabled(False)
+                self.ui.ref_impedance_cbx.setDisabled(True)
+                self.ui.input_impedance_cbx.setDisabled(True)
+                self.ui.harmonic_spbx.setDisabled(False)
+                self.ui.sr844_harmonic_cbx.setDisabled(True)
 
                 self.lia.sens_list = self.lia.sr830_sens_list
                 self.lia.tc_list = self.lia.sr830_tc_list
@@ -290,31 +264,58 @@ class SettingsWindowForm(QWidget):
                 print('Finished if statement')
             print('Outside of if statement')
             # These require first determining which lock-in will be used:
-            self.ui.sensitivity_combobox.clear()
+            self.ui.sensitivity_cbx.clear()
             print(str(self.lia.sens_list))
             print(str(self.lia.sensitivity))
-            self.ui.sensitivity_combobox.addItems(self.lia.sens_list)
-            self.ui.sensitivity_combobox.setCurrentIndex(self.lia.sensitivity)
+            self.ui.sensitivity_cbx.addItems(self.lia.sens_list)
+            self.ui.sensitivity_cbx.setCurrentIndex(self.lia.sensitivity)
             print('Added sens_list')
 
-            self.ui.time_constant_combobox.clear()
-            self.ui.time_constant_combobox.addItems(self.lia.tc_list)
-            self.ui.time_constant_combobox.setCurrentIndex(self.lia.time_constant)
+            self.ui.time_constant_cbx.clear()
+            self.ui.time_constant_cbx.addItems(self.lia.tc_list)
+            self.ui.time_constant_cbx.setCurrentIndex(self.lia.time_constant)
 
-            self.ui.filter_slope_combobox.clear()
-            self.ui.filter_slope_combobox.addItems(self.lia.slope_list)
-            self.ui.filter_slope_combobox.setCurrentIndex(self.lia.filter_slope)
+            self.ui.filter_slope_cbx.clear()
+            self.ui.filter_slope_cbx.addItems(self.lia.slope_list)
+            self.ui.filter_slope_cbx.setCurrentIndex(self.lia.filter_slope)
 
             # self.lockin_model_changed()
-            print('----------------------------------Initializing the cg635 Tab---------------------------------------')
-            self.ui.cg635_comm_format_combobox.setCurrentIndex(self.cg635_com_format)
-            self.ui.cg635_gpib_spinner.setValue(self.cg635_gpib_address)
-            self.ui.cg635_freq_units_combobox.setCurrentIndex(self.cg635_freq_units)
         except ValueError:
             print('.ini file inconsistent with expectations')
             print(str(sys.exc_info()[:]))
         except Exception:
             print(str(sys.exc_info()[:]))
+
+    def update_md2000_tab(self):
+        self.ui.mono_bl_comp_spbx.setValue(self.md2000.bl_amt)
+        self.ui.mono_cal_wl_spbx.setValue(self.md2000.cal_wl)
+        self.ui.mono_gr_dens_cbx.setCurrentIndex(self.md2000.gr_dens_idx)
+        self.ui.mono_speed_spbx.setValue(self.md2000.speed)
+        self.md2000.gr_dens_val = self.md2000.gr_dens_opts[self.md2000.gr_dens_idx]
+        self.ui.mono_act_wl_lnedt.setText(str(self.md2000.cur_wl))
+        self.ui.mono_bl_comp_chkbx.setChecked(self.md2000.bl_bool)
+        self.ui.mono_com_port_spbx.setValue(int(self.md2000.com_port.split('L')[1].split(':')[0]))
+
+    def initialize_settings_window(self):
+        # Initialize the general tab
+
+        self.ui.status_ind_cg635.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_sr830.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_sr844.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_cryostat.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_md2000.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_toptica.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_smb100a.setText(self.label_strings.off_led_str)
+
+        self.init_lockin_tab()
+        self.update_md2000_tab()
+
+        print('----------------------------------Initializing the cg635 Tab---------------------------------------')
+        self.ui.cg635_comm_format_cbx.setCurrentIndex(self.cg635_com_format)
+        self.ui.cg635_gpib_spbx.setValue(self.cg635_gpib_address)
+        self.ui.cg635_freq_units_cbx.setCurrentIndex(self.cg635_freq_units)
+
+        self.update_topt_tab()
 
     @QtCore.pyqtSlot(str, int)
     def instrument_status_changed(self, which_instrument, new_status):
@@ -324,11 +325,11 @@ class SettingsWindowForm(QWidget):
         """
         # Decide which string is needed to make change
         if new_status == 0:
-            text_str = self.off_led_str
+            text_str = self.label_strings.off_led_str
         elif new_status == 1:
-            text_str = self.grn_led_str
+            text_str = self.label_strings.grn_led_str
         elif new_status == 2:
-            text_str = self.red_led_str
+            text_str = self.label_strings.red_led_str #red_led_str
         else:
             print('INVALID ICON STRING')
 
@@ -365,23 +366,42 @@ class SettingsWindowForm(QWidget):
     @QtCore.pyqtSlot()
     def toptica_start_btn_clicked(self):
         print('------------------------------------ STARTING LASER EMISSION ------------------------------------------')
-        self.ui.toptica_emission_indicator.setText(self.laser_on_str)
+        # self.ui.toptica_emission_indicator.setText(self.laser_on_str)
         # self.toptica_start_signal.emit()
         print('ATM, button does not engage laser')
 
     @QtCore.pyqtSlot()
     def toptica_bias_enable_btn_clicked(self):
         print('------------------------------------ STARTING LASER EMISSION ------------------------------------------')
-        self.ui.toptica_emission_indicator.setText(self.laser_on_str)
-        self.toptica_enable_signal.emit()
-        print('ATM, button does not engage laser')
+        # self.ui.toptica_emission_indicator.setText(self.laser_on_str)
+        # self.toptica_enable_signal.emit()
 
     @QtCore.pyqtSlot()
     def toptica_stop_btn_clicked(self):
         print('------------------------------------ STOPPING LASER EMISSION ------------------------------------------')
-        self.ui.toptica_emission_indicator.setText(self.laser_off_str)
+        self.ui.toptica_emission_indicator.setText(self.label_strings.laser_off_str)
         self.toptica_stop_signal.emit()
         print('ATM, button does not engage laser')
+
+    @QtCore.pyqtSlot(str, int)
+    @QtCore.pyqtSlot(str, float)
+    def update_topt_tab(self):
+        if self.ui.toptica_units_cbx.currentIndex() == 0:
+            self.ui.toptica_power_spbx.setValue(self.toptica.power)
+        elif self.ui.toptica_units_cbx.currentIndex() == 1:
+            self.ui.toptica_power_spbx.setValue(self.toptica.power / 1000)
+
+        self.ui.toptica_bias_spbx.setValue(self.toptica.bias_power)
+
+        if self.toptica.laser_status == 0:
+            self.ui.toptica_emission_indicator.setText(self.label_strings.laser_off_str)
+        elif self.toptica.laser_status == 1:
+            self.ui.toptica_emission_indicator.setText(self.label_strings.laser_on_str)
+
+        if self.toptica.mod_on == 0:
+            self.ui.toptica_mod_indicator.setText(self.label_strings.dig_mod_off_str)
+        elif self.toptica.mod_on == 1:
+            self.ui.toptica_mod_indicator.setText(self.label_strings.dig_mod_on_str)
 
     @QtCore.pyqtSlot()
     def toptica_set_bias_power_btn_clicked(self):
@@ -401,7 +421,7 @@ class SettingsWindowForm(QWidget):
 
     # @QtCore.pyqtSlot()
     # def cg635_set_freq_btn_clicked(self):
-    #     freq_to_set = self.ui.cg635_set_freq_spinner.value()
+    #     freq_to_set = self.ui.cg635_set_freq_spbx.value()
     #     self.cg635_set_freq_signal.emit(freq_to_set)
 
     # @QtCore.pyqtSlot()
@@ -495,10 +515,10 @@ class SettingsWindowForm(QWidget):
 
     # @QtCore.pyqtSlot()
     # def lockin_model_changed(self):
-    #     print('index: ' + str(self.ui.lockin_model_combobox.currentIndex()))
-    #     if self.ui.lockin_model_combobox.currentIndex() == 0:
+    #     print('index: ' + str(self.ui.lockin_model_cbx.currentIndex()))
+    #     if self.ui.lockin_model_cbx.currentIndex() == 0:
     #         self.lockin_model_preference = 'SR844'
-    #     elif self.ui.lockin_model_combobox.currentIndex() == 1:
+    #     elif self.ui.lockin_model_cbx.currentIndex() == 1:
     #         self.lockin_model_preference = 'SR830'
     #     else:
     #         print('unknowns lockin_model')
@@ -512,28 +532,28 @@ class SettingsWindowForm(QWidget):
     #         which_tab = self.ui.tab_widget.currentIndex()
     #
     #     if which_tab == 0:
-    #         com_idx = self.ui.prologix_com_port_spinner.value()
+    #         com_idx = self.ui.prologix_com_port_spbx.value()
     #         self.prologix_com_port = 'ASRL' + str(com_idx) + '::INSTR'
     #         print('General Settings tab not set up')
     #     elif which_tab == 1:
-    #         self.lia.outputs = self.ui.outputs_combobox.currentIndex()
-    #         self.lia.sampling_rate = self.ui.sampling_rate_combobox.currentIndex()
-    #         self.lia.reference_source = self.ui.ref_source_combobox.currentIndex()
+    #         self.lia.outputs = self.ui.outputs_cbx.currentIndex()
+    #         self.lia.sampling_rate = self.ui.sampling_rate_cbx.currentIndex()
+    #         self.lia.reference_source = self.ui.ref_source_cbx.currentIndex()
     #
-    #         self.lia.sensitivity = self.ui.sensitivity_combobox.currentIndex()
-    #         self.lia.filter_slope = self.ui.filter_slope_combobox.currentIndex()
-    #         self.lia.time_constant = self.ui.time_constant_combobox.currentIndex()
-    #         self.lia.wide_reserve = self.ui.wide_reserve_combobox.currentIndex()
-    #         self.lia.close_reserve = self.ui.close_reserve_combobox.currentIndex()
+    #         self.lia.sensitivity = self.ui.sensitivity_cbx.currentIndex()
+    #         self.lia.filter_slope = self.ui.filter_slope_cbx.currentIndex()
+    #         self.lia.time_constant = self.ui.time_constant_cbx.currentIndex()
+    #         self.lia.wide_reserve = self.ui.wide_reserve_cbx.currentIndex()
+    #         self.lia.close_reserve = self.ui.close_reserve_cbx.currentIndex()
     #
-    #         self.lia.input_impedance = self.ui.input_impedance_combobox.currentIndex()
-    #         self.lia.reference_impedance = self.ui.ref_impedance_combobox.currentIndex()
-    #         self.lia.twoF_detect_mode = self.ui.sr844_harmonic_combobox.currentIndex()
-    #         self.lia.harmonic = self.ui.harmonic_spinner.value()
-    #         self.lia.expand = self.ui.expand_combobox.currentIndex()
-    #         self.lia.dynamic_reserve = self.ui.dynamic_reserve_combobox.currentIndex()
-    #         self.sr844_gpib_address = self.ui.sr844_gpib_address_spinner.value()
-    #         self.sr830_gpib_address = self.ui.sr830_gpib_address_spinner.value()
+    #         self.lia.input_impedance = self.ui.input_impedance_cbx.currentIndex()
+    #         self.lia.reference_impedance = self.ui.ref_impedance_cbx.currentIndex()
+    #         self.lia.twoF_detect_mode = self.ui.sr844_harmonic_cbx.currentIndex()
+    #         self.lia.harmonic = self.ui.harmonic_spbx.value()
+    #         self.lia.expand = self.ui.expand_cbx.currentIndex()
+    #         self.lia.dynamic_reserve = self.ui.dynamic_reserve_cbx.currentIndex()
+    #         self.sr844_gpib_address = self.ui.sr844_gpib_address_spbx.value()
+    #         self.sr830_gpib_address = self.ui.sr830_gpib_address_spbx.value()
     #         if self.lia.model == 'SR844':
     #             self.lia.gpib_address = self.sr844_gpib_address
     #         elif self.lia.model == 'SR830':

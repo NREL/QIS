@@ -21,7 +21,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QTabWidget" name="tab_widget">
      <property name="currentIndex">
-      <number>6</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
@@ -68,7 +68,7 @@
             </widget>
            </item>
            <item row="18" column="2">
-            <widget class="CustomComboBox" name="cg635_comm_format_combobox">
+            <widget class="CustomComboBox" name="cg635_comm_format_cbx">
              <item>
               <property name="text">
                <string>GPIB</string>
@@ -82,7 +82,7 @@
             </widget>
            </item>
            <item row="27" column="2">
-            <widget class="CustomSpinBox" name="cryostat_com_port_spinner">
+            <widget class="CustomSpinBox" name="cryostat_com_port_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -150,7 +150,7 @@
             </widget>
            </item>
            <item row="28" column="2">
-            <widget class="CustomSpinBox" name="toptica_com_port_spinner">
+            <widget class="CustomSpinBox" name="toptica_com_port_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -197,7 +197,7 @@
             </widget>
            </item>
            <item row="21" column="2">
-            <widget class="CustomSpinBox" name="sr830_gpib_address_spinner">
+            <widget class="CustomSpinBox" name="sr830_gpib_address_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -346,7 +346,7 @@
             </widget>
            </item>
            <item row="22" column="2">
-            <widget class="CustomSpinBox" name="cg635_gpib_spinner">
+            <widget class="CustomSpinBox" name="cg635_gpib_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -421,7 +421,7 @@
             </widget>
            </item>
            <item row="26" column="2">
-            <widget class="CustomSpinBox" name="smb100a_com_port_spinner">
+            <widget class="CustomSpinBox" name="smb100a_com_port_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -493,21 +493,21 @@
             </widget>
            </item>
            <item row="23" column="2">
-            <widget class="CustomSpinBox" name="prologix_com_port_spinner">
+            <widget class="CustomSpinBox" name="prologix_com_port_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
             </widget>
            </item>
            <item row="20" column="2">
-            <widget class="CustomSpinBox" name="sr844_gpib_address_spinner">
+            <widget class="CustomSpinBox" name="sr844_gpib_address_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
             </widget>
            </item>
            <item row="24" column="2">
-            <widget class="CustomSpinBox" name="mono_com_port_spinner">
+            <widget class="CustomSpinBox" name="mono_com_port_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -635,7 +635,7 @@
             </widget>
            </item>
            <item row="14" column="1">
-            <widget class="CustomComboBox" name="input_impedance_combobox">
+            <widget class="CustomComboBox" name="input_impedance_cbx">
              <item>
               <property name="text">
                <string>50 Ω</string>
@@ -649,7 +649,7 @@
             </widget>
            </item>
            <item row="19" column="1">
-            <widget class="CustomDoubleSpinBox" name="phase_spinner">
+            <widget class="CustomDoubleSpinBox" name="phase_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -669,7 +669,7 @@
             </widget>
            </item>
            <item row="12" column="1">
-            <widget class="CustomComboBox" name="dynamic_reserve_combobox">
+            <widget class="CustomComboBox" name="dynamic_reserve_cbx">
              <item>
               <property name="text">
                <string>High Reserve (Max)</string>
@@ -702,7 +702,7 @@
             </widget>
            </item>
            <item row="11" column="1">
-            <widget class="CustomComboBox" name="close_reserve_combobox">
+            <widget class="CustomComboBox" name="close_reserve_cbx">
              <item>
               <property name="text">
                <string>High</string>
@@ -733,7 +733,7 @@
             </widget>
            </item>
            <item row="6" column="1">
-            <widget class="CustomComboBox" name="sensitivity_combobox">
+            <widget class="CustomComboBox" name="sensitivity_cbx">
              <item>
               <property name="text">
                <string>UNDER CONSTRUCTION</string>
@@ -791,7 +791,7 @@
             </widget>
            </item>
            <item row="17" column="1">
-            <widget class="CustomComboBox" name="sr844_harmonic_combobox">
+            <widget class="CustomComboBox" name="sr844_harmonic_cbx">
              <item>
               <property name="text">
                <string>Off</string>
@@ -819,7 +819,7 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="CustomComboBox" name="outputs_combobox">
+            <widget class="CustomComboBox" name="outputs_cbx">
              <item>
               <property name="text">
                <string>R / θ (V/degrees)</string>
@@ -838,7 +838,7 @@
             </widget>
            </item>
            <item row="20" column="1">
-            <widget class="CustomComboBox" name="expand_combobox">
+            <widget class="CustomComboBox" name="expand_cbx">
              <item>
               <property name="text">
                <string>x1 (off)</string>
@@ -864,7 +864,7 @@
             </widget>
            </item>
            <item row="8" column="1">
-            <widget class="CustomComboBox" name="filter_slope_combobox">
+            <widget class="CustomComboBox" name="filter_slope_cbx">
              <item>
               <property name="text">
                <string>No Filter</string>
@@ -893,7 +893,7 @@
             </widget>
            </item>
            <item row="9" column="1">
-            <widget class="CustomComboBox" name="time_constant_combobox">
+            <widget class="CustomComboBox" name="time_constant_cbx">
              <item>
               <property name="text">
                <string>100  μs</string>
@@ -987,7 +987,7 @@
             </widget>
            </item>
            <item row="15" column="1">
-            <widget class="CustomComboBox" name="ref_impedance_combobox">
+            <widget class="CustomComboBox" name="ref_impedance_cbx">
              <item>
               <property name="text">
                <string>50 Ω</string>
@@ -1001,7 +1001,7 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="lockin_model_lineedit">
+            <widget class="QLineEdit" name="lockin_model_lnedt">
              <property name="readOnly">
               <bool>true</bool>
              </property>
@@ -1022,7 +1022,7 @@
             </widget>
            </item>
            <item row="10" column="1">
-            <widget class="CustomComboBox" name="wide_reserve_combobox">
+            <widget class="CustomComboBox" name="wide_reserve_cbx">
              <item>
               <property name="text">
                <string>High</string>
@@ -1062,7 +1062,7 @@
             </widget>
            </item>
            <item row="18" column="1">
-            <widget class="CustomSpinBox" name="harmonic_spinner">
+            <widget class="CustomSpinBox" name="harmonic_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -1083,7 +1083,7 @@
             </widget>
            </item>
            <item row="16" column="1">
-            <widget class="CustomComboBox" name="ref_source_combobox">
+            <widget class="CustomComboBox" name="ref_source_cbx">
              <item>
               <property name="text">
                <string>External</string>
@@ -1097,7 +1097,7 @@
             </widget>
            </item>
            <item row="13" column="1">
-            <widget class="CustomComboBox" name="sampling_rate_combobox">
+            <widget class="CustomComboBox" name="sampling_rate_cbx">
              <item>
               <property name="text">
                <string>0.0625 (16 s)</string>
@@ -1190,7 +1190,7 @@
             </widget>
            </item>
            <item row="4" column="1">
-            <widget class="CustomDoubleSpinBox" name="lockin_delay_scale_spinner">
+            <widget class="CustomDoubleSpinBox" name="lockin_delay_scale_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -1206,6 +1206,166 @@
       <attribute name="title">
        <string>Mono</string>
       </attribute>
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="2" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_bl_comp_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_53">
+         <property name="text">
+          <string>Backlash Compensation (nm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_51">
+         <property name="text">
+          <string>Grating Groove Density (gr/mm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QCheckBox" name="mono_bl_comp_chkbx">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>On</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_set_wl_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="minimum">
+          <double>-3000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="mono_set_home_btn">
+         <property name="text">
+          <string>Set Home</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_55">
+         <property name="text">
+          <string>Set Wavelength</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="CustomComboBox" name="mono_gr_dens_cbx">
+         <item>
+          <property name="text">
+           <string>2400</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1800</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1200</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>600</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>300</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>150</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_cal_wl_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="minimum">
+          <double>-3000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_54">
+         <property name="text">
+          <string>Speed (nm/sec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_52">
+         <property name="text">
+          <string>Calibration Wavelength</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_speed_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>500.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_56">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Actual Wavelength</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="mono_act_wl_lnedt">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="rns_tab">
       <attribute name="title">
@@ -1269,14 +1429,14 @@
             </widget>
            </item>
            <item row="17" column="2">
-            <widget class="QLineEdit" name="cg635_write_cmd_lineedit">
+            <widget class="QLineEdit" name="cg635_write_cmd_lnedt">
              <property name="placeholderText">
               <string>*IDN?\n</string>
              </property>
             </widget>
            </item>
            <item row="3" column="3">
-            <widget class="CustomComboBox" name="cg635_freq_units_combobox">
+            <widget class="CustomComboBox" name="cg635_freq_units_cbx">
              <item>
               <property name="text">
                <string>Hz</string>
@@ -1392,7 +1552,7 @@
             <widget class="QTextEdit" name="cg635_response_textedit"/>
            </item>
            <item row="3" column="2">
-            <widget class="CustomDoubleSpinBox" name="cg635_set_freq_spinner">
+            <widget class="CustomDoubleSpinBox" name="cg635_set_freq_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -1475,7 +1635,7 @@
             </widget>
            </item>
            <item row="8" column="2">
-            <widget class="CustomDoubleSpinBox" name="cg635_max_freq_spinner">
+            <widget class="CustomDoubleSpinBox" name="cg635_max_freq_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -1488,7 +1648,7 @@
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="CustomDoubleSpinBox" name="cg635_set_phase_spinner">
+            <widget class="CustomDoubleSpinBox" name="cg635_set_phase_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -1526,79 +1686,11 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0" colspan="5">
-        <widget class="QLabel" name="toptica_emission_indicator">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>14</pointsize>
-          </font>
-         </property>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_47">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;p&gt;laser OFF&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>Laser Power (ch2)</string>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="5">
-        <widget class="QLabel" name="toptica_temp_stable_indicator">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>60</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Temperature Stable (not programmed yet)? &lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="2">
-        <widget class="CustomDoubleSpinBox" name="toptica_bias_spinner">
-         <property name="keyboardTracking">
-          <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="4">
-        <widget class="QPushButton" name="toptica_set_power_btn">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>arrow.png</normaloff>arrow.png</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="3">
-        <widget class="CustomComboBox" name="toptica_bias_units_combobox">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>μW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>mW</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="8" column="4">
@@ -1615,43 +1707,6 @@
          <property name="icon">
           <iconset>
            <normaloff>arrow.png</normaloff>arrow.png</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="3">
-        <widget class="CustomComboBox" name="toptica_units_combobox">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>μW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>mW</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="7" column="2">
-        <widget class="CustomDoubleSpinBox" name="toptica_power_spinner">
-         <property name="keyboardTracking">
-          <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_47">
-         <property name="text">
-          <string>Laser Power (ch2)</string>
          </property>
         </widget>
        </item>
@@ -1759,6 +1814,111 @@
           </layout>
          </item>
         </layout>
+       </item>
+       <item row="8" column="2">
+        <widget class="CustomDoubleSpinBox" name="toptica_bias_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>150000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="3">
+        <widget class="CustomComboBox" name="toptica_bias_units_cbx">
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>μW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>mW</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="7" column="3">
+        <widget class="CustomComboBox" name="toptica_units_cbx">
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>μW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>mW</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="7" column="4">
+        <widget class="QPushButton" name="toptica_set_power_btn">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>arrow.png</normaloff>arrow.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="CustomDoubleSpinBox" name="toptica_power_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>150000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="5">
+        <widget class="QLabel" name="toptica_emission_indicator">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;p&gt;laser OFF&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="5">
+        <widget class="QLabel" name="toptica_mod_indicator">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Ext Mod Enabled&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -1932,7 +2092,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>cg635_comm_format_combobox</sender>
+   <sender>cg635_comm_format_cbx</sender>
    <signal>activated(int)</signal>
    <receiver>Form</receiver>
    <slot>cg635_comm_format_changed(int)</slot>
@@ -1948,7 +2108,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>sr844_gpib_address_spinner</sender>
+   <sender>sr844_gpib_address_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>sr844_gpib_address_changed(int)</slot>
@@ -1964,7 +2124,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>sr830_gpib_address_spinner</sender>
+   <sender>sr830_gpib_address_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>sr830_gpib_address_changed(int)</slot>
@@ -1980,7 +2140,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>cg635_gpib_spinner</sender>
+   <sender>cg635_gpib_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>cg635_gpib_address_changed(int)</slot>
@@ -1996,7 +2156,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>prologix_com_port_spinner</sender>
+   <sender>prologix_com_port_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>prologix_com_port_changed(int)</slot>
@@ -2028,7 +2188,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>smb100a_com_port_spinner</sender>
+   <sender>smb100a_com_port_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>smb100a_com_port_changed(int)</slot>
@@ -2044,7 +2204,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>cryostat_com_port_spinner</sender>
+   <sender>cryostat_com_port_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>cryostat_com_port_changed(int)</slot>
@@ -2060,7 +2220,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>toptica_com_port_spinner</sender>
+   <sender>toptica_com_port_spbx</sender>
    <signal>valueChanged(int)</signal>
    <receiver>Form</receiver>
    <slot>toptica_com_port_changed(int)</slot>
@@ -2110,14 +2270,14 @@
   <slot>lockin_2f_detect_changed(int)</slot>
   <slot>lockin_filter_slope_changed(int)</slot>
   <slot>slot2()</slot>
-  <slot>lockin_phase_spinner_changed()</slot>
+  <slot>lockin_phase_spbx_changed()</slot>
   <slot>lockin_expand_changed()</slot>
   <slot>lockin_auto_offset_clicked()</slot>
   <slot>lockin_auto_wrsrv_clicked()</slot>
   <slot>lockin_auto_crsrv_clicked()</slot>
   <slot>lockin_auto_dyn_rsrv_clicked()</slot>
   <slot>lockin_auto_phase_clicked()</slot>
-  <slot>lockin_harmonic_spinner_changed(int)</slot>
+  <slot>lockin_harmonic_spbx_changed(int)</slot>
   <slot>cg635_comm_format_changed(int)</slot>
   <slot>sr844_gpib_address_changed(int)</slot>
   <slot>sr830_gpib_address_changed(int)</slot>

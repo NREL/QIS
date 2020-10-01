@@ -81,7 +81,7 @@ class LockinWidget(QWidget):
         self.gpib_address = 8
 
         # ---------------------------------- Initialize GUI Object States --------------------------------------------
-        self.lockin_ui.visa_resource_combobox.addItem(self.select_resource_text)
+        self.lockin_ui.visa_resource_cbx.addItem(self.select_resource_text)
 
         # ------------------------------------ Initialization Functions -----------------------------------------------
         self.check_resources()
@@ -110,9 +110,9 @@ class LockinWidget(QWidget):
             print(readout)
             print(readout_ch1)
             print(readout_ch2)
-            self.lockin_ui.ch1_lineedit.setText(readout_ch1)
-            self.lockin_ui.ch2_lineedit.setText(readout_ch2)
-            self.lockin_ui.ref_lineedit.setText(readout_freq.strip())    # The silliness here removes the \n
+            self.lockin_ui.ch1_lnedt.setText(readout_ch1)
+            self.lockin_ui.ch2_lnedt.setText(readout_ch2)
+            self.lockin_ui.ref_lnedt.setText(readout_freq.strip())    # The silliness here removes the \n
 
             # All this plotting stuff adds about 100 ms (on top of the 30-40 ms required for above).
             # this is useful for live updates but for getting the most out of the instrument it is not a good method
@@ -144,7 +144,7 @@ class LockinWidget(QWidget):
         all_resources = self.rm.list_resources()
         if len(all_resources) > 0:
             for ii in all_resources:
-                self.lockin_ui.visa_resource_combobox.addItem(ii)
+                self.lockin_ui.visa_resource_cbx.addItem(ii)
         else:
             return
 
@@ -166,7 +166,7 @@ class LockinWidget(QWidget):
     def query_btn_clicked(self):
         if self.lockin_instr is not None:  # This seems crappy but good enough for now
             print('lockin instr was not None')
-            query_text = self.lockin_ui.write_str_lineedit.text()
+            query_text = self.lockin_ui.write_str_lnedt.text()
             print('requested query: ' + query_text)
             query_text = codecs.decode(query_text, 'unicode_escape')
             print('requested escaped query: ' + query_text)
@@ -201,7 +201,7 @@ class LockinWidget(QWidget):
     def update_settings_btn_clicked(self):
         print('--------------------------UPDATING SETTINGS-------------------------------')
         # Time Constant
-        tc_value_idx = self.lockin_ui.time_constant_combobox.currentIndex()  # 0=100 us, 1=300 us ... 16=10ks, 17=30ks
+        tc_value_idx = self.lockin_ui.time_constant_cbx.currentIndex()  # 0=100 us, 1=300 us ... 16=10ks, 17=30ks
         self.lockin_instr.write('OFLT %d\n' % tc_value_idx)
         # Dynamic reserve
         # Sensitivity
@@ -223,13 +223,13 @@ class LockinWidget(QWidget):
             pass
 
     @QtCore.pyqtSlot(str)
-    def com_port_combobox_activated(self, combobox_item):
-        print(combobox_item)
+    def com_port_cbx_activated(self, cbx_item):
+        print(cbx_item)
 
-        if combobox_item == self.select_resource_text:
+        if cbx_item == self.select_resource_text:
             self.resource = None
         else:
-            self.resource = combobox_item
+            self.resource = cbx_item
             print(str(self.resource))
             self.lockin_instr = PrologixAdaptedSR844(self.resource, self.gpib_address)
             comms_failed = self.lockin_instr.test_comms()

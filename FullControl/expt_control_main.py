@@ -6,6 +6,9 @@
 # 4. Get probe wavelength scanning working
 # 5. Finish setting up 2D experiments
 # Various:
+# -43. Make error handling in Mono_control_module consistent.
+# -42. Put the mono __init__ attributes into the .ini file
+# -41. Consolidate redundant tasks in all scripts (e.g. wrappers)
 # -40. Provide some notification that the experiment is over.
 # -39. Don't save "scan 1" separately from ave if only one scan
 # -38. Update Current frequency in the settings tab to always be the current frequency
@@ -37,7 +40,6 @@
 # 0. Add laser on indicator light to the MAIN Window as well.
 # 0. Add a "check for connectivity" error handler for functions which require it. (e.g. using self.cg635_connected)
 # 0a. self.cg635_connected may be better as self.cg635.connected (attribute of the instrument)
-# 2. Incorporate the mono control functionality
 # 4. Incorporate a scan probe wavelength (at set pump mod frequency) option (TA Spectrum)
 # 9. Incorporate an "if ...connected" before "set params"
 # -1. Rename variables to decrease length and increase self-consistency
@@ -94,6 +96,7 @@ from FullControl.help_window_main import HelpWindowForm
 from FullControl.settings_window_main import SettingsWindowForm
 from FullControl.plotwidget import PlotWidget
 from FullControl.cg635_control_module import CG635Instrument
+from FullControl.label_strings import LabelStrings
 
 
 pyqt = os.path.dirname(PyQt5.__file__)  # This and the following line are essential to make guis run
@@ -234,6 +237,8 @@ class MainWindow(QMainWindow):
         # self.cg635 = None
         self.presets = Presets()
 
+        self.label_strings = LabelStrings()
+
         self.abort_scan = False
         self.pause_scan = False
         # self.log_spacing = False         # Change this to be either a preset or a setting?
@@ -266,21 +271,23 @@ class MainWindow(QMainWindow):
         self.step_size = [0, 0]
 
         self.log_spacing_checkboxes = [self.ui.log_spacing_checkbox, self.ui.log_spacing_checkbox_dim2]
-        self.units_comboboxes = [self.ui.sweep_units_combobox, self.ui.sweep_units_combobox_dim2]
+        self.units_cbxes = [self.ui.sweep_units_cbx, self.ui.sweep_units_cbx_dim2]
         self.steps_displays = [self.ui.steps_display, self.ui.steps_display_dim2]
-        self.sweep_end_spinners = [self.ui.sweep_end_spinner, self.ui.sweep_end_spinner_dim2]
-        self.sweep_start_spinners = [self.ui.sweep_start_spinner, self.ui.sweep_start_spinner_dim2]
-        self.num_steps_spinners = [self.ui.num_steps_spinner, self.ui.num_steps_spinner_dim2]
+        self.sweep_end_spbxs = [self.ui.sweep_end_spbx, self.ui.sweep_end_spbx_dim2]
+        self.sweep_start_spbxs = [self.ui.sweep_start_spbx, self.ui.sweep_start_spbx_dim2]
+        self.num_steps_spbxs = [self.ui.num_steps_spbx, self.ui.num_steps_spbx_dim2]
         self.step_size_displays = [self.ui.step_size_display, self.ui.step_size_display_dim2]
 
         # ----------------------------- INSTANTIATE LARGE SCALE OBJECTS (CLASSES/WINDOWS) ------------------------------
         # Create the settings window (but don't show it)
         self.settings = SettingsWindowForm()
         self.toptica = TopticaInstr()
-        self.toptica.settings = self.settings.toptica
+        # self.settings.toptica_instr = self.toptica
         self.lockin = PrologixAdaptedSRLockin()
         self.lockin.settings = self.settings.lia
         self.cg635 = CG635Instrument()
+        self.md2000 = MonoDriver()
+        self.md2000.settings = self.settings.md2000
 
         # ------------------------------- Initialize GUI Object States -------------------------------------------------
 
@@ -312,15 +319,15 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def cg635_set_freq_slot(self):
         print('Setting Frequency')
-        freq_unscaled = self.settings.ui.cg635_set_freq_spinner.value()
-        scaler = 10 ** (3 * self.settings.ui.cg635_freq_units_combobox.currentIndex())
+        freq_unscaled = self.settings.ui.cg635_set_freq_spbx.value()
+        scaler = 10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())
         freq_to_set = freq_unscaled * scaler
         self.cg635.set_freq(freq_to_set)
 
     @QtCore.pyqtSlot()
     def cg635_set_phase_btn_clicked(self):
         print('Setting Phase')
-        phase_to_set = self.settings.ui.cg635_set_phase_spinner.value()
+        phase_to_set = self.settings.ui.cg635_set_phase_spbx.value()
         self.cg635.set_phase(phase_to_set)
 
     @QtCore.pyqtSlot()
@@ -331,7 +338,7 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def cg635_write_manual_cmd(self):
-        cmd_to_write = self.settings.ui.cg635_write_cmd_lineedit.text()
+        cmd_to_write = self.settings.ui.cg635_write_cmd_lnedt.text()
         response = self.cg635.write_string(cmd_to_write, read=True, manual=True)
         self.settings.ui.cg635_response_textedit.setText(response)
 
@@ -341,7 +348,7 @@ class MainWindow(QMainWindow):
         # Currently this creates a lock-in "Window" but doesn't show it:
         if self.settings.lia.model == 'SR844':
             print('setting up SR844')
-            self.settings.ui.status_ind_sr830.setText(self.settings.off_led_str)
+            self.settings.ui.status_ind_sr830.setText(self.label_strings.off_led_str)
             # self.sr830_connected = False
 
             # Test comms and set instrument settings
@@ -352,15 +359,15 @@ class MainWindow(QMainWindow):
             print('Comms_failed? ' + str(did_comms_fail))
             if did_comms_fail is True:
                 # self.sr844_connected = False
-                self.settings.ui.status_ind_sr844.setText(self.settings.red_led_str)
+                self.settings.ui.status_ind_sr844.setText(self.label_strings.red_led_str)
             else:
                 # self.sr844_connected = True
                 self.settings.ui.sr844_checkbox.setChecked(True)
-                self.settings.ui.status_ind_sr844.setText(self.settings.grn_led_str)
+                self.settings.ui.status_ind_sr844.setText(self.label_strings.grn_led_str)
 
         elif self.settings.lia.model == 'SR830':
             print('setting up SR830')
-            self.settings.ui.status_ind_sr844.setText(self.settings.off_led_str)
+            self.settings.ui.status_ind_sr844.setText(self.label_strings.off_led_str)
             # self.sr844_connected = False
 
             # Test comms and set instrument settings
@@ -370,11 +377,11 @@ class MainWindow(QMainWindow):
             print('Comms_failed? ' + str(did_comms_fail))
             if did_comms_fail is True:
                 # self.sr830_connected = False
-                self.settings.ui.status_ind_sr830.setText(self.settings.red_led_str)
+                self.settings.ui.status_ind_sr830.setText(self.label_strings.red_led_str)
             else:
                 # self.sr830_connected = True
                 self.settings.ui.sr830_checkbox.setChecked(True)
-                self.settings.ui.status_ind_sr830.setText(self.settings.grn_led_str)
+                self.settings.ui.status_ind_sr830.setText(self.label_strings.grn_led_str)
         else:
             did_comms_fail = True
             print('else case')
@@ -385,25 +392,17 @@ class MainWindow(QMainWindow):
             print('Lockin Settings Set')
 
     def connect_md2000(self):
-        try:
-            self.mono_controller = MonoControl()
-            self.mono_controller.resource = self.settings.mono_resource_name
-            self.mono_controller.gr_dens = self.settings.mono_groove_density
-            # self.monochromator = MonoDriver(self.settings.mono_resource_name, self.settings.mono_groove_density)
-
-            self.mono_controller.clicked_initialize_button()
-            self.ui.statusbar.showMessage('Initializing Monochromator...')
-
-            initialization_thread = Worker(self.mono_controller.initialization_tasks_thread())
-            self.thread_pool.start(initialization_thread)
+        # self.md2000.establish_comms(self.settings.md2000.com_port)
+        self.md2000.initialize_mono(self.settings.md2000.com_port)
+        if self.md2000.error.status:
+            self.md2000.settings.connected = False
+            self.settings.instrument_status_changed('md2000', 2)
+        else:
+            self.md2000.settings.connected = True
+            self.md2000.set_home_position(self.settings.md2000.cal_wl)
             self.settings.instrument_status_changed('md2000', 1)
 
-        except pyvisa.VisaIOError:
-            print(sys.exc_info()[:])
-            self.settings.instrument_status_changed('md2000', 2)
-            self.general_error_signal.emit({'Title': ' - Warning - ', 'Text': 'Communication with Mono Failed!',
-                                            'Informative Text': 'Check that instrument is connected and powered on',
-                                            'Details': str(sys.exc_info()[:])})
+        # self.settings.update_md2000_tab()
 
     def connect_toptica(self):
         print('---------------------------------- CONNECTING TOPTICA LASER -------------------------------------------')
@@ -415,6 +414,8 @@ class MainWindow(QMainWindow):
         else:
             self.toptica.settings.connected = True
             self.settings.instrument_status_changed('toptica', 1)
+
+        self.settings.update_topt_tab()
 
     def connect_cg635(self):
         print('-------------------------------------- CONNECTING CG635 -----------------------------------------------')
@@ -447,21 +448,21 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def connect_instruments(self):
-        self.settings.ui.status_ind_smb100a.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_toptica.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_sr844.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_sr830.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_md2000.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_cg635.setText(self.settings.off_led_str)
-        self.settings.ui.status_ind_cryostat.setText(self.settings.off_led_str)
+        self.settings.ui.status_ind_smb100a.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_toptica.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_sr844.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_sr830.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_md2000.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_cg635.setText(self.label_strings.off_led_str)
+        self.settings.ui.status_ind_cryostat.setText(self.label_strings.off_led_str)
 
         connect_worker = Worker(self.connect_instruments_worker)
         self.thread_pool.start(connect_worker)
 
     @QtCore.pyqtSlot(str)
     def cg635_freq_changed_slot(self, new_freq):
-        self.settings.ui.cg635_set_freq_spinner.setValue(float(new_freq))
-        self.ui.pump_mod_freq_spinner.setValue(float(new_freq))
+        self.settings.ui.cg635_set_freq_spbx.setValue(float(new_freq))
+        self.ui.pump_mod_freq_spbx.setValue(float(new_freq))
 
     # ----------------------------------------- Other Window Slots ---------------------------------------------------
     @QtCore.pyqtSlot()
@@ -539,10 +540,10 @@ class MainWindow(QMainWindow):
         print('----------------------------------- Preparing Data Storage Arrays -------------------------------------')
 
         # -------------------------------------- PREPARE DATA STORAGE VARIABLES ----------------------------------------
-        num_steps = self.ui.num_steps_spinner.value()
-        duration = self.ui.averaging_time_spinner.value()
+        num_steps = self.ui.num_steps_spbx.value()
+        duration = self.ui.averaging_time_spbx.value()
 
-        num_scans = self.ui.num_scans_spinner.value()
+        num_scans = self.ui.num_scans_spbx.value()
         # To do 2D, I think we'll want to add another layer to the loop (one for each axis). This extra layer contains
         # all of the same stuff as the if/elif statement in the inner loop, except it is operating on abscissa 2
         # Changes will need to be made to the save data stuff of course as well.
@@ -1029,17 +1030,17 @@ class MainWindow(QMainWindow):
 
 
     def enable_all_ui_objects(self):
-        self.ui.variable_2_combobox.setEnabled(True)
-        self.ui.sweep_end_spinner_dim2.setEnabled(True)
-        self.ui.num_steps_spinner_dim2.setEnabled(True)
-        self.ui.sweep_start_spinner_dim2.setEnabled(True)
+        self.ui.variable_2_cbx.setEnabled(True)
+        self.ui.sweep_end_spbx_dim2.setEnabled(True)
+        self.ui.num_steps_spbx_dim2.setEnabled(True)
+        self.ui.sweep_start_spbx_dim2.setEnabled(True)
 
-        self.ui.temp_spinner.setEnabled(True)
-        self.ui.probe_wl_spinner.setEnabled(True)
-        self.ui.rf_freq_spinner.setEnabled(True)
-        self.ui.static_field_spinner.setEnabled(True)
-        self.ui.pump_mod_freq_spinner.setEnabled(True)
-        self.ui.rf_mod_freq_spinner.setEnabled(True)
+        self.ui.temp_spbx.setEnabled(True)
+        self.ui.probe_wl_spbx.setEnabled(True)
+        self.ui.rf_freq_spbx.setEnabled(True)
+        self.ui.static_field_spbx.setEnabled(True)
+        self.ui.pump_mod_freq_spbx.setEnabled(True)
+        self.ui.rf_mod_freq_spbx.setEnabled(True)
 
     def set_1d_plot_properties(self):
         print('inside set_1d_plot_properties')
@@ -1084,12 +1085,12 @@ class MainWindow(QMainWindow):
         if self.abscissae[idx] == 0:
             self.scale_factor[idx] = 1
         elif self.abscissae[idx] == 1:
-            self.scale_factor[idx] = 10**(3*self.units_comboboxes[idx].currentIndex())
+            self.scale_factor[idx] = 10**(3*self.units_cbxes[idx].currentIndex())
         else:
             self.scale_factor[idx] = 1
-        self.end[idx] = (self.sweep_end_spinners[idx].value()) * self.scale_factor[idx]
-        self.start[idx] = (self.sweep_start_spinners[idx].value()) * self.scale_factor[idx]
-        self.step_count[idx] = self.num_steps_spinners[idx].value()
+        self.end[idx] = (self.sweep_end_spbxs[idx].value()) * self.scale_factor[idx]
+        self.start[idx] = (self.sweep_start_spbxs[idx].value()) * self.scale_factor[idx]
+        self.step_count[idx] = self.num_steps_spbxs[idx].value()
         self.scan_range[idx] = self.end[idx] - self.start[idx]
 
         if self.log_spacing[idx]:
@@ -1166,14 +1167,14 @@ class MainWindow(QMainWindow):
         # 1. This estimate is only valid for the CG635/Lockin experiments. Incorporate the others
         # 2. The condition is kind of stupid at the moment but prevents crashes at least
         if self.lockin_delay is not None and self.settings.lia.sampling_rate is not None:
-            averaging_time = self.ui.averaging_time_spinner.value()
+            averaging_time = self.ui.averaging_time_spbx.value()
             data_transfer_time = self.settings.lia.sampling_rate * averaging_time * 0.00132  # This estimate is good
             # 0.00132 is for transferring both channels using TRCL (1.32 ms per sample)
             freq_set_delay = 0.44  # Estimated using the CG635
             check_lia_delay = 0.44  # Very rough estimate. This one depends a lot on situation
             plot_data_delay = 0.16
             record_data_delay = self.lockin_delay + averaging_time + data_transfer_time + 0.139
-            num_scans = self.ui.num_scans_spinner.value()
+            num_scans = self.ui.num_scans_spbx.value()
             print('--------------------- Expt Duration Estimate-----------------')
             print('lockin_delay: ' + str(self.lockin_delay))
             print('ave_time: ' + str(averaging_time))
@@ -1182,9 +1183,9 @@ class MainWindow(QMainWindow):
             print('self.step_count: ' + str(self.step_count))
             expt_duration_estimate = self.step_count[0] * num_scans * (freq_set_delay + check_lia_delay +
                                                                     record_data_delay + plot_data_delay)
-            self.ui.experiment_duration_lineedit.setText(time.strftime('%H:%M:%S', time.gmtime(expt_duration_estimate)))
+            self.ui.experiment_duration_lnedt.setText(time.strftime('%H:%M:%S', time.gmtime(expt_duration_estimate)))
         else:
-            self.ui.experiment_duration_lineedit.setText('Connect to Instruments...')
+            self.ui.experiment_duration_lnedt.setText('Connect to Instruments...')
 
     @QtCore.pyqtSlot(bool)
     def autosave_checkbox_toggled(self, autosave_on):
@@ -1209,14 +1210,14 @@ class MainWindow(QMainWindow):
             self.column_headers[0] = self.x_axis_label
 
             try:
-                self.sweep_start_spinners[abscissa_idx].setValue(self.presets.pump_mod_freq_start)
-                self.sweep_end_spinners[abscissa_idx].setValue(self.presets.pump_mod_freq_end)
-                self.num_steps_spinners[abscissa_idx].setValue(self.presets.pump_mod_freq_steps)
+                self.sweep_start_spbxs[abscissa_idx].setValue(self.presets.pump_mod_freq_start)
+                self.sweep_end_spbxs[abscissa_idx].setValue(self.presets.pump_mod_freq_end)
+                self.num_steps_spbxs[abscissa_idx].setValue(self.presets.pump_mod_freq_steps)
 
-                self.units_comboboxes[abscissa_idx].clear()
-                self.units_comboboxes[abscissa_idx].addItems(['Hz', 'kHz', 'MHz', 'GHz'])
-                self.units_comboboxes[abscissa_idx].setCurrentIndex(1)
-                self.units_comboboxes[abscissa_idx].setEnabled(True)
+                self.units_cbxes[abscissa_idx].clear()
+                self.units_cbxes[abscissa_idx].addItems(['Hz', 'kHz', 'MHz', 'GHz'])
+                self.units_cbxes[abscissa_idx].setCurrentIndex(1)
+                self.units_cbxes[abscissa_idx].setEnabled(True)
 
                 self.log_spacing_checkboxes[abscissa_idx].setChecked(True)
                 self.log_spacing[abscissa_idx] = True
@@ -1231,14 +1232,14 @@ class MainWindow(QMainWindow):
             self.column_headers[0] = self.x_axis_label
 
             try:
-                self.sweep_start_spinners[abscissa_idx].setValue(self.presets.probe_wl_start)
-                self.sweep_end_spinners[abscissa_idx].setValue(self.presets.probe_wl_end)
-                self.num_steps_spinners[abscissa_idx].setValue(self.presets.probe_wl_num_steps)
+                self.sweep_start_spbxs[abscissa_idx].setValue(self.presets.probe_wl_start)
+                self.sweep_end_spbxs[abscissa_idx].setValue(self.presets.probe_wl_end)
+                self.num_steps_spbxs[abscissa_idx].setValue(self.presets.probe_wl_num_steps)
 
-                self.units_comboboxes[abscissa_idx].clear()
-                self.units_comboboxes[abscissa_idx].addItems(['nm'])
-                self.units_comboboxes[abscissa_idx].setCurrentIndex(0)
-                self.units_comboboxes[abscissa_idx].setEnabled(False)
+                self.units_cbxes[abscissa_idx].clear()
+                self.units_cbxes[abscissa_idx].addItems(['nm'])
+                self.units_cbxes[abscissa_idx].setCurrentIndex(0)
+                self.units_cbxes[abscissa_idx].setEnabled(False)
 
                 print('set presets')
                 self.log_spacing_checkboxes[abscissa_idx].setChecked(False)
@@ -1258,33 +1259,33 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget.canvas.axes_main.set_xlabel('RF Modulation Frequency (Hz)')
 
     @QtCore.pyqtSlot(str)
-    def experiment_preset_combobox_activated(self, experiment_str):
+    def experiment_preset_cbx_activated(self, experiment_str):
         print(experiment_str)
         if experiment_str == '-Manual Setup-':
             self.enable_all_ui_objects()
         elif experiment_str == 'Optical Absorption Spectrum':
             self.enable_all_ui_objects()
-            self.ui.variable_1_combobox.setCurrentIndex(2)
-            self.ui.variable_2_combobox.setEnabled(False)
-            self.ui.rf_freq_spinner.setEnabled(False)
-            self.ui.rf_mod_freq_spinner.setEnabled(False)
+            self.ui.variable_1_cbx.setCurrentIndex(2)
+            self.ui.variable_2_cbx.setEnabled(False)
+            self.ui.rf_freq_spbx.setEnabled(False)
+            self.ui.rf_mod_freq_spbx.setEnabled(False)
 
-            self.ui.sweep_start_spinner_dim2.setEnabled(False)
-            self.ui.sweep_end_spinner_dim2.setEnabled(False)
-            self.ui.num_steps_spinner_dim2.setEnabled(False)
+            self.ui.sweep_start_spbx_dim2.setEnabled(False)
+            self.ui.sweep_end_spbx_dim2.setEnabled(False)
+            self.ui.num_steps_spbx_dim2.setEnabled(False)
             print('Completed Experiment Preset Setup')
 
         elif experiment_str == 'PL Lifetime':
             self.enable_all_ui_objects()
-            self.ui.variable_1_combobox.setCurrentIndex(1)                               # Pump Modulation Frequency = 1
-            self.ui.variable_2_combobox.setEnabled(False)
-            self.ui.rf_freq_spinner.setEnabled(False)
-            self.ui.rf_mod_freq_spinner.setEnabled(False)
+            self.ui.variable_1_cbx.setCurrentIndex(1)                               # Pump Modulation Frequency = 1
+            self.ui.variable_2_cbx.setEnabled(False)
+            self.ui.rf_freq_spbx.setEnabled(False)
+            self.ui.rf_mod_freq_spbx.setEnabled(False)
             print('Disabled First Set')
 
-            self.ui.sweep_start_spinner_dim2.setEnabled(False)
-            self.ui.sweep_end_spinner_dim2.setEnabled(False)
-            self.ui.num_steps_spinner_dim2.setEnabled(False)
+            self.ui.sweep_start_spbx_dim2.setEnabled(False)
+            self.ui.sweep_end_spbx_dim2.setEnabled(False)
+            self.ui.num_steps_spbx_dim2.setEnabled(False)
 
             print('Completed PL Lifetime Preset Setup')
 
@@ -1337,8 +1338,8 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def set_pump_mod_units(self, idx):
-        self.settings.ui.cg635_freq_units_combobox.setCurrentIndex(idx)
-        self.ui.pump_mod_freq_units_combobox.setCurrentIndex(idx)
+        self.settings.ui.cg635_freq_units_cbx.setCurrentIndex(idx)
+        self.ui.pump_mod_freq_units_cbx.setCurrentIndex(idx)
         self.cg635.set_freq_units(idx)
 
     @QtCore.pyqtSlot()
@@ -1351,7 +1352,7 @@ class MainWindow(QMainWindow):
     def update_lockin_property(self, property_name, new_value):
         """
         The purpose of this is to keep the lockin.settings and settings.lockin constantly
-        synchronized and up to date. When a settings window object is activated (e.g. button or combobox),
+        synchronized and up to date. When a settings window object is activated (e.g. button or cbx),
         a signal emits which is directed to the lockin control module, telling it to perform some action.
         Once the module function is complete, a signal is emitted from that module, directed to this slot.
         """
@@ -1380,9 +1381,20 @@ class MainWindow(QMainWindow):
         setattr(self.toptica.settings, property_name, new_value)
         setattr(self.settings.toptica, property_name, new_value)
 
+    @QtCore.pyqtSlot(str, float)  # This is called "overloading" a signal and slot. This is now TWO slots
+    @QtCore.pyqtSlot(str, int)  # Which require different variable type inputs. str, int is default if unspec'd
+    def update_md2000_property(self, property_name, new_value):
+        """
+        same but for the md2000
+        """
+        print('inside update_md2000_property')
+        print('attempting to update: ' + property_name + ' to value ' + str(new_value))
+        setattr(self.md2000.settings, property_name, new_value)
+        setattr(self.settings.md2000, property_name, new_value)
+
     def connect_signals_and_slots(self):
         # TODO:
-        # 1. CG635_write_btn could be potentially replaced with the lineedit "Text Edited"
+        # 1. CG635_write_btn could be potentially replaced with the lnedt "Text Edited"
         # -------------------------------------------- ERRORS AND WARNINGS ---------------------------------------------
         self.lockin_status_warning_signal.connect(self.lockin_status_warning_window)
         self.general_error_signal.connect(self.general_error_window)
@@ -1391,41 +1403,64 @@ class MainWindow(QMainWindow):
         self.lockin.send_error_signal.connect(self.receive_error_signal)
         self.cg635.send_error_signal.connect(self.receive_error_signal)
         self.toptica.send_error_signal.connect(self.receive_error_signal)
+        self.md2000.send_error_signal.connect(self.receive_error_signal)
 
         # ----------------------------------------- PROPERTIES UPDATED -------------------------------------------------
         self.settings.cg635_property_updated_signal.connect(self.update_cg635_property)
         self.lockin.property_updated_signal[str, int].connect(self.update_lockin_property)
         self.lockin.property_updated_signal[str, float].connect(self.update_lockin_property)
         self.cg635.property_updated_signal.connect(self.update_cg635_property)
-        self.toptica.property_updated_signal
+        # self.toptica.property_updated_signal[str, int].connect(self.settings.update_topt_tab)
+        # self.toptica.property_updated_signal[str, float].connect(self.settings.update_topt_tab)
+
+        self.toptica.property_updated_signal[str, int].connect(lambda i, j: [self.update_toptica_property(i, j),
+                                                                             self.settings.update_topt_tab()])
+        self.toptica.property_updated_signal[str, float].connect(lambda i, j: [self.update_toptica_property(i, j),
+                                                                               self.settings.update_topt_tab()])
+
+        self.md2000.property_updated_signal[str, int].connect(lambda i, j: [self.update_md2000_property(i, j),
+                                                                            self.settings.update_md2000_tab()])
+        self.md2000.property_updated_signal[str, float].connect(lambda i, j: [self.update_md2000_property(i, j),
+                                                                              self.settings.update_md2000_tab()])
 
         # --------------------------------------------- GENERAL --------------------------------------------------------
-        self.settings.ui.lockin_delay_scale_spinner.valueChanged[float].connect(lambda i:
-                                                                                   self.update_lockin_property('settling_delay_factor', i))
+        self.settings.ui.lockin_delay_scale_spbx.valueChanged[float].connect(
+            lambda i: self.update_lockin_property('settling_delay_factor', i))
+
         self.settings.ui.connect_instr_btn.clicked.connect(self.connect_instruments)
         self.ui.log_spacing_checkbox.toggled['bool'].connect(lambda i: self.log_spacing_checkbox_toggled(i, dim_idx=0))
         self.ui.log_spacing_checkbox_dim2.toggled['bool'].connect(lambda i: self.log_spacing_checkbox_toggled(i, dim_idx=1))
 
         # ------------------------------------------ MAIN WINDOW -------------------------------------------------------
-        self.ui.pump_mod_freq_units_combobox.activated[int].connect(self.set_pump_mod_units)
-        self.ui.pump_mod_freq_spinner.valueChanged[float].connect(lambda i: self.cg635.set_freq(i, scaling_factor=
-                                                                               10 ** (3 * self.settings.ui.cg635_freq_units_combobox.currentIndex())))
+        self.ui.pump_mod_freq_units_cbx.activated[int].connect(self.set_pump_mod_units)
+        self.ui.pump_mod_freq_spbx.valueChanged[float].connect(
+            lambda i: self.cg635.set_freq(i, scaling_factor=10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())))
 
-        self.ui.sweep_start_spinner_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
-        self.ui.sweep_end_spinner_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+        self.ui.sweep_start_spbx_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+        self.ui.sweep_end_spbx_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
         self.ui.log_spacing_checkbox_dim2.toggled['bool'].connect(lambda: self.calc_steps_from_num(dim_idx=1))
-        self.ui.num_steps_spinner_dim2.valueChanged[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
-        self.ui.sweep_units_combobox_dim2.activated[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+        self.ui.num_steps_spbx_dim2.valueChanged[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+        self.ui.sweep_units_cbx_dim2.activated[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
 
-        self.ui.variable_1_combobox.currentIndexChanged[int].connect(lambda i: self.abscissa_changed(i, abscissa_idx=0))
-        self.ui.variable_2_combobox.currentIndexChanged[int].connect(lambda i: self.abscissa_changed(i, abscissa_idx=1))
+        self.ui.variable_1_cbx.currentIndexChanged[int].connect(lambda i: self.abscissa_changed(i, abscissa_idx=0))
+        self.ui.variable_2_cbx.currentIndexChanged[int].connect(lambda i: self.abscissa_changed(i, abscissa_idx=1))
+
         # ----------------------------------------- TOPTICA LASER ------------------------------------------------------
         self.settings.toptica_enable_signal.connect(self.toptica.laser_enable)
         self.settings.toptica_start_signal.connect(self.toptica.laser_start)
+        self.settings.ui.toptica_bias_enable_btn.clicked.connect(self.toptica.laser_enable)
         self.settings.ui.toptica_start_laser_btn.clicked.connect(self.toptica.laser_start)
         self.settings.toptica_stop_signal.connect(self.toptica.laser_disable)
         self.settings.ui.toptica_enable_digital_input_btn.clicked.connect(self.toptica.start_digital_modulation)
         self.settings.ui.toptica_stop_mod_btn.clicked.connect(self.toptica.stop_digital_modulation)
+
+        self.settings.ui.toptica_set_power_btn.clicked.connect(
+            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_power_spbx.value(),
+                                           units_idx=self.settings.ui.toptica_units_cbx.currentIndex()))
+
+        self.settings.ui.toptica_set_bias_power_btn.clicked.connect(
+            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_bias_spbx.value(),
+                                           units_idx=self.settings.ui.toptica_bias_units_cbx.currentIndex()))
 
         # ----------------------------------------- CG635 ----------------------------------------
         self.settings.ui.cg635_run_btn.clicked.connect(self.cg635.run)
@@ -1433,14 +1468,13 @@ class MainWindow(QMainWindow):
         self.settings.ui.cg635_set_current_phase_zero_btn.clicked.connect(self.cg635.set_phase_as_zero)
         self.settings.ui.cg635_check_pll_btn.clicked.connect(self.cg635_check_pll_status)
         self.settings.ui.cg635_write_btn.clicked.connect(self.cg635_write_manual_cmd)
-        self.settings.ui.cg635_set_phase_spinner.valueChanged[float].connect(self.cg635.set_phase)
-        # self.settings.ui.cg635_set_freq_spinner.valueChanged[float].connect(self.cg635.set_freq)
-        self.settings.ui.cg635_set_freq_spinner.valueChanged[float].connect(lambda i:
-                                                                               self.cg635.set_freq(i, scaling_factor=
-                                                                               10 ** (3 * self.settings.ui.cg635_freq_units_combobox.currentIndex())))
+        self.settings.ui.cg635_set_phase_spbx.valueChanged[float].connect(self.cg635.set_phase)
+        # self.settings.ui.cg635_set_freq_spbx.valueChanged[float].connect(self.cg635.set_freq)
+        self.settings.ui.cg635_set_freq_spbx.valueChanged[float].connect(
+            lambda i: self.cg635.set_freq(i, scaling_factor=10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())))
 
-        self.settings.ui.cg635_max_freq_spinner.valueChanged[float].connect(self.cg635.set_max_freq)
-        self.settings.ui.cg635_freq_units_combobox.activated[int].connect(self.set_pump_mod_units)
+        self.settings.ui.cg635_max_freq_spbx.valueChanged[float].connect(self.cg635.set_max_freq)
+        self.settings.ui.cg635_freq_units_cbx.activated[int].connect(self.set_pump_mod_units)
 
         # ------------------------------------------- LOCK-IN ----------------------------------------------------------
 
@@ -1451,21 +1485,30 @@ class MainWindow(QMainWindow):
         self.settings.ui.auto_offset_btn.clicked.connect(self.lockin.auto_offset)
         self.settings.ui.auto_phase_btn.clicked.connect(self.lockin.auto_phase)
         self.settings.ui.auto_sens_btn.clicked.connect(self.lockin.auto_sens)
-        self.settings.ui.close_reserve_combobox.activated[int].connect(self.lockin.update_crsrv)
-        self.settings.ui.wide_reserve_combobox.activated[int].connect(self.lockin.update_wrsrv)
-        self.settings.ui.dynamic_reserve_combobox.activated[int].connect(self.lockin.update_dyn_rsrv)
-        self.settings.ui.expand_combobox.activated[int].connect(self.lockin.update_expand)
-        self.settings.ui.filter_slope_combobox.activated[int].connect(self.lockin.update_filter_slope)
-        self.settings.ui.sr844_harmonic_combobox.activated[int].connect(self.lockin.update_2f)
-        self.settings.ui.harmonic_spinner.valueChanged[int].connect(self.lockin.update_harmonic)
-        self.settings.ui.phase_spinner.valueChanged[float].connect(self.lockin.update_phase)
-        self.settings.ui.input_impedance_combobox.activated[int].connect(self.lockin.update_input_impedance)
-        self.settings.ui.outputs_combobox.activated[int].connect(self.lockin.update_outputs)
-        self.settings.ui.ref_impedance_combobox.activated[int].connect(self.lockin.update_ref_impedance)
-        self.settings.ui.ref_source_combobox.activated[int].connect(self.lockin.update_ref_source)
-        self.settings.ui.sampling_rate_combobox.activated[int].connect(self.lockin.update_sampling_rate)
-        self.settings.ui.sensitivity_combobox.activated[int].connect(self.lockin.update_sensitivity)
-        self.settings.ui.time_constant_combobox.activated[int].connect(self.lockin.update_time_constant)
+        self.settings.ui.close_reserve_cbx.activated[int].connect(self.lockin.update_crsrv)
+        self.settings.ui.wide_reserve_cbx.activated[int].connect(self.lockin.update_wrsrv)
+        self.settings.ui.dynamic_reserve_cbx.activated[int].connect(self.lockin.update_dyn_rsrv)
+        self.settings.ui.expand_cbx.activated[int].connect(self.lockin.update_expand)
+        self.settings.ui.filter_slope_cbx.activated[int].connect(self.lockin.update_filter_slope)
+        self.settings.ui.sr844_harmonic_cbx.activated[int].connect(self.lockin.update_2f)
+        self.settings.ui.harmonic_spbx.valueChanged[int].connect(self.lockin.update_harmonic)
+        self.settings.ui.phase_spbx.valueChanged[float].connect(self.lockin.update_phase)
+        self.settings.ui.input_impedance_cbx.activated[int].connect(self.lockin.update_input_impedance)
+        self.settings.ui.outputs_cbx.activated[int].connect(self.lockin.update_outputs)
+        self.settings.ui.ref_impedance_cbx.activated[int].connect(self.lockin.update_ref_impedance)
+        self.settings.ui.ref_source_cbx.activated[int].connect(self.lockin.update_ref_source)
+        self.settings.ui.sampling_rate_cbx.activated[int].connect(self.lockin.update_sampling_rate)
+        self.settings.ui.sensitivity_cbx.activated[int].connect(self.lockin.update_sensitivity)
+        self.settings.ui.time_constant_cbx.activated[int].connect(self.lockin.update_time_constant)
+
+        # ---------------------------------- MOno ----------------------------------------------------------------------
+        self.md2000.status_message_signal[str].connect(lambda i: self.ui.statusbar.showMessage(i))
+        self.settings.ui.mono_set_home_btn.clicked.connect(
+            lambda i: self.md2000.set_home_position(self.settings.ui.mono_cal_wl_spbx.value()))
+        self.settings.ui.mono_set_wl_spbx.valueChanged[float].connect(
+            lambda i: self.md2000.go_to_wavelength(i, self.settings.md2000.bl_amt, self.settings.md2000.bl_bool))
+        self.settings.ui.mono_bl_comp_chkbx.toggled[bool].connect(lambda i: self.update_md2000_property('bl_bool', i))
+        self.settings.ui.mono_speed_spbx.valueChanged[float].connect(self.md2000.set_speed)
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
 
 

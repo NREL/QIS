@@ -11,7 +11,8 @@ Since it should ready all attributes and set necessary settings as well as homin
 @author: Ryan
 """
 
-from PyQt5.QtCore import QRunnable, QThreadPool
+# from PyQt5.QtCore import QRunnable, QThreadPool
+from PyQt5 import QtCore
 
 import pyvisa
 from pyvisa.constants import StopBits, VI_READ_BUF_DISCARD, VI_WRITE_BUF_DISCARD
@@ -60,8 +61,38 @@ from tkinter import *
 
 
 # ------------------------ BEGIN CLASS DEFINITIONS -----------------------------
-class MonoDriver(QRunnable):
-    def __init__(self, resource, groove_density):
+class MD2000InvalidValueException(BaseException):
+    pass
+
+
+class ErrorCluster:
+    def __init__(self, status=False, code=0, details=''):
+        self.status = status
+        self.code = code
+        self.details = details
+
+
+class MonoSettings:
+    def __init__(self):
+        self.com_port = None
+        self.speed = 500
+        self.gr_dens_idx = None
+        self.gr_dens_opts = [2400, 1800, 1200, 600, 300, 150]
+        self.gr_dens_val = None
+        self.k_number = None
+        self.cal_wl = 0
+        self.cur_wl = 0
+        self.connected = False
+        self.bl_amt = 10.0
+        self.bl_bool = True
+
+
+class MonoDriver(QtCore.QObject):
+    send_error_signal = QtCore.pyqtSignal(object)
+    status_message_signal = QtCore.pyqtSignal(str)
+    property_updated_signal = QtCore.pyqtSignal([str, int], [str, float])
+
+    def __init__(self, *args, **kwargs):
         """ initializes Mono
         Error Messages: -1073807298 (also read error) is device is turned off (or unplugged?)
          -1073807246 occurs when device has been initialized by labview already (solution is
@@ -70,16 +101,21 @@ class MonoDriver(QRunnable):
          whereas -1073807194 seems to occur if it has been unplugged recently
          Also can be fixed sometimes by restarting spyder
          timeout -1073807339 (still to be incorporated)"""
+        # QtCore.QObject.__init__(*args, **kwargs)
+        super(MonoDriver, self).__init__(*args, **kwargs)
+        self.error = ErrorCluster(status=True, code=6999, details='Communication has not been established with md2000')
+
+        self.settings = MonoSettings()
 
         self.last_wavelength = 0
-        self.resource = resource        #Visa resource e.g. 'ASRL4::INSTR'
+        # self.settings.com_port = None       #Visa resource e.g. 'ASRL4::INSTR'
         self.error_code = 1
         self.error_message = 0
-        self.connected = False
+        # self.settings.connected = False
         self.readout = None
-        self.k_number = 0
-        self.groove_density = groove_density
-        self.speed = 500
+        # self.settings.k_number = 0
+        # self.settings.gr_dens = None
+        # self.settings.speed = 500
         self.status_message = None
         self.calibration_wavelength = 0
         self.current_wavelength = 0
@@ -89,7 +125,7 @@ class MonoDriver(QRunnable):
         self.stop_moving = False
         self.busy = False
         # Run instantiation Functions
-        self.get_k_number()
+        # self.get_k_number()
         self.in_motion = False
 
         # End __init__ def ---------------------------------------------------
@@ -98,7 +134,8 @@ class MonoDriver(QRunnable):
         # --------------------------- HIGH LEVEL FUNCTIONS -------------------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
 
-    def establish_comms(self):  # Add a return response or something so that we can see the response?
+    def establish_comms(self, com_port):  # Add a return response or something so that we can see the response?
+        self.settings.com_port = com_port
         self.open_visa()
 
         try:
@@ -106,52 +143,40 @@ class MonoDriver(QRunnable):
             time.sleep(0.1)
             num_bytes = self.comm.bytes_in_buffer
             response = self.comm.read_bytes(num_bytes)
-            if sys.getsizeof(response) > 13:
-                self.connected = True
-                self.error_code = 0
-                self.error_message = "Mono connection test passed"
-                self.status_message = self.error_message
-                print('mono connection test passed')
-        except pyvisa.VisaIOError as eCode:
-            eCode = str(eCode)
-            eCode = eCode.partition("(")[2]
-            eCode = eCode.partition(")")[0]
-            eCode = int(eCode)
-            if eCode == -1073807298:
-                self.error_message = "Mono Could not Connect - Loc 2"
-            elif eCode == -1073807246:
-                self.error_message = "Mono Could not Connect - Loc 2"
-            elif eCode == -1073807194 or eCode == -1073807343:
-                self.error_message = "Mono Could not Connect - Loc 2"
-            elif eCode == -1073807339:
-                self.error_message = "Communication with Mono failed - timeout Error"
-            print(self.error_message, "Error Code =", eCode)
-            self.error_code = eCode
-            self.connected = False
-        except Exception as err:
-            print("Unknown Error - Mono")
-            print('Error: ' + str(err))
-            print(str(sys.exc_info()[0]))
-            print(str(sys.exc_info()[1]))
-            print(str(sys.exc_info()[2]))
-            self.error_code = 1
-            self.connected = False
+            print('Mono IDN response:\n'+ str(response.decode('UTF-8')))
+            if sys.getsizeof(response) > 50:
+                print('size of response: ' + str(sys.getsizeof(response)))
+                self.error = ErrorCluster(status=False, code=0, details='')
+                self.settings.connected = True
+            else:
+                self.error = ErrorCluster(status=True, code=6005,
+                                          details='Incorrect Response from MD2000 Identification Query. '
+                                                  'Check that device is turned on')
+                self.send_error_signal.emit(self.error)
+        except pyvisa.VisaIOError as err:
+            print('error in est comms')
+            self.error = ErrorCluster(status=True, code=6001,
+                                      details='VISA error while trying to establish comms with md2000')
+            self.send_error_signal.emit(self.error)
+
         self.close_visa()
 
-    def initialize_mono(self):
+    def initialize_mono(self, com_port):
         """ This one has the code for the rest of the initialization (homing, etc.) """
-        self.status_message = 'Establishing Communications'
-        self.establish_comms()
-        self.status_message = 'Communications Established'
+        self.settings.com_port = com_port
+        self.get_k_number()
+        self.status_message_signal.emit('Establishing Communications with MD2000')
+        self.establish_comms(self.settings.com_port)
+        # self.status_message = 'Communications Established'
         print('comms established')
-        if self.error_code == 1:
-            print('error_code was 1')
-            self.status_message = self.error_message
+        if self.error.status:
+            print('preexisting md2000 error')
             return
-        elif self.error_code == 0:
+        else:
             print('error_code was 0')
             # This is the "communication success" section
-            self.status_message = 'Homing Monochromator'
+            # self.status_message = 'Homing Monochromator'
+            self.status_message_signal.emit('Homing Monochromator')
             time.sleep(0.25)
             # Move Negative (Moves it to ~ 200 nm)
             self.move_cfm('X0W0T4800R-38000S')  # Add the check for failure situation to this one
@@ -162,27 +187,26 @@ class MonoDriver(QRunnable):
             time.sleep(0.25)
             # Move Positive
             self.move_cfm('X2W0T640R+12200S')
-            self.status_message = 'Homing Complete, Setting Current Position = 0 nm'
+            self.status_message_signal.emit('Homing Complete, Setting Current Position = 0 nm')
+            # self.status_message = 'Homing Complete, Setting Current Position = 0 nm'
             time.sleep(0.25)
             self.set_zero_position()
             time.sleep(0.25)
             time.sleep(0.25)
-        else:
-            self.status_message = self.error_message
-            return
-        print('--------------------------------------------------------------------------------------')
 
-    def go_to_wavelength(self, destination, speed, backlash_amount, backlash_bool):
+    def go_to_wavelength(self, destination, backlash_amount, backlash_bool):
         # Decide which direction the move is:
         # print('current wavelength: ' + str(self.current_wavelength))
-        self.status_message = 'Moving to ' + str(destination) + ' nm'
+        # self.status_message = 'Moving to ' + str(destination) + ' nm'
+        self.status_message_signal.emit('Moving Mono to ' + str(destination) + ' nm')
         print('Moving to: ' + str(destination))
         if destination < self.current_wavelength:
             direction = 'Down'
         elif destination > self.current_wavelength:
             direction = 'Up'
         else:
-            self.status_message = 'No Wavelength Change Requested'
+            self.status_message_signal.emit('No Wavelength Change Requested')
+            # self.status_message = 'No Wavelength Change Requested'
             return
 
         # First generate the string you need to write
@@ -213,8 +237,8 @@ class MonoDriver(QRunnable):
         """Give amount in nm, higher as a boolean (true for higher false for lower), and speed
         in nm/sec"""
         self.continue_updating = True
-        if self.connected:
-            num_steps = round(amount_nm * self.k_number)
+        if self.settings.connected:
+            num_steps = round(amount_nm * self.settings.k_number)
             if higher:
                 nudge_str = ("X" + str(num_steps) + "S")
                 self.status_message = ('Nudging ' + str(num_steps) + ' up (~' + str(amount_nm) + ' nm)')
@@ -258,46 +282,47 @@ class MonoDriver(QRunnable):
         i = 1
         while i < self.move_cfm_iteration_timeout:
 
-
             self.write_str('X-8?', read=True)  # This is the command for check for movement i guess
 
             print(str(i) + ' ..... Readout: ' + str(self.readout))
-            try:
-                # Response to this will be before_str = 'b\r\r\n' and after_str = '0\r\n*' (0 may be 0,1,2, or 5, where
-                # 0 indicates motion is complete')
-                [before_str, after_str] = self.readout.split('X,-8,', 1)
-            except ValueError as err:  # In the case that there is only one output (parse string not found)
-                try:
-                    before_str = self.readout.split('X,-8', 1)[0]
-                    after_str = ''  # Might it be better to use a 0?
-                    print('Pretty sure this shouldnt have happened')
-                except ValueError as err:   # In case somehow there was a different issue
-                    print('Not sure how this happened, move_cfm aborted')
-                    print(str(sys.exc_info()[0]))
-                    print(str(sys.exc_info()[1]))
-                    print(str(sys.exc_info()[2]))
-                    self.close_visa()
-                    return
+
+            check_val = int(self.readout.split('X,-8,', 1)[1].split('\r\n', 1)[0])
+
+            # try:
+            #     # Response to this will be before_str = 'b\r\r\n' and after_str = '0\r\n*' (0 may be 0,1,2, or 5, where
+            #     # 0 indicates motion is complete')
+            #     [before_str, after_str] = self.readout.split('X,-8,', 1)
+            #     print('before_str: ' + str(before_str))
+            # except ValueError as err:  # In the case that there is only one output (parse string not found)
+            #     try:
+            #         before_str = self.readout.split('X,-8', 1)[0]
+            #         after_str = ''  # Might it be better to use a 0?
+            #         print('Pretty sure this shouldnt have happened')
+            #     except ValueError as err:   # In case somehow there was a different issue
+            #         print('Not sure how this happened, move_cfm aborted')
+            #         print(str(sys.exc_info()[0]))
+            #         print(str(sys.exc_info()[1]))
+            #         print(str(sys.exc_info()[2]))
+            #         self.close_visa()
+            #         return
+            #
+            # try:
+            #     # The prefix r is to force the search string to be treated as "raw" rather than escape sequence
+            #     before_str_2 = after_str.split(r'\r\n', 1)[0]  # We don't need the after string here
+            # except ValueError as err:
+            #     print('Not sure how this happened, move_cfm aborted')
+            #     self.close_visa()
+            #     print(str(sys.exc_info()[0]))
+            #     print(str(sys.exc_info()[1]))
+            #     print(str(sys.exc_info()[2]))
+            #     return
 
             try:
-                # The prefix r is to force the search string to be treated as "raw" rather than escape sequence
-                before_str_2 = after_str.split(r'\r\n', 1)[0]  # We don't need the after string here
-            except ValueError as err:
-                print('Not sure how this happened, move_cfm aborted')
-                self.close_visa()
-                print(str(sys.exc_info()[0]))
-                print(str(sys.exc_info()[1]))
-                print(str(sys.exc_info()[2]))
-                return
-
-            try:
-                move = int(before_str_2)  # To match the labview, 0 must be output if non-numeric/empty string remains
+                move = int(check_val)  # To match the labview, 0 must be output if non-numeric/empty string remains
             except ValueError:
-                #move = 0
+                # move = 0
                 print('Value error on trying to convert to int')
-                print(str(sys.exc_info()[0]))
-                print(str(sys.exc_info()[1]))
-                print(str(sys.exc_info()[2]))
+                print(str(sys.exc_info()[:]))
                 return
 
             if move == 0:
@@ -310,15 +335,14 @@ class MonoDriver(QRunnable):
             else:
                 move_done_bool = False
 
-            if move_done_bool is True or self.error_code != 0:  # A stop button may also be added here?
+            if move_done_bool is True or self.error.status:  # A stop button may also be added here?
                 self.in_motion = False
                 break
 
             if i >= (self.move_cfm_iteration_timeout - 1):
-                self.status_message = 'Initialization Failed'
-                print(str(self.status_message))
-                self.error_code = 1
-                self.error_message = self.status_message
+                self.error = ErrorCluster(status=True, code=6004, details='Mono Initialization Failed')
+                self.send_error_signal.emit(self.error)
+                # self.status_message_signal.emit(self.error.details)
                 self.in_motion = False
                 break
 
@@ -336,9 +360,9 @@ class MonoDriver(QRunnable):
             elif speed < 0:
                 speed = 0
 
-            r_number = round(speed * self.k_number)
+            r_number = round(speed * self.settings.k_number)
             tmp_string = ('X' + str(r_number) + 'R')
-            self.speed = speed
+            self.settings.speed = speed
 
             self.open_visa()
             self.write_str(tmp_string, read=True)
@@ -354,14 +378,23 @@ class MonoDriver(QRunnable):
 
         self.status_message = 'Stepper Position set to ' + str(self.current_wavelength) + ' nm'
 
+    def set_home_position(self, home_wl):
+        # self.zero_wavelength = self.ui.calib_wl_spinner.value()
+        self.settings.cal_wl = home_wl
+        self.set_zero_position()
+        cur_wl = self.settings.cal_wl
+        print('Home wavelength is: ' + str(self.settings.cal_wl))
+        self.property_updated_signal[str, float].emit('cur_wl', cur_wl)
+        self.status_message_signal.emit('Home Wavelength Set')
+
     def get_current_pos(self):
         # self.open_visa()   # Is this needed?
         self.write_str('X-1?', read=True)
         # self.close_visa()
 
         response = self.readout
-        partially_parsed = response.split('X,-1,', 1)[1]
-        current_step_position = partially_parsed.split(r'\r\n', 1)[0]
+        # partially_parsed = response.split('X,-1,', 1)[1]
+        current_step_position = response.split('X,-1,', 1)[1].split('\r\n', 1)[0]
         print('wavelength in steps: ' + str(current_step_position))
         current_step_position = int(current_step_position)
         wavelength = self.convert_steps_absolute_to_wavelength(current_step_position)
@@ -403,66 +436,45 @@ class MonoDriver(QRunnable):
     def write_str(self, command, read=True):        # Should the open and close be INSIDE here? I keep forgetting them..
         """ """
         print('got inside write_str ' + str(command))
-        if self.connected:
+        if self.settings.connected:
             try:
                 self.comm.write(str(command))
                 time.sleep(0.1)
 
                 if read is True:
                     num_bytes = self.comm.bytes_in_buffer
-                    self.readout = str(self.comm.read_bytes(num_bytes))
+                    readout = self.comm.read_bytes(num_bytes)
+                    self.readout = readout.decode('UTF-8')
                     print('readout: ' + str(self.readout))
 
                 else:
                     self.readout = None
-                self.error_message = "Command Sent"
-                self.error_code = 0
+                # self.error_message = "Command Sent"
+                # self.error_code = 0
 
-            except pyvisa.VisaIOError as eCode:
-                eCode = str(eCode)
-                eCode = eCode.partition("(")[2]
-                eCode = eCode.partition(")")[0]
-                eCode = int(eCode)
-                if eCode == -1073807298:
-                    self.error_message = "Could not Connect - Loc 3"
-                elif eCode == -1073807246:
-                    self.error_message = "Could not Connect - Loc 3"
-                elif eCode == -1073807194 or eCode == -1073807343:
-                    self.error_message = "Could not Connect - Loc 3"
-                elif eCode == -1073807339:
-                    self.error_message = "Communication failed - timeout Error"
-                print("Error Code =", eCode)
-                self.error_code = eCode
-                self.connected = False
+            except pyvisa.VisaIOError as err:
+                self.error = ErrorCluster(status=True, code=6002,
+                                          details='VISA Error while trying to write command to MD2000\n' + str(err))
+                self.send_error_signal.emit(self.error)
+                self.settings.connected = False
                 self.readout = None
 
-            except:
-                self.error_message = "unknown error"
-                print(self.error_message)
-                print(str(sys.exc_info()[0]))
-                print(str(sys.exc_info()[1]))
-                print(str(sys.exc_info()[2]))
-                self.error_code = 1
-                self.connected = False
-                self.readout = None
         else:
-            self.error_message = "Write Aborted - Device Communication Not Established"
-            print(self.error_message)
-            self.error_code = 1
+            self.error = ErrorCluster(status=True, code=6003,
+                                      details='Write Aborted - MD2000 Communication Not Established')
+            self.send_error_signal.emit(self.error)
             self.readout = None
         print('made it to the end of write_str')
         # End IF statement-------
-        return  # self.connected, self.readout, self.error_message, self.error_code
+        return  # self.settings.connected, self.readout, self.error_message, self.error_code
     # End write to Mono --------------------------------------------------------
 
     def open_visa(self):
         rm = pyvisa.ResourceManager()
         rm.list_resources()
 
-        ## Catch Exceptions
-        self.error_code = 1
         try:
-            self.comm = rm.open_resource(self.resource, baud_rate=9600, data_bits=8,
+            self.comm = rm.open_resource(self.settings.com_port, baud_rate=9600, data_bits=8,
                                          stop_bits=StopBits.one, timeout=1000)
             time.sleep(0.05)
             # self.comm.query_delay = 0.05  # The labview code used 50ms between r/w
@@ -474,15 +486,10 @@ class MonoDriver(QRunnable):
             # Clear the read and write buffers so you start with a clean slate
             self.comm.flush(VI_WRITE_BUF_DISCARD)
             self.comm.flush(VI_READ_BUF_DISCARD)
-
-        except pyvisa.VisaIOError as eCode:
-            eCode = str(eCode)
-            eCode = eCode.partition("(")[2]
-            eCode = eCode.partition(")")[0]
-            self.error_message = ("Mono Could not Connect - Loc 1" + eCode)
-            eCode = int(eCode)
-            print(eCode)
-            return self.error_message
+        except pyvisa.VisaIOError as err:
+            self.error = ErrorCluster(status=True, code=6000,
+                                      details='VISA error while opening communications with Mono driver' + str(err))
+            self.send_error_signal.emit(self.error)
 
     def close_visa(self):
         self.comm.before_close()
@@ -507,27 +514,28 @@ class MonoDriver(QRunnable):
         print('Finishing check position')
 
     def get_k_number(self):
-        if self.groove_density == 2400:
-            self.k_number = 64
-        elif self.groove_density == 1800:
-            self.k_number = 48
-        elif self.groove_density == 1200:
-            self.k_number = 32
-        elif self.groove_density == 600:
-            self.k_number = 16
-        elif self.groove_density == 300:
-            self.k_number = 8
-        elif self.groove_density == 150:
-            self.k_number = 4
+        if self.settings.gr_dens_val == 2400:
+            k_number = 64
+        elif self.settings.gr_dens_val == 1800:
+            k_number = 48
+        elif self.settings.gr_dens_val == 1200:
+            k_number = 32
+        elif self.settings.gr_dens_val == 600:
+            k_number = 16
+        elif self.settings.gr_dens_val == 300:
+            k_number = 8
+        elif self.settings.gr_dens_val == 150:
+            k_number = 4
+        self.property_updated_signal[str, int].emit('k_number', k_number)
         # End get_k_number--------------
 
     def convert_wl_to_steps_absolute(self, wavelength):
-        steps = round((wavelength - self.calibration_wavelength) * self.k_number)
+        steps = round((wavelength - self.settings.cal_wl) * self.settings.k_number)
         steps = int(steps)
         return steps
 
     def convert_steps_absolute_to_wavelength(self, steps):
-        wavelength = ((steps / self.k_number) + self.calibration_wavelength)
+        wavelength = ((steps / self.settings.k_number) + self.settings.cal_wl)
         return wavelength
 #--------------------------END CLASS DEFINITIONS-------------------------------
 
