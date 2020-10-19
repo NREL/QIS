@@ -196,6 +196,7 @@ class MonoDriver(QtCore.QObject):
             self.set_zero_position()
             time.sleep(0.25)
             time.sleep(0.25)
+            self.set_speed(self.settings.speed)
 
     def go_to_wavelength(self, destination, backlash_amount, backlash_bool):
         # Decide which direction the move is:

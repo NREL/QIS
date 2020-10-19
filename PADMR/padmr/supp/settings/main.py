@@ -21,6 +21,25 @@ pyqt = os.path.dirname(PyQt5.__file__)  # This and the following line are essent
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 
 
+class Presets:              # Presumably I should incorporate these into the Settings file. It seems silly to have both
+    def __init__(self):
+        self.probe_wl_start = 400
+        self.probe_wl_end = 700
+        self.probe_wl_num_steps = 31        # self.probe_wl_step_size = 5
+
+        self.pump_mod_freq_start = 25    # kHz
+        self.pump_mod_freq_end = 200000
+        self.pump_mod_freq_steps = 3    # later set this to 20 or something
+
+        # self.lockin_sampling_rate = 512     # Hertz
+        self.lockin_sampling_duration = 1   # Seconds
+
+        self.temperature = 295
+        self.static_field = 0
+        self.probe_wl = 513
+        self.rf_freq = 9.2
+
+
 class SettingsWindowForm(QWidget):
 
     lockin_property_updated_signal = QtCore.pyqtSignal(str, int)
@@ -71,6 +90,7 @@ class SettingsWindowForm(QWidget):
 
         self.ui.tab_widget.setCurrentIndex(0)
 
+        self.presets = Presets()
         # Prepare settings objects for each instrument. These are redundant at the moment (each instrument has
         # an identical settings object), but for the moment, this seems like the best way to do things.
         self.lia = LockinSettings()
@@ -174,6 +194,19 @@ class SettingsWindowForm(QWidget):
         # Toptica Settings
         self.toptica_com_port = param_lines[100].split('#')[0].split()[2]
 
+        # Experiment Setup Presets
+        self.presets.probe_wl_start = float(param_lines[120].split('#')[0].split()[2])
+        self.presets.probe_wl_end = float(param_lines[121].split('#')[0].split()[2])
+        self.presets.probe_wl_num_steps = int(param_lines[122].split('#')[0].split()[2])
+        self.presets.pump_mod_freq_start = float(param_lines[123].split('#')[0].split()[2])
+        self.presets.pump_mod_freq_end = float(param_lines[124].split('#')[0].split()[2])
+        self.presets.pump_mod_freq_steps = int(param_lines[125].split('#')[0].split()[2])
+
+        self.presets.lockin_sampling_duration = float(param_lines[127].split('#')[0].split()[2])
+        self.presets.temperature = float(param_lines[128].split('#')[0].split()[2])
+        self.presets.static_field = float(param_lines[129].split('#')[0].split()[2])
+        self.presets.probe_wl = float(param_lines[130].split('#')[0].split()[2])
+        self.presets.rf_freq = float(param_lines[131].split('#')[0].split()[2])
         print('CG635 Com Format: ' + str(self.cg635_com_format))
         print('toptica com_port: ' + str(self.toptica_com_port))
 

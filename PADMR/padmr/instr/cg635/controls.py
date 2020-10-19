@@ -37,7 +37,7 @@ class CG635Settings:
 class CG635Instrument(QtCore.QObject):
     send_error_signal = QtCore.pyqtSignal(object)
     freq_changed_signal = QtCore.pyqtSignal(str)
-    property_updated_signal = QtCore.pyqtSignal(str, int)
+    property_updated_signal = QtCore.pyqtSignal([str, int], [str, float])
 
     def __init__(self, *args, **kwargs):
         """
@@ -107,15 +107,16 @@ class CG635Instrument(QtCore.QObject):
         return not self.connected
 
     def close_comms(self):
-        try:
-            self.comms.before_close()
-            self.comms.close()
-        except pyvisa.VisaIOError as err:
-            self.connected = False
-            if not self.error.status:  # If no preexisting error, generate a new one
-                self.error = ErrorCluster(status=True, code=4001,
-                                          details='Error closing communications with CG635.\n' + str(err))
-                self.send_error_signal.emit(self.error)
+        if self.comms is not None:
+            try:
+                self.comms.before_close()
+                self.comms.close()
+            except pyvisa.VisaIOError as err:
+                self.connected = False
+                if not self.error.status:  # If no preexisting error, generate a new one
+                    self.error = ErrorCluster(status=True, code=4001,
+                                              details='Error closing communications with CG635.\n' + str(err))
+                    self.send_error_signal.emit(self.error)
 
     def open_comms(self):
         """

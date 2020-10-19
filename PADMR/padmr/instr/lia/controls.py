@@ -458,7 +458,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             new_tc = self.settings.tc_numeric_list[idx]
             print('new_tc: ' + str(new_tc))
             self.property_updated_signal[str, float].emit('time_constant_value', new_tc)
-            print('self.settings.time_constant_value' + str(self.settings.time_constant_value))
+            print('self.settings.time_constant_value: ' + str(self.settings.time_constant_value))
 
     def update_all(self):
         print('Updating All Lock-in Parameters')
