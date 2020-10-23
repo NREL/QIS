@@ -68,6 +68,8 @@ class TopticaInstr(QtCore.QObject):
         else:
             print('Comms Initiated')
             self.settings.serial = self.ask('serial')
+            if self.error.status:
+                return
             self.settings.version = self.ask('ver')
             status = self.ask('status laser')
             if status == 'OFF':
@@ -186,6 +188,7 @@ class TopticaInstr(QtCore.QObject):
             print('raw response: ' + str(response))
             if b'CMD>' not in response:
                 print('Laser Communication Error. Prompt not recieved')
+                response = ''
                 self.error = ErrorCluster(status=True, code=5004,
                                           details='Toptica Communication Error - Prompt not Received\n')
                 self.send_error_signal.emit(self.error)
@@ -262,26 +265,18 @@ class TopticaInstr(QtCore.QObject):
             status_ind = 1
         self.property_updated_signal[str, int].emit('laser_status', status_ind)
 
-    def set_power(self, power_value, units_idx=1):
+    def set_power(self, power_value):
         """
         The units_idx is either 0 for microwatts or 1 for mW
         """
         print('This functionality not set up')
         self.open_comms()
-        if units_idx == 0:      # microwatts
-            units_str = ' mic'
-            if power_value > 150000:
-                power_value = 150000
-                print('Power has been trimmed to 150 mW (max output)')
-        elif units_idx == 1:    # milliwatts
-            units_str = ''
-            if power_value > 150:
-                power_value = 150
-                print('Power has been trimmed to 150 mW (max output)')
-        else:
-            raise TopticaInvalidValueException(units_idx)
 
-        pow_str = 'ch2 pow ' + str(power_value) + units_str
+        if power_value > 150:
+            power_value = 150
+            print('Power has been trimmed to 150 mW (max output)')
+
+        pow_str = 'ch2 pow ' + str(power_value)
         response = self.ask(pow_str)
         print('set power response: ' + response)
         act_pow_str = self.ask('show power')

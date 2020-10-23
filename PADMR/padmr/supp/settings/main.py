@@ -1,6 +1,7 @@
 import os
 import sys
 import PyQt5
+import pyvisa
 from PyQt5.QtWidgets import QApplication, QWidget, QDoubleSpinBox
 from PyQt5 import QtCore
 
@@ -185,14 +186,13 @@ class SettingsWindowForm(QWidget):
         self.md2000.speed = float(param_lines[65].split('#')[0].split()[2])
 
         # CG635 Settings
-        self.cg635_com_format = int(param_lines[70].split('#')[0].split()[2])
-        self.cg635_resource_name = param_lines[71].split('#')[0].split()[2]
-        self.cg635_gpib_address = int(param_lines[72].split('#')[0].split()[2])
-        self.cg635_freq_units = int(param_lines[73].split('#')[0].split()[2])
-        self.cg635_max_freq = int(param_lines[74].split('#')[0].split()[2])
+        self.cg635_resource_name = param_lines[70].split('#')[0].split()[2]
+        self.cg635_gpib_address = int(param_lines[71].split('#')[0].split()[2])
+        self.cg635_freq_units = int(param_lines[72].split('#')[0].split()[2])
+        self.cg635_max_freq = int(param_lines[73].split('#')[0].split()[2])
 
         # Toptica Settings
-        self.toptica_com_port = param_lines[100].split('#')[0].split()[2]
+        self.toptica.com_port = param_lines[100].split('#')[0].split()[2]
 
         # Experiment Setup Presets
         self.presets.probe_wl_start = float(param_lines[120].split('#')[0].split()[2])
@@ -207,8 +207,7 @@ class SettingsWindowForm(QWidget):
         self.presets.static_field = float(param_lines[129].split('#')[0].split()[2])
         self.presets.probe_wl = float(param_lines[130].split('#')[0].split()[2])
         self.presets.rf_freq = float(param_lines[131].split('#')[0].split()[2])
-        print('CG635 Com Format: ' + str(self.cg635_com_format))
-        print('toptica com_port: ' + str(self.toptica_com_port))
+        print('toptica com_port: ' + str(self.toptica.com_port))
 
     def init_lockin_tab(self):
         # Initialize the lock-in tab
@@ -225,8 +224,6 @@ class SettingsWindowForm(QWidget):
         try:
             print('Inside Try')
             # First set the values that do not depend on which lock-in you're using
-            com_number = int(self.prologix_com_port.split('L')[1].split(':')[0])
-            self.ui.prologix_com_port_spbx.setValue(com_number)
             self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
             self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate)
             self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
@@ -329,7 +326,6 @@ class SettingsWindowForm(QWidget):
         self.md2000.gr_dens_val = self.md2000.gr_dens_opts[self.md2000.gr_dens_idx]
         self.ui.mono_act_wl_lnedt.setText(str(self.md2000.cur_wl))
         self.ui.mono_bl_comp_chkbx.setChecked(self.md2000.bl_bool)
-        self.ui.mono_com_port_spbx.setValue(int(self.md2000.com_port.split('L')[1].split(':')[0]))
 
     def initialize_settings_window(self):
         # Initialize the general tab
@@ -342,15 +338,33 @@ class SettingsWindowForm(QWidget):
         self.ui.status_ind_toptica.setText(self.label_strings.off_led_str)
         self.ui.status_ind_smb100a.setText(self.label_strings.off_led_str)
 
+        self.check_com_ports()
+
         self.init_lockin_tab()
         self.update_md2000_tab()
 
         print('----------------------------------Initializing the cg635 Tab---------------------------------------')
-        self.ui.cg635_comm_format_cbx.setCurrentIndex(self.cg635_com_format)
         self.ui.cg635_gpib_spbx.setValue(self.cg635_gpib_address)
         self.ui.cg635_freq_units_cbx.setCurrentIndex(self.cg635_freq_units)
 
         self.update_topt_tab()
+
+    def check_com_ports(self):
+        rm = pyvisa.ResourceManager()
+        resources = list(rm.list_resources())
+        resources.insert(0, '')
+        self.ui.md2000_com_port_cmb.addItems(resources)
+        self.ui.md2000_com_port_cmb.setCurrentText(self.md2000.com_port)
+
+        self.ui.cryostat_com_port_cmb.addItems(resources)
+
+        self.ui.toptica_com_port_cmb.addItems(resources)
+        self.ui.toptica_com_port_cmb.setCurrentText(self.toptica.com_port)
+
+        self.ui.prologix_com_port_cmb.addItems(resources)
+        self.ui.prologix_com_port_cmb.setCurrentText(self.prologix_com_port)
+
+        self.ui.smb100a_com_port_cmb.addItems(resources)
 
     @QtCore.pyqtSlot(str, int)
     def instrument_status_changed(self, which_instrument, new_status):
@@ -421,10 +435,7 @@ class SettingsWindowForm(QWidget):
     @QtCore.pyqtSlot(str, int)
     @QtCore.pyqtSlot(str, float)
     def update_topt_tab(self):
-        if self.ui.toptica_units_cbx.currentIndex() == 0:
-            self.ui.toptica_power_spbx.setValue(self.toptica.power)
-        elif self.ui.toptica_units_cbx.currentIndex() == 1:
-            self.ui.toptica_power_spbx.setValue(self.toptica.power / 1000)
+        self.ui.toptica_power_spbx.setValue(self.toptica.power / 1000)
 
         self.ui.toptica_bias_spbx.setValue(self.toptica.bias_power)
 
@@ -505,11 +516,6 @@ class SettingsWindowForm(QWidget):
             print(sys.exc_info()[:])
 
     @QtCore.pyqtSlot(int)
-    def cg635_comm_format_changed(self, value):
-        # self.cg635_com_format = value
-        self.cg635_property_updated_signal.emit('com_format', value)
-
-    @QtCore.pyqtSlot(int)
     def sr844_gpib_address_changed(self, new_addr):
         self.sr844_gpib_address = new_addr
         self.lockin_property_updated_signal.emit('gpib_address', new_addr)
@@ -523,107 +529,7 @@ class SettingsWindowForm(QWidget):
     def cg635_gpib_address_changed(self, new_addr):
         self.cg635_property_updated_signal.emit('gpib_address', new_addr)
 
-    @QtCore.pyqtSlot(int)
-    def prologix_com_port_changed(self, new_port):
-        self.prologix_com_port = 'ASRL%d::INSTR' % new_port
 
-    @QtCore.pyqtSlot(int)
-    def md2000_com_port_changed(self, new_port):
-        self.md2000_com_port = 'ASRL%d::INSTR' % new_port
-
-    @QtCore.pyqtSlot(int)
-    def cg635_com_port_changed(self, new_port):
-        self.cg635_com_port = 'ASRL%d::INSTR' % new_port
-
-    @QtCore.pyqtSlot(int)
-    def smb100a_com_port_changed(self, new_port):
-        self.smb100a_com_port = 'ASRL%d::INSTR' % new_port
-
-    @QtCore.pyqtSlot(int)
-    def cryostat_com_port_changed(self, new_port):
-        self.cryostat_com_port = 'ASRL%d::INSTR' % new_port
-
-    @QtCore.pyqtSlot(int)
-    def toptica_com_port_changed(self, new_port):
-        self.toptica_com_port = 'ASRL%d::INSTR' % new_port
-
-
-    # @QtCore.pyqtSlot()
-    # def lockin_model_changed(self):
-    #     print('index: ' + str(self.ui.lockin_model_cbx.currentIndex()))
-    #     if self.ui.lockin_model_cbx.currentIndex() == 0:
-    #         self.lockin_model_preference = 'SR844'
-    #     elif self.ui.lockin_model_cbx.currentIndex() == 1:
-    #         self.lockin_model_preference = 'SR830'
-    #     else:
-    #         print('unknowns lockin_model')
-    #     self.initialize_settings_window()
-
-
-    # @QtCore.pyqtSlot()
-    # def set_tab_params_btn_clicked(self, which_tab=None):
-    #     print('set tab starting')
-    #     if which_tab is None:
-    #         which_tab = self.ui.tab_widget.currentIndex()
-    #
-    #     if which_tab == 0:
-    #         com_idx = self.ui.prologix_com_port_spbx.value()
-    #         self.prologix_com_port = 'ASRL' + str(com_idx) + '::INSTR'
-    #         print('General Settings tab not set up')
-    #     elif which_tab == 1:
-    #         self.lia.outputs = self.ui.outputs_cbx.currentIndex()
-    #         self.lia.sampling_rate = self.ui.sampling_rate_cbx.currentIndex()
-    #         self.lia.reference_source = self.ui.ref_source_cbx.currentIndex()
-    #
-    #         self.lia.sensitivity = self.ui.sensitivity_cbx.currentIndex()
-    #         self.lia.filter_slope = self.ui.filter_slope_cbx.currentIndex()
-    #         self.lia.time_constant = self.ui.time_constant_cbx.currentIndex()
-    #         self.lia.wide_reserve = self.ui.wide_reserve_cbx.currentIndex()
-    #         self.lia.close_reserve = self.ui.close_reserve_cbx.currentIndex()
-    #
-    #         self.lia.input_impedance = self.ui.input_impedance_cbx.currentIndex()
-    #         self.lia.reference_impedance = self.ui.ref_impedance_cbx.currentIndex()
-    #         self.lia.twoF_detect_mode = self.ui.sr844_harmonic_cbx.currentIndex()
-    #         self.lia.harmonic = self.ui.harmonic_spbx.value()
-    #         self.lia.expand = self.ui.expand_cbx.currentIndex()
-    #         self.lia.dynamic_reserve = self.ui.dynamic_reserve_cbx.currentIndex()
-    #         self.sr844_gpib_address = self.ui.sr844_gpib_address_spbx.value()
-    #         self.sr830_gpib_address = self.ui.sr830_gpib_address_spbx.value()
-    #         if self.lia.model == 'SR844':
-    #             self.lia.gpib_address = self.sr844_gpib_address
-    #         elif self.lia.model == 'SR830':
-    #             self.lia.gpib_address = self.sr830_gpib_address
-    #     elif which_tab == 2:
-    #         print('Mono tab not set up yet')
-    #     elif which_tab == 3:
-    #         print('RnS tab not set up yet')
-    #     elif which_tab == 4:
-    #         print('CG 635 tab not set up with this button')
-    #     else:
-    #         print('Tab not set up yet')
-    #
-    #     self.update_tab_signal.emit(which_tab)
-
-    # @QtCore.pyqtSlot()
-    # def set_all_params_btn_clicked(self):
-    #     #TODO:
-    #     # 1. Fix the com ports thing
-    #     # 2. Get this to vary depending on which lockin is used
-    #
-    #     # First update the attributes (current tab only?)
-    #     # self.mono_resource_name
-    #     # self.mono_groove_density
-    #     # self.mono_home_wavelength
-    #     for ii in range(0, self.ui.tab_widget.count()):
-    #         self.set_tab_params_btn_clicked(which_tab=ii)
-    #
-    #     # Then tell the main window to talk to the instruments
-    #     self.update_all_signal.emit(True)
-    #
-    # @QtCore.pyqtSlot()
-    # def auto_sens_btn_clicked(self):
-    #     print('btn does nothing')
-    #     pass
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
 if __name__ == '__main__':
     app = QApplication(sys.argv)  # Defines the instance of the whole application

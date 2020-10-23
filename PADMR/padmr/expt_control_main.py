@@ -6,8 +6,8 @@
 # 4. Get probe wavelength scanning working
 # 5. Finish setting up 2D experiments
 # Various:
-# -75. Reset Scan Entries when Absissca is set to 0 (also rename this to ' - None - ' ?)
-# -74. Move number of scans to the respective absicca block (ui objects)
+# -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
+# -74. Move number of scans to the respective abscissa block (ui objects)
 # -73. Change saving so that if only 1 scan, Ave Data is saved (rather than scans)
 # -72. Retest saving data (including 2D with > 1 scan)
 # -71. The laser power buttons lost their arrows. Also, the uW/mW thing is confused.
@@ -306,7 +306,7 @@ class MainWindow(QMainWindow):
 
     def connect_toptica(self):
         print('---------------------------------- CONNECTING TOPTICA LASER -------------------------------------------')
-        self.toptica.start_comms(self.settings.toptica_com_port)
+        self.toptica.start_comms(self.settings.toptica.com_port)
         if self.toptica.error.status:
             print('error status was True (error exists)')
             self.toptica.settings.connected = False
@@ -320,8 +320,7 @@ class MainWindow(QMainWindow):
     def connect_cg635(self):
         print('-------------------------------------- CONNECTING CG635 -----------------------------------------------')
         # self.cg635.freq_changed_signal.connect(self.cg635_freq_changed_slot)
-        did_comms_fail = self.cg635.start_comms(com_format=self.settings.cg635_com_format,
-                                                gpib_address=self.settings.cg635_gpib_address,
+        did_comms_fail = self.cg635.start_comms(gpib_address=self.settings.cg635_gpib_address,
                                                 com_port=self.settings.prologix_com_port)
         print('CG635 Comms_failed? ' + str(did_comms_fail))
 
@@ -1401,6 +1400,21 @@ class MainWindow(QMainWindow):
         self.toptica.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('toptica', i, j))
 
         # --------------------------------------------- GENERAL --------------------------------------------------------
+        # self.settings.ui.smb100a_com_port_cmb.currentTextChanged[str].connect(
+        # lambda i: self.update_instr_property('smb100a', 'com_port', i))
+        self.settings.ui.md2000_com_port_cmb.currentTextChanged[str].connect(
+            lambda i: [self.update_instr_property('md2000', 'com_port', i),
+                       self.settings.ui.status_ind_md2000.setText(self.label_strings.off_led_str)])
+
+        self.settings.ui.prologix_com_port_cmb.currentTextChanged[str].connect(
+            lambda i: [setattr(self, 'settings.prologix_com_port', i),
+                       self.settings.ui.status_ind_sr830.setText(self.label_strings.off_led_str),
+                       self.settings.ui.status_ind_sr844.setText(self.label_strings.off_led_str)])
+
+        self.settings.ui.toptica_com_port_cmb.currentTextChanged[str].connect(
+            lambda i: [self.update_instr_property('toptica', 'com_port', i),
+                       self.settings.ui.status_ind_toptica.setText(self.label_strings.off_led_str)])
+
         self.settings.ui.lockin_delay_scale_spbx.valueChanged[float].connect(
             lambda i: self.update_instr_property('lockin', 'settling_delay_factor', i))
 
@@ -1440,12 +1454,10 @@ class MainWindow(QMainWindow):
         self.settings.ui.toptica_stop_mod_btn.clicked.connect(self.toptica.stop_digital_modulation)
 
         self.settings.ui.toptica_set_power_btn.clicked.connect(
-            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_power_spbx.value(),
-                                           units_idx=self.settings.ui.toptica_units_cbx.currentIndex()))
+            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_power_spbx.value()))
 
         self.settings.ui.toptica_set_bias_power_btn.clicked.connect(
-            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_bias_spbx.value(),
-                                           units_idx=self.settings.ui.toptica_bias_units_cbx.currentIndex()))
+            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_bias_spbx.value()))
 
         # ----------------------------------------- CG635 ----------------------------------------
         self.settings.ui.cg635_run_btn.clicked.connect(self.cg635.run)

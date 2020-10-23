@@ -30,7 +30,6 @@ class CG635Settings:
         self.run_status = None
 
         self.gpib_address = None
-        self.com_format = None
         self.com_port = None
 
 
@@ -41,8 +40,7 @@ class CG635Instrument(QtCore.QObject):
 
     def __init__(self, *args, **kwargs):
         """
-        Currently only GPIB communication is supported, though com_format=0 or 1 exists in case there is need to switch
-        to RS232 communications later.
+        Currently only GPIB communication is supported
         """
         super(CG635Instrument, self).__init__(*args, **kwargs)
         self.error_dict = {'Status': False, 'Code': 0, 'Details': ''}
@@ -53,28 +51,12 @@ class CG635Instrument(QtCore.QObject):
         self.connected = False
         self.comms = None
 
-        # self.gpib_address = None
-        # self.com_format = None
-        # self.com_port = None
-
-        # self.current_freq = None
-        # self.current_phase = None
-        # self.max_freq = 2.05E9
-        # self.frequency_tolerance = 0.00000001   # As a percent deviation from intended frequency
-
         self.rm = pyvisa.ResourceManager()
 
-    def start_comms(self, com_format=0, gpib_address=23, com_port='ASRL6::INSTR'):
+    def start_comms(self, gpib_address=23, com_port='ASRL6::INSTR'):
         self.connected = False
         self.gpib_address = gpib_address
-        self.com_format = com_format
         self.com_port = com_port
-        if self.com_format == 0:
-            print('CG635 GPIB Style Selected')
-        elif self.com_format == 1:
-            print('CG635 RS232/USB Style')
-        else:
-            print('unknown com format')
 
         try:
             self.comms = self.rm.open_resource(self.com_port)
@@ -350,7 +332,7 @@ class CG635Instrument(QtCore.QObject):
 
 if __name__ == '__main__':
     test_instr = CG635Instrument()
-    comms_failure, traceback = test_instr.start_comms(com_format=0, gpib_address=23, com_port='ASRL6::INSTR')
+    comms_failure, traceback = test_instr.start_comms(gpib_address=23, com_port='ASRL6::INSTR')
     print('comms_failure: ' + str(comms_failure))
     # test_instr.check_identity()
     # identity = test_instr.write_string('*IDN?\n')

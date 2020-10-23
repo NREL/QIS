@@ -118,9 +118,10 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             self.send_error_signal.emit(self.error)
         elif not self.error.status:
             try:
-                print('About to open resource for lockin')
+                print('About to open resource for lockin at: ' + str(self.settings.resource))
                 self.comms = self.rm.open_resource(self.settings.resource)
-                # ver_test = self.comms.query('++ver\n')
+                ver_test = self.comms.query('++ver\n')
+                print('ver_test: ' + str(ver_test))
                 self.comms.write('++addr %d\n' % self.settings.gpib_address)
                 print('Prologix GPIB address set: ' + str(self.settings.gpib_address))
 
@@ -132,7 +133,8 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
                 self.connected = True
             except pyvisa.VisaIOError as err:
                 self.error = ErrorCluster(status=True, code=3000,
-                                          details='Error attempting to start communications with lock-in.\n\n'
+                                          details='Error attempting to start communications with lock-in.\n'
+                                                  'Check com port and GPIB Address.\n\n'
                                                   'Details: \n' + str(err))
                 self.send_error_signal.emit(self.error)
 
