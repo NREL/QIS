@@ -1,0 +1,2062 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>635</width>
+    <height>671</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>settings_icon.png</normaloff>settings_icon.png</iconset>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tab_widget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="general_tab">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_7">
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="scrollArea_3">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_3">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>583</width>
+            <height>596</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>RF (Microwave) Source (SMB100A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_38">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Status</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="19" column="0" colspan="5">
+            <widget class="QFrame" name="frame_10">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0" colspan="5">
+            <widget class="QFrame" name="frame_4">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <widget class="QCheckBox" name="smb100a_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Available Instruments</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="CustomSpinBox" name="sr830_gpib_address_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="2">
+            <widget class="QComboBox" name="toptica_com_port_cmb"/>
+           </item>
+           <item row="18" column="0">
+            <widget class="QLabel" name="label_74">
+             <property name="text">
+              <string>Optimize Lock-in Sensitivity at Each Point</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_57">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Port</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_27">
+             <property name="text">
+              <string>Cryostat/Magnet (Montana Instruments)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="4">
+            <widget class="QLabel" name="status_ind_smb100a">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="2">
+            <widget class="QComboBox" name="smb100a_com_port_cmb"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="label_85">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>GPIB</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="1">
+            <widget class="QCheckBox" name="montana_instr_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0" colspan="5">
+            <widget class="QFrame" name="frame_5">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="4">
+            <widget class="QLabel" name="status_ind_cg635">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QCheckBox" name="cg635_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="0" colspan="5">
+            <widget class="QLabel" name="label_50">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Scan Settings</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="4">
+            <widget class="QLabel" name="status_ind_md2000">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_ON.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="3">
+            <widget class="CustomSpinBox" name="cg635_gpib_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <widget class="QComboBox" name="md2000_com_port_cmb"/>
+           </item>
+           <item row="10" column="1">
+            <widget class="QCheckBox" name="md2000_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="1">
+            <widget class="QCheckBox" name="toptica_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_28">
+             <property name="text">
+              <string>Pump Laser (Toptica iBeam Smart)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_25">
+             <property name="text">
+              <string>Clock Generator (CG 635)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="4">
+            <widget class="QLabel" name="status_ind_cryostat">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="sr844_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>SR844 Lock-in Amplifier (25-200 MHz)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="0" colspan="5">
+            <widget class="QPushButton" name="clear_instr_errors_btn">
+             <property name="text">
+              <string>Clear Instrument Errors</string>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="4">
+            <widget class="QLabel" name="status_ind_toptica">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="label_37">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Use?</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>SR830 Lock-in Amplifier (1 mHz - 102 kHz) </string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QLabel" name="status_ind_sr844">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="2">
+            <widget class="QComboBox" name="cryostat_com_port_cmb"/>
+           </item>
+           <item row="5" column="4">
+            <widget class="QLabel" name="status_ind_sr830">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/GREEN_LED_ON.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="5">
+            <widget class="QPushButton" name="connect_instr_btn">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="whatsThis">
+              <string/>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string>Connect</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>connect_icon.png</normaloff>connect_icon.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="CustomSpinBox" name="sr844_gpib_address_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QCheckBox" name="sr830_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="5">
+            <widget class="QLabel" name="label_29">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Experiment Setup</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="5">
+            <widget class="QFrame" name="frame_3">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="1">
+            <widget class="QCheckBox" name="scan_auto_sens_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Monochromator Driver (MD2000)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="2">
+            <widget class="QComboBox" name="prologix_com_port_cmb"/>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_84">
+             <property name="text">
+              <string>Prologix Adapter</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="lockin_tab">
+      <attribute name="title">
+       <string>Lock-in</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="scrollArea">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>453</width>
+            <height>637</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Outputs</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="2">
+            <widget class="QPushButton" name="auto_creserve_btn">
+             <property name="text">
+              <string>Auto</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="1">
+            <widget class="CustomComboBox" name="input_impedance_cbx">
+             <item>
+              <property name="text">
+               <string>50 Ω</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1 MΩ / 30 pF</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="19" column="1">
+            <widget class="CustomDoubleSpinBox" name="phase_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="minimum">
+              <double>-180.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>180.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Harmonic (SR830)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="1">
+            <widget class="CustomComboBox" name="dynamic_reserve_cbx">
+             <item>
+              <property name="text">
+               <string>High Reserve (Max)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Normal</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Low Noise (Min)</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="12" column="2">
+            <widget class="QPushButton" name="auto_dyn_reserve_btn">
+             <property name="text">
+              <string>Auto</string>
+             </property>
+            </widget>
+           </item>
+           <item row="21" column="0" colspan="2">
+            <widget class="QPushButton" name="save_as_dflt_btn">
+             <property name="text">
+              <string>Save as Default Values</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <widget class="CustomComboBox" name="close_reserve_cbx">
+             <item>
+              <property name="text">
+               <string>High</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Normal</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Low Noise</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Auto</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Time Constant</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="CustomComboBox" name="sensitivity_cbx">
+             <item>
+              <property name="text">
+               <string>UNDER CONSTRUCTION</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Sampling Rate</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Filter Slope</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QPushButton" name="auto_offset_btn">
+             <property name="text">
+              <string>Auto Offset R</string>
+             </property>
+            </widget>
+           </item>
+           <item row="19" column="0">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Phase</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Input Impedance (SR844)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Ref Impedance (SR844)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="20" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Expand</string>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="1">
+            <widget class="CustomComboBox" name="sr844_harmonic_cbx">
+             <item>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>On</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Wide Reserve (SR844)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Close Reserve (SR844)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="CustomComboBox" name="outputs_cbx">
+             <item>
+              <property name="text">
+               <string>R / θ (V/degrees)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>X / Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Manual</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="20" column="1">
+            <widget class="CustomComboBox" name="expand_cbx">
+             <item>
+              <property name="text">
+               <string>x1 (off)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>x10</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>x100</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Dynamic Reserve (SR830)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="CustomComboBox" name="filter_slope_cbx">
+             <item>
+              <property name="text">
+               <string>No Filter</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6 dB/Octave</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>12 dB/Octave</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>18 dB/Octave</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>24 dB/Octave</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="CustomComboBox" name="time_constant_cbx">
+             <item>
+              <property name="text">
+               <string>100  μs</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>300  μs</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1     ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3     ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10   ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>30   ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>100 ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>300 ms</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1        s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3        s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10      s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>30      s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>100    s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>300    s</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1      ks</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3      ks</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10    ks</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>30    ks</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="15" column="1">
+            <widget class="CustomComboBox" name="ref_impedance_cbx">
+             <item>
+              <property name="text">
+               <string>50 Ω</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10 kΩ / 40 pF</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lockin_model_lnedt">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <widget class="QPushButton" name="auto_wreserve_btn">
+             <property name="text">
+              <string>Auto</string>
+             </property>
+            </widget>
+           </item>
+           <item row="22" column="0" colspan="2">
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>Note: Sensitivity default cannot be changed (damage risk)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="CustomComboBox" name="wide_reserve_cbx">
+             <item>
+              <property name="text">
+               <string>High</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Normal</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Low Noise</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="16" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Reference Source</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QPushButton" name="auto_sens_btn">
+             <property name="text">
+              <string>Auto</string>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>2F Detect Mode (SR844)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="1">
+            <widget class="CustomSpinBox" name="harmonic_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Sensitivity</string>
+             </property>
+            </widget>
+           </item>
+           <item row="19" column="2">
+            <widget class="QPushButton" name="auto_phase_btn">
+             <property name="text">
+              <string>Auto Phase</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="1">
+            <widget class="CustomComboBox" name="ref_source_cbx">
+             <item>
+              <property name="text">
+               <string>External</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Internal</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="13" column="1">
+            <widget class="CustomComboBox" name="sampling_rate_cbx">
+             <item>
+              <property name="text">
+               <string>0.0625 (16 s)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0.125 (8 s)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0.250 (4 s)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0.500 (2 s)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>16</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>32</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>64</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>128</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>256</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>512</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Trigger</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>Lock-in Model</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_49">
+             <property name="text">
+              <string>Settling Delay (# of TCs)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="CustomDoubleSpinBox" name="lockin_delay_scale_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="mono_tab">
+      <attribute name="title">
+       <string>Mono</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="2" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_bl_comp_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_53">
+         <property name="text">
+          <string>Backlash Compensation (nm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_51">
+         <property name="text">
+          <string>Grating Groove Density (gr/mm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QCheckBox" name="mono_bl_comp_chkbx">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>On</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_set_wl_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="minimum">
+          <double>-3000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="mono_set_home_btn">
+         <property name="text">
+          <string>Set Home</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_55">
+         <property name="text">
+          <string>Set Wavelength</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="CustomComboBox" name="mono_gr_dens_cbx">
+         <item>
+          <property name="text">
+           <string>2400</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1800</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1200</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>600</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>300</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>150</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_cal_wl_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="minimum">
+          <double>-3000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_54">
+         <property name="text">
+          <string>Speed (nm/sec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_52">
+         <property name="text">
+          <string>Calibration Wavelength</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="CustomDoubleSpinBox" name="mono_speed_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>500.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_56">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Actual Wavelength</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="mono_act_wl_lnedt">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="rns_tab">
+      <attribute name="title">
+       <string>R&amp;&amp;S</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="cg635_tab">
+      <attribute name="title">
+       <string>CG635</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="scrollArea_2">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>449</width>
+            <height>435</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="13" column="1" colspan="4">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="7" column="1" colspan="4">
+            <widget class="QFrame" name="frame_2">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="label_35">
+             <property name="text">
+              <string>Frequency</string>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="2">
+            <widget class="QLineEdit" name="cg635_write_cmd_lnedt">
+             <property name="placeholderText">
+              <string>*IDN?\n</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="CustomComboBox" name="cg635_freq_units_cbx">
+             <item>
+              <property name="text">
+               <string>Hz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>MHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>GHz</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="14" column="1" colspan="4">
+            <widget class="QLabel" name="label_43">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <underline>true</underline>
+              </font>
+             </property>
+             <property name="text">
+              <string>Debug</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="label_36">
+             <property name="text">
+              <string>Phase (deg.)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="cg635_run_btn">
+             <property name="text">
+              <string>Run</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="2" colspan="2">
+            <widget class="QLabel" name="label_33">
+             <property name="text">
+              <string>Manual Command</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="1" colspan="4">
+            <widget class="QFrame" name="frame_6">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="1">
+            <widget class="QPushButton" name="cg635_check_pll_btn">
+             <property name="text">
+              <string>Check PLL Status</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="18" column="1" colspan="3">
+            <widget class="QTextEdit" name="cg635_response_textedit"/>
+           </item>
+           <item row="3" column="2">
+            <widget class="CustomDoubleSpinBox" name="cg635_set_freq_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="decimals">
+              <number>16</number>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>2050000000.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="1" colspan="4">
+            <widget class="QLabel" name="label_32">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <underline>true</underline>
+              </font>
+             </property>
+             <property name="text">
+              <string>Basic</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QLabel" name="label_34">
+             <property name="text">
+              <string>Max Frequency (MHz):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="cg635_stop_btn">
+             <property name="text">
+              <string>Stop</string>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="3">
+            <widget class="QPushButton" name="cg635_write_btn">
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>arrow.png</normaloff>arrow.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QPushButton" name="cg635_set_current_phase_zero_btn">
+             <property name="text">
+              <string>Define Current Phase as Zero</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="2">
+            <widget class="CustomDoubleSpinBox" name="cg635_max_freq_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="maximum">
+              <double>2050.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>250.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="CustomDoubleSpinBox" name="cg635_set_phase_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="decimals">
+              <number>10</number>
+             </property>
+             <property name="minimum">
+              <double>-360.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>360.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="cryostat_tab">
+      <attribute name="title">
+       <string>Cryostat/Magnet</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="laser_tab">
+      <attribute name="title">
+       <string>Laser</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="8" column="3">
+        <widget class="QPushButton" name="toptica_set_bias_power_btn">
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>arrow.png</normaloff>arrow.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="4">
+        <widget class="QLabel" name="toptica_emission_indicator">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;p&gt;laser OFF&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="CustomDoubleSpinBox" name="toptica_power_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>150000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="2">
+        <widget class="CustomDoubleSpinBox" name="toptica_bias_spbx">
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>150000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="3">
+        <widget class="QPushButton" name="toptica_set_power_btn">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>arrow.png</normaloff>arrow.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="4">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QLabel" name="label_46">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>START:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="toptica_bias_enable_btn">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Enable (ch. 1)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="toptica_start_laser_btn">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Normal Power (ch. 2)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_11">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="toptica_enable_digital_input_btn">
+             <property name="text">
+              <string>￼￼￼￼External Modulation</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QPushButton" name="toptica_stop_laser_btn">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>STOP</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="toptica_stop_mod_btn">
+             <property name="text">
+              <string>Stop Modulation</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_48">
+         <property name="text">
+          <string>Bias Power (mW, ch1)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="4">
+        <widget class="QLabel" name="toptica_mod_indicator">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Ext Mod Enabled&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_47">
+         <property name="text">
+          <string>Laser Power (mW, ch2)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>padmr.supp.CustomWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>padmr.supp.CustomWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomComboBox</class>
+   <extends>QComboBox</extends>
+   <header>padmr.supp.CustomWidgets.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../icons/led_icons.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>save_as_dflt_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>save_as_dflt_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>338</x>
+     <y>623</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>384</x>
+     <y>494</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sr844_checkbox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>Form</receiver>
+   <slot>sr844_checkbox_clicked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>320</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>413</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sr830_checkbox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>Form</receiver>
+   <slot>sr830_checkbox_clicked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>320</x>
+     <y>92</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>33</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_start_laser_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_start_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>205</x>
+     <y>525</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>213</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_stop_laser_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_stop_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>394</x>
+     <y>344</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>314</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_enable_digital_input_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_ext_en_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>129</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>381</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_set_power_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_set_main_power_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>608</x>
+     <y>608</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>545</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_set_bias_power_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_set_bias_power_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>608</x>
+     <y>644</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>575</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toptica_bias_enable_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>toptica_bias_enable_btn_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>170</x>
+     <y>485</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sr844_gpib_address_spbx</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Form</receiver>
+   <slot>sr844_gpib_address_changed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>512</x>
+     <y>64</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>480</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sr830_gpib_address_spbx</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Form</receiver>
+   <slot>sr830_gpib_address_changed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>512</x>
+     <y>96</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>483</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cg635_gpib_spbx</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Form</receiver>
+   <slot>cg635_gpib_address_changed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>512</x>
+     <y>170</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>480</x>
+     <y>357</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>save_as_dflt_btn_clicked()</slot>
+  <slot>set_all_params_btn_clicked()</slot>
+  <slot>lockin_auto_sens_btn_clicked()</slot>
+  <slot>cancel_btn_clicked()</slot>
+  <slot>sr844_checkbox_clicked(bool)</slot>
+  <slot>set_tab_params_btn_clicked()</slot>
+  <slot>cg635_set_phase_btn_clicked()</slot>
+  <slot>cg635_set_freq_btn_clicked()</slot>
+  <slot>cg635_define_phase_as_zero_btn_clicked()</slot>
+  <slot>cg635_check_for_errors_btn_clicked()</slot>
+  <slot>cg635_write_manual_cmd_btn_clicked()</slot>
+  <slot>cg635_freq_units_changed(int)</slot>
+  <slot>sr830_checkbox_clicked(bool)</slot>
+  <slot>connect_instr_btn_clicked()</slot>
+  <slot>toptica_start_btn_clicked()</slot>
+  <slot>toptica_stop_btn_clicked()</slot>
+  <slot>toptica_ext_en_btn_clicked()</slot>
+  <slot>toptica_set_main_power_btn_clicked()</slot>
+  <slot>toptica_set_bias_power_btn_clicked()</slot>
+  <slot>toptica_bias_enable_btn_clicked()</slot>
+  <slot>lockin_outputs_changed(int)</slot>
+  <slot>lockin_sensitivity_changed(int)</slot>
+  <slot>lockin_time_constant_changed(int)</slot>
+  <slot>lockin_wide_reserve_changed(int)</slot>
+  <slot>lockin_close_reserve_changed(int)</slot>
+  <slot>lockin_dynamic_reserve_changed(int)</slot>
+  <slot>lockin_sampling_rate_changed(int)</slot>
+  <slot>lockin_input_impedance_changed(int)</slot>
+  <slot>lockin_ref_impedance_changed(int)</slot>
+  <slot>lockin_ref_source_changed(int)</slot>
+  <slot>lockin_2f_detect_changed(int)</slot>
+  <slot>lockin_filter_slope_changed(int)</slot>
+  <slot>slot2()</slot>
+  <slot>lockin_phase_spbx_changed()</slot>
+  <slot>lockin_expand_changed()</slot>
+  <slot>lockin_auto_offset_clicked()</slot>
+  <slot>lockin_auto_wrsrv_clicked()</slot>
+  <slot>lockin_auto_crsrv_clicked()</slot>
+  <slot>lockin_auto_dyn_rsrv_clicked()</slot>
+  <slot>lockin_auto_phase_clicked()</slot>
+  <slot>lockin_harmonic_spbx_changed(int)</slot>
+  <slot>cg635_comm_format_changed(int)</slot>
+  <slot>sr844_gpib_address_changed(int)</slot>
+  <slot>sr830_gpib_address_changed(int)</slot>
+  <slot>cg635_gpib_address_changed(int)</slot>
+  <slot>prologix_com_port_changed(int)</slot>
+  <slot>md2000_com_port_changed(int)</slot>
+  <slot>cg635_com_port_changed(int)</slot>
+  <slot>smb100a_com_port_changed(int)</slot>
+  <slot>cryostat_com_port_changed(int)</slot>
+  <slot>toptica_com_port_changed(int)</slot>
+  <slot>clear_instr_errors_btn_clicked()</slot>
+ </slots>
+</ui>

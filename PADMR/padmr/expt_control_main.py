@@ -6,6 +6,7 @@
 # 4. Get probe wavelength scanning working
 # 5. Finish setting up 2D experiments
 # Various:
+# -76. Attempting to restart experiment after aborting due to lock-in not locking, caused crash
 # -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
 # -74. Move number of scans to the respective abscissa block (ui objects)
 # -73. Change saving so that if only 1 scan, Ave Data is saved (rather than scans)
@@ -108,14 +109,16 @@ import padmr.instr.mono.main
 from padmr.instr.mono.controls import MonoDriver
 from padmr.instr.mono.main import MainWindow as MonoControl
 from padmr.instr.laser.controls import TopticaInstr
+from padmr.instr.cg635.controls import CG635Instrument
+from padmr.instr.cryostat.controls import CryostatInstr
 
 from padmr.instr.lia.main import LockinWidget
 from padmr.instr.lia.controls import PrologixAdaptedSRLockin, ErrorCluster
+from padmr.instr.zurich_lia.controls import ZiLIA, ErrorCluster
 from padmr.gui import Ui_MainWindow as ExptControlMainWindow
 
 from padmr.supp.help_window.main import HelpWindowForm
 from padmr.supp.settings.main import SettingsWindowForm
-from padmr.instr.cg635.controls import CG635Instrument
 from padmr.supp.label_strings import LabelStrings
 from padmr.supp import helpers
 
@@ -155,9 +158,10 @@ class MainWindow(QMainWindow):
         self.cg635_connected = False
         self.md2000_connected = False
         self.smb100a_connected = False
-        self.montana_instr_connected = False
+        self.cryostat_connected = False
         # self.toptica_connected = False
 
+        self.offset_each = False
         self.label_strings = LabelStrings()
 
         self.abort_scan = False
@@ -213,11 +217,13 @@ class MainWindow(QMainWindow):
         # Create the settings window (but don't show it)
         self.settings = SettingsWindowForm()
         self.toptica = TopticaInstr()
-        # self.settings.toptica_instr = self.toptica
+        self.toptica.settings = self.settings.toptica
+        #TODO: Can I delete the next two lines? They are misleading if the UHFLI is used.
         self.lockin = PrologixAdaptedSRLockin()
         self.lockin.settings = self.settings.lia
         self.cg635 = CG635Instrument()
         self.md2000 = MonoDriver()
+        self.cryostat = CryostatInstr()
         self.md2000.settings = self.settings.md2000
         print(str(self.settings.md2000.com_port))
 
@@ -253,42 +259,73 @@ class MainWindow(QMainWindow):
         print('------------------------------------- CONNECTING INSTRUMENTS --------------------------------------\n\n')
         if self.settings.ui.md2000_checkbox.isChecked():
             self.connect_md2000()
-        if self.settings.ui.sr830_checkbox.isChecked() or self.settings.ui.sr844_checkbox.isChecked():
+        if self.settings.ui.sr830_checkbox.isChecked() or self.settings.ui.sr844_checkbox.isChecked()\
+                or self.settings.ui.uhfli_checkbox.isChecked():
             self.connect_lockin()
         if self.settings.ui.cg635_checkbox.isChecked():
             self.connect_cg635()
         if self.settings.ui.toptica_checkbox.isChecked():
             self.connect_toptica()
+        if self.settings.ui.cryostat_checkbox.isChecked():
+            self.connect_cryostat()
+
+    def connect_cryostat(self):
+        """If connection is "actively refused" - likely the IP address or port number is incorrect."""
+        print('Setting up Cryostat...')
+        did_comms_fail = self.cryostat.start_comms(cryostation_ip='169.254.65.20', cryostation_port=7773)
+
+        if did_comms_fail is True:
+            self.cryostat.settings.connected = False
+            self.settings.instrument_status_changed('cryostat', 2)
+        elif did_comms_fail is False:
+            self.cryostat.settings.connected = True
+            self.settings.instrument_status_changed('cryostat', 1)
+
+            self.cryostat.check_instrument()
 
     def connect_lockin(self):
         print('Setting up Lock-in...')
-        if self.settings.lia.model == 'SR844' or self.settings.lia.model == 'SR830':
+        if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
             did_comms_fail = self.lockin.start_comms(self.settings.prologix_com_port,
                                                      gpib_address=self.settings.lia.gpib_address,
-                                                     model=self.settings.lia.model)
+                                                     model=self.settings.lockin_model)
             print('Comms_failed? ' + str(did_comms_fail))
+        elif self.settings.lockin_model == 'UHFLI':
+            print('UHFLI chosen')
+            self.lockin = ZiLIA()
+            print('instantiated')
+            did_comms_fail = self.lockin.start_comms(device_id='dev2025')
         else:
             raise ValueError('Invalid Lock-in Model Selected')
 
-        if self.settings.lia.model == 'SR844':
+        if self.settings.lockin_model == 'SR844':
             if did_comms_fail is True:
                 self.settings.ui.status_ind_sr844.setText(self.label_strings.red_led_str)
-            else:
+            elif did_comms_fail is False:
                 self.settings.ui.sr844_checkbox.setChecked(True)
                 self.settings.ui.status_ind_sr844.setText(self.label_strings.grn_led_str)
-        elif self.settings.lia.model == 'SR830':
+        elif self.settings.lockin_model == 'SR830':
             if did_comms_fail is True:
                 self.settings.ui.status_ind_sr830.setText(self.label_strings.red_led_str)
-            else:
+            elif did_comms_fail is False:
                 self.settings.ui.sr830_checkbox.setChecked(True)
                 self.settings.ui.status_ind_sr830.setText(self.label_strings.grn_led_str)
+        elif self.settings.lockin_model == 'UHFLI':
+            if did_comms_fail is True:
+                self.settings.ui.status_ind_uhfli.setText(self.label_strings.red_led_str)
+            elif did_comms_fail is False:
+                self.settings.ui.uhfli_checkbox.setChecked(True)
+                self.settings.ui.status_ind_uhfli.setText(self.label_strings.grn_led_str)
         else:
             raise ValueError('Invalid Lock-in Model Selected')
 
         if did_comms_fail is False:
-            self.lockin.settings = self.settings.lia
+            self.lockin.settings = self.settings.uhfli # This needs to be changed so that settings.uhfli contains t
             self.lockin.update_all()
-            self.lockin_delay = self.settings.lia.settling_delay_factor * self.settings.lia.time_constant_value
+            if self.settings.lockin_model == 'UHFLI':
+                self.lockin_delay = self.settings.lockin_settling_factor * self.settings.uhfli.time_constant_value
+            else:
+                self.lockin_delay = self.settings.lockin_settling_factor * self.settings.lia.time_constant_value
             print('Lockin Settings Set')
 
     def connect_md2000(self):
@@ -371,7 +408,7 @@ class MainWindow(QMainWindow):
                 self.output_name[0] = 'Channel 1 Display'
                 self.output_name[1] = 'Channel 2 Display'
             print('Lockin time Constant: ' + str(self.settings.lia.time_constant_value))
-            self.lockin_delay = self.settings.lia.settling_delay_factor * self.settings.lia.time_constant_value
+            self.lockin_delay = self.settings.lockin_settling_factor * self.settings.lia.time_constant_value
             print('lockin_delay: ' + str(self.lockin_delay))
 
             # self.prepare_for_collection()
@@ -554,6 +591,7 @@ class MainWindow(QMainWindow):
                 actual_pos = self.cg635.settings.current_freq
         elif self.abscissae[wa] == 2:  # Probe Wavelength
             print('------------------------ SETTING PROBE WAVELENGTH -----------------------')
+            # I think that case 1 is redundant since an error.status should be True until comms are established
             if self.md2000.settings.connected is False:
                 print('MD2000 was not connected')
 
@@ -568,16 +606,34 @@ class MainWindow(QMainWindow):
                 self.general_error_signal.emit({'Title': ' - Warning - ',
                                                 'Text': ' Experiment Aborted',
                                                 'Informative Text': 'Monochromator Communication Error Found',
-                                                'Details': None})
+                                                'Details': ('Error Code: ' + str(self.cryostat.error.code))})
                 self.abort_scan = True
                 return None
             else:
                 self.md2000.go_to_wavelength(destination=next_step, backlash_amount=self.settings.md2000.bl_amt,
                                              backlash_bool=self.settings.md2000.bl_bool)
-                actual_pos = self.md2000.current_wavelength
+                actual_pos = self.md2000.settings.cur_wl
 
         elif self.abscissae[wa] == 3:  # Static Magnetic Field
-            print('This case has not been coded yet')
+            print('------------------------ SETTING MAGNETIC FIELD -------------------------')
+            if self.cryostat.error.status:
+                print('Cryostat had a pre-existing error')
+                self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                'Text': ' Experiment Aborted',
+                                                'Informative Text': 'Cryostat Error Found',
+                                                'Details': ('Error Code: ' + str(self.cryostat.error.code))})
+                self.abort_scan = True
+                return None
+            else:
+                self.cryostat.set_field(target_field=next_step)
+                if self.cryostat.error.status:
+                    self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                    'Text': ' Experiment Aborted',
+                                                    'Informative Text': 'Error Occurred while setting field',
+                                                    'Details': ('Error Code: ' + str(self.cryostat.error.code))})
+                    self.abort_scan = True
+                actual_pos = self.cryostat.settings.current_field
+
         elif self.abscissae[wa] == 4:  # RF Carrier Frequency
             print('This case has not been coded yet')
         elif self.abscissae[wa] == 5:  # RF Modulation Frequency
@@ -596,6 +652,39 @@ class MainWindow(QMainWindow):
         self.lockin.open_comms()  # Open also sets the correct GPIB address
         self.lockin.comms.write('*CLS\n')
         self.lockin.clear_buffers()
+
+        if self.offset_each is True:
+
+            self.toptica.laser_disable()
+
+            lia_status = self.lockin.check_status()
+            kk = 0
+            while not lia_status == 0 and kk < 200:
+                lia_status = self.lockin.check_status()
+                if lia_status == -1:  # Comm failure
+                    return
+                # print('lia error' + str(lia_error))
+                # print('loop iteration: ' + str(kk))
+                time.sleep(0.001)
+                kk = kk + 1
+
+            if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
+                self.pause_scan = True
+                # The following should be optimized
+                self.lockin_status_warning_signal.emit(str(lia_status))
+
+            print('Pausing for Lock-in settling...')
+            print('lockin_delay: ' + str(self.lockin_delay))
+            time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+
+            if self.settings.ui.scan_auto_sens_checkbox.isChecked():
+                print('Optimizing Lock-in Sensitivity...')
+                self.lockin.auto_sens()
+
+            self.lockin.comms.write('AOFF 1, 1\n')
+            self.toptica.laser_enable()
+            self.toptica.laser_start()
+
         lia_status = self.lockin.check_status()
         kk = 0
         # It may take some time for the lockin internal oscillator  to lock to the reference freq
@@ -953,6 +1042,13 @@ class MainWindow(QMainWindow):
         response = self.cg635.write_string(cmd_to_write, read=True, manual=True)
         self.settings.ui.cg635_response_textedit.setText(response)
 
+    @QtCore.pyqtSlot()
+    def cryostat_write_manual_cmd(self):
+        cmd_to_write = self.settings.ui.cryostat_write_cmd_lnedt.text()
+        print(cmd_to_write)
+        response = self.cryostat.comms.send_command_get_response(cmd_to_write)
+        self.settings.ui.cryostat_response_lnedt.setText(response)
+
     def enable_all_ui_objects(self):
         self.ui.variable_2_cbx.setEnabled(True)
         self.ui.sweep_end_spbx_dim2.setEnabled(True)
@@ -1235,6 +1331,27 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget.canvas.axes_main.set_xlabel('Probe Wavelength (nm)')
         elif self.abscissae[abscissa_idx] == 3:
             print('Static Field Selected')
+            self.x_axis_label = 'Static Magnetic Field (G)'
+            self.abscissa_name[abscissa_idx] = self.x_axis_label
+            self.units[abscissa_idx] = 'G'
+
+            try:
+                self.sweep_start_spbxs[abscissa_idx].setValue(self.settings.presets.field_start)
+                self.sweep_end_spbxs[abscissa_idx].setValue(self.settings.presets.field_end)
+                self.num_steps_spbxs[abscissa_idx].setValue(self.settings.presets.field_num_steps)
+
+                self.units_cbxes[abscissa_idx].clear()
+                self.units_cbxes[abscissa_idx].addItems(['G'])
+                self.units_cbxes[abscissa_idx].setCurrentIndex(0)
+                self.units_cbxes[abscissa_idx].setEnabled(False)
+
+                print('set presets')
+                self.log_spacing_checkboxes[abscissa_idx].setChecked(False)
+
+                self.calc_steps_from_num(dim_idx=abscissa_idx)
+            except:
+                print(sys.exc_info()[:])
+
             # self.ui.PlotWidget.canvas.axes_main.set_xlabel('Static Magnetic Field (Gauss)')
         elif self.abscissae[abscissa_idx] == 4:
             print('RF Carrier Freq Selected')
@@ -1248,40 +1365,71 @@ class MainWindow(QMainWindow):
         print(experiment_str)
         if experiment_str == '-Manual Setup-':
             self.enable_all_ui_objects()
+
         elif experiment_str == 'Optical Absorption Spectrum':
             self.enable_all_ui_objects()
             self.ui.variable_1_cbx.setCurrentIndex(2)
-            self.ui.variable_2_cbx.setCurrentIndex(0)
-            self.ui.variable_2_cbx.setEnabled(False)
+            self.disable_dim2()
+
             self.ui.rf_freq_spbx.setEnabled(False)
             self.ui.rf_mod_freq_spbx.setEnabled(False)
+            self.ui.go_to_rf_freq_btn.setEnabled(False)
+            self.ui.go_to_rf_mod_freq_btn.setEnabled(False)
 
-            self.ui.sweep_start_spbx_dim2.setEnabled(False)
-            self.ui.sweep_end_spbx_dim2.setEnabled(False)
-            self.ui.num_steps_spbx_dim2.setEnabled(False)
-            print('Completed Experiment Preset Setup')
+        elif experiment_str == 'EPR Spectrum (Field-Swept)':
+            self.enable_all_ui_objects()
+            self.ui.variable_1_cbx.setCurrentIndex(3)
+            self.disable_dim2()
 
+            self.ui.probe_wl_spbx.setEnabled(False)
         elif experiment_str == 'PL Lifetime':
             self.enable_all_ui_objects()
             self.ui.variable_1_cbx.setCurrentIndex(1)                               # Pump Modulation Frequency = 1
-            self.ui.variable_2_cbx.setCurrentIndex(0)
-            self.ui.variable_2_cbx.setEnabled(False)
+            self.disable_dim2()
+
             self.ui.rf_freq_spbx.setEnabled(False)
             self.ui.rf_mod_freq_spbx.setEnabled(False)
-            print('Disabled First Set')
+            self.ui.go_to_rf_freq_btn.setEnabled(False)
+            self.ui.go_to_rf_mod_freq_btn.setEnabled(False)
 
-            self.ui.sweep_start_spbx_dim2.setEnabled(False)
-            self.ui.sweep_end_spbx_dim2.setEnabled(False)
-            self.ui.num_steps_spbx_dim2.setEnabled(False)
-
-            print('Completed PL Lifetime Preset Setup')
-
-        elif experiment_str == 'PA Lifetime':
-            print('experiment not set up yet')
         elif experiment_str == 'PA Lifetime (Single WL)':
-            print('experiment not set up yet')
+            self.enable_all_ui_objects()
+            self.ui.variable_1_cbx.setCurrentIndex(1)
+            self.disable_dim2()
+
+            self.ui.rf_freq_spbx.setEnabled(False)
+            self.ui.rf_mod_freq_spbx.setEnabled(False)
+            self.ui.go_to_rf_freq_btn.setEnabled(False)
+            self.ui.go_to_rf_mod_freq_btn.setEnabled(False)
+
+        elif experiment_str == 'PA Spectrum (Single Pump Mod Freq)':
+            self.enable_all_ui_objects()
+            self.ui.variable_1_cbx.setCurrentIndex(2)
+            self.disable_dim2()
+
+            self.ui.rf_freq_spbx.setEnabled(False)
+            self.ui.rf_mod_freq_spbx.setEnabled(False)
+            self.ui.go_to_rf_freq_btn.setEnabled(False)
+            self.ui.go_to_rf_mod_freq_btn.setEnabled(False)
+        elif experiment_str == 'PA Lifetime/Spectrum (xyz)':
+            self.enable_all_ui_objects()
+            self.ui.variable_1_cbx.setCurrentIndex(1)
+            self.ui.variable_2_cbx.setCurrentIndex(2)
+        elif experiment_str == 'PL-DMR Magnetic Spectrum (Field-Swept)' or \
+                experiment_str == 'PA-DMR Magnetic Spectrum (Field-Swept)':
+            self.enable_all_ui_objects()
+            self.ui.variable_1_cbx.setCurrentIndex(3)
+            self.disable_dim2()
         else:
             print('experiment/case not set up yet')
+
+    def disable_dim2(self):
+        self.ui.variable_2_cbx.setCurrentIndex(0)
+        self.ui.variable_2_cbx.setEnabled(False)
+
+        self.ui.sweep_start_spbx_dim2.setEnabled(False)
+        self.ui.sweep_end_spbx_dim2.setEnabled(False)
+        self.ui.num_steps_spbx_dim2.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def pause_btn_clicked(self):
@@ -1319,13 +1467,25 @@ class MainWindow(QMainWindow):
             setattr(self.md2000.settings, prop_name, new_val)
             setattr(self.settings.md2000, prop_name, new_val)
             self.settings.update_md2000_tab()
+            if prop_name == 'cur_wl':
+                self.ui.wavelength_lnedt.setText(str(self.md2000.settings.cur_wl) + ' nm')
         elif instr == 'cg635':
             setattr(self.cg635.settings, prop_name, new_val)
             setattr(self.settings.cg, prop_name, new_val)
+            if prop_name == 'current_freq':
+                self.ui.pump_mod_freq_lnedt.setText(str(self.cg635.settings.current_freq))
         elif instr == 'toptica':
             setattr(self.toptica.settings, prop_name, new_val)
             setattr(self.settings.toptica, prop_name, new_val)
             self.settings.update_topt_tab()
+        elif instr == 'cryostat':
+            setattr(self.cryostat.settings, prop_name, new_val)
+            setattr(self.settings.cryostat, prop_name, new_val)
+            self.settings.update_cryostat_tab()
+            if prop_name == 'current_field':
+                self.ui.field_lnedt.setText(str(self.cryostat.settings.current_field) + ' G')
+            if prop_name == 'current_temp':
+                self.ui.temp_lnedt.setText(str(self.cryostat.settings.current_temp) + ' K')
         else:
             raise ValueError('Cannot update ' + instr + ' - invalid instrument identifier')
         self.expt_duration()
@@ -1367,6 +1527,8 @@ class MainWindow(QMainWindow):
         self.ui.go_to_static_field_btn.setIcon(icon6)
         self.settings.ui.toptica_set_power_btn.setIcon(icon6)
         self.settings.ui.toptica_set_bias_power_btn.setIcon(icon6)
+        self.settings.ui.cryostat_send_cmd_btn.setIcon(icon6)
+        self.settings.ui.cg635_write_btn.setIcon(icon6)
 
     def connect_signals_and_slots(self):
         """
@@ -1385,6 +1547,7 @@ class MainWindow(QMainWindow):
         self.cg635.send_error_signal.connect(self.receive_error_signal)
         self.toptica.send_error_signal.connect(self.receive_error_signal)
         self.md2000.send_error_signal.connect(self.receive_error_signal)
+        self.cryostat.send_error_signal.connect(self.receive_error_signal)
 
         # ----------------------------------------- PROPERTIES UPDATED -------------------------------------------------
         self.lockin.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('lockin', i, j))
@@ -1398,6 +1561,9 @@ class MainWindow(QMainWindow):
 
         self.toptica.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('toptica', i, j))
         self.toptica.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('toptica', i, j))
+
+        self.cryostat.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('cryostat', i, j))
+        self.cryostat.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('cryostat', i, j))
 
         # --------------------------------------------- GENERAL --------------------------------------------------------
         # self.settings.ui.smb100a_com_port_cmb.currentTextChanged[str].connect(
@@ -1454,10 +1620,10 @@ class MainWindow(QMainWindow):
         self.settings.ui.toptica_stop_mod_btn.clicked.connect(self.toptica.stop_digital_modulation)
 
         self.settings.ui.toptica_set_power_btn.clicked.connect(
-            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_power_spbx.value()))
+            lambda: self.toptica.set_power(power_setpoint=self.settings.ui.toptica_power_spbx.value()))
 
         self.settings.ui.toptica_set_bias_power_btn.clicked.connect(
-            lambda: self.toptica.set_power(power_value=self.settings.ui.toptica_bias_spbx.value()))
+            lambda: self.toptica.set_power(power_setpoint=self.settings.ui.toptica_bias_spbx.value()))
 
         # ----------------------------------------- CG635 ----------------------------------------
         self.settings.ui.cg635_run_btn.clicked.connect(self.cg635.run)
@@ -1472,7 +1638,7 @@ class MainWindow(QMainWindow):
         self.settings.ui.cg635_max_freq_spbx.valueChanged[float].connect(self.cg635.set_max_freq)
         self.settings.ui.cg635_freq_units_cbx.activated[int].connect(self.set_pump_mod_units)
 
-        # ------------------------------------------- LOCK-IN ----------------------------------------------------------
+        # ---------------------------------------- SRS LOCK-IN ---------------------------------------------------------
 
         # Single parameter changes:
         self.settings.ui.auto_creserve_btn.clicked.connect(self.lockin.auto_crsrv)
@@ -1505,6 +1671,11 @@ class MainWindow(QMainWindow):
             lambda i: self.md2000.go_to_wavelength(i, self.settings.md2000.bl_amt, self.settings.md2000.bl_bool))
         self.settings.ui.mono_bl_comp_chkbx.toggled[bool].connect(lambda i: self.update_md2000_property('bl_bool', i))
         self.settings.ui.mono_speed_spbx.valueChanged[float].connect(self.md2000.set_speed)
+
+        # --------------------------------- CRYOSTAT -------------------------------------------------------------------
+        self.settings.ui.cryostat_send_cmd_btn.clicked.connect(self.cryostat_write_manual_cmd)
+        self.ui.go_to_static_field_btn.clicked.connect(
+            lambda i: self.cryostat.set_field(self.ui.static_field_spbx.value()))
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
 
 

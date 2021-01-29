@@ -10,6 +10,7 @@ from padmr.supp.settings.gui import Ui_Form as Settings_Ui_Form
 from padmr.supp.label_strings import LabelStrings
 from padmr.supp.icons import led_icons_rc
 from padmr.instr.lia.controls import LockinSettings
+from padmr.instr.zurich_lia.controls import ZiLockinSettings
 from padmr.instr.laser.controls import TopticaSettings, TopticaInstr
 from padmr.instr.mono.controls import MonoSettings
 from padmr.instr.cg635.controls import CG635Settings
@@ -31,6 +32,10 @@ class Presets:              # Presumably I should incorporate these into the Set
         self.pump_mod_freq_start = 25    # kHz
         self.pump_mod_freq_end = 200000
         self.pump_mod_freq_steps = 3    # later set this to 20 or something
+
+        self.field_start = 2000
+        self.field_end = 4500
+        self.field_num_steps = 151
 
         # self.lockin_sampling_rate = 512     # Hertz
         self.lockin_sampling_duration = 1   # Seconds
@@ -57,6 +62,7 @@ class SettingsWindowForm(QWidget):
     toptica_enable_signal = QtCore.pyqtSignal()
     toptica_start_signal = QtCore.pyqtSignal()
     toptica_stop_signal = QtCore.pyqtSignal()
+    toptica_power_warning_signal = QtCore.pyqtSignal()
 
     connect_instr_signal = QtCore.pyqtSignal()
 
@@ -95,6 +101,7 @@ class SettingsWindowForm(QWidget):
         # Prepare settings objects for each instrument. These are redundant at the moment (each instrument has
         # an identical settings object), but for the moment, this seems like the best way to do things.
         self.lia = LockinSettings()
+        self.uhfli = ZiLockinSettings()
         self.cg = CG635Settings()
         self.toptica = TopticaSettings()
         self.md2000 = MonoSettings()
@@ -114,7 +121,7 @@ class SettingsWindowForm(QWidget):
         if '4' in self.relevant_instruments:
             self.ui.smb100a_checkbox.setChecked(True)
         if '5' in self.relevant_instruments:
-            self.ui.montana_instr_checkbox.setChecked(True)
+            self.ui.cryostat_checkbox.setChecked(True)
         if '6' in self.relevant_instruments:
             self.ui.toptica_checkbox.setChecked(True)
 
@@ -133,10 +140,10 @@ class SettingsWindowForm(QWidget):
         self.relevant_instruments = param_lines[1].split('#')[0].split()[2].split(',')
         self.prologix_com_port = param_lines[2].split('#')[0].split()[2]
         self.lockin_model_preference = param_lines[3].split('#')[0].split()[2]
-        self.lia.model = self.lockin_model_preference
+        self.lockin_model = self.lockin_model_preference
 
-        self.lia.settling_delay_factor = int(param_lines[4].split('#')[0].split()[2])
-        # self.lia.settling_delay_factor = self.lockin_delay_scaling_factor
+        self.lockin_settling_factor = int(param_lines[4].split('#')[0].split()[2])
+        # self.lockin_settling_factor = self.lockin_delay_scaling_factor
 
         self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
         self.lia.outputs = self.lockin_outputs
@@ -147,6 +154,7 @@ class SettingsWindowForm(QWidget):
         self.lockin_ref_source = int(param_lines[7].split('#')[0].split()[2])
         self.lia.reference_source = self.lockin_ref_source
 
+        self.toptica.power_warning_threshold = float(param_lines[8].split('#')[0].split()[2])
         print(self.lockin_model_preference)
         print("prologix com port: " + str(self.prologix_com_port))
 
@@ -207,116 +215,210 @@ class SettingsWindowForm(QWidget):
         self.presets.static_field = float(param_lines[129].split('#')[0].split()[2])
         self.presets.probe_wl = float(param_lines[130].split('#')[0].split()[2])
         self.presets.rf_freq = float(param_lines[131].split('#')[0].split()[2])
-        print('toptica com_port: ' + str(self.toptica.com_port))
+
+        self.presets.field_start = float(param_lines[132].split('#')[0].split()[2])
+        self.presets.field_end = float(param_lines[133].split('#')[0].split()[2])
+        self.presets.field_num_steps = float(param_lines[134].split('#')[0].split()[2])
+
+        # uhfli Settings
+        self.uhfli.demod1.idx = int(param_lines[141].split('#')[0].split()[2])
+        self.uhfli.demod1.sigin = int(param_lines[142].split('#')[0].split()[2])
+        self.uhfli.demod1.inpz = int(param_lines[143].split('#')[0].split()[2])
+        self.uhfli.demod1.range = float(param_lines[144].split('#')[0].split()[2])
+        self.uhfli.demod1.coupling = int(param_lines[145].split('#')[0].split()[2])
+        self.uhfli.demod1.ref_mode = int(param_lines[146].split('#')[0].split()[2])
+        self.uhfli.demod1.osc_idx = int(param_lines[147].split('#')[0].split()[2])
+        self.uhfli.demod1.filter_order_idx = int(param_lines[148].split('#')[0].split()[2])
+        self.uhfli.demod1.time_constant = float(param_lines[149].split('#')[0].split()[2])
+        self.uhfli.demod1.data_out_idx = int(param_lines[150].split('#')[0].split()[2])
+
+        self.uhfli.demod2.enable = bool(int(param_lines[153].split('#')[0].split()[2]))
+        self.uhfli.demod2.idx = int(param_lines[154].split('#')[0].split()[2])
+        self.uhfli.demod2.sigin = int(param_lines[155].split('#')[0].split()[2])
+        self.uhfli.demod2.inpz = int(param_lines[156].split('#')[0].split()[2])
+        self.uhfli.demod2.range = float(param_lines[157].split('#')[0].split()[2])
+        self.uhfli.demod2.coupling = int(param_lines[158].split('#')[0].split()[2])
+        self.uhfli.demod2.ref_mode = int(param_lines[159].split('#')[0].split()[2])
+        self.uhfli.demod2.osc_idx = int(param_lines[160].split('#')[0].split()[2])
+        self.uhfli.demod2.filter_order_idx = int(param_lines[161].split('#')[0].split()[2])
+        self.uhfli.demod2.time_constant = float(param_lines[162].split('#')[0].split()[2])
+        self.uhfli.demod2.data_out_idx = int(param_lines[163].split('#')[0].split()[2])
+
+        # self.uhfli.time_constant =
+        # self.uhfli.filter_order =
+        # self.uhfli.demodulator_idx = int(param_lines[142].split('#')[0].split()[2])
+        # self.uhfli.sensitivity = float(param_lines[143].split('#')[0].split()[2])
 
     def init_lockin_tab(self):
         # Initialize the lock-in tab
         print('----------------------------------Initializing the lock-in Tab-----------------------------------------')
-        gpib_address = int(self.sr844_gpib_address)
-        self.ui.sr844_gpib_address_spbx.setValue(gpib_address)
-
-        gpib_address = int(self.sr830_gpib_address)
-        self.ui.sr830_gpib_address_spbx.setValue(gpib_address)
-
         self.ui.lockin_model_lnedt.setDisabled(True)
 
-        self.ui.lockin_delay_scale_spbx.setValue(self.lia.settling_delay_factor)
-        try:
-            print('Inside Try')
-            # First set the values that do not depend on which lock-in you're using
-            self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
-            self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate)
-            self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
-            self.ui.expand_cbx.setCurrentIndex(self.lia.expand)
+        self.ui.lockin_delay_scale_spbx.setValue(self.lockin_settling_factor)
 
-            # These are specific to the SR830 but do not interfere with the SR844
-            self.ui.dynamic_reserve_cbx.setCurrentIndex(self.lia.dynamic_reserve)
-            self.ui.harmonic_spbx.setValue(self.lia.harmonic)
+        if self.lockin_model == 'UHFLI':
+            self.ui.lockin_manufacturer_tabwidget.setCurrentIndex(0)
 
-            # These are specific to the SR844, but do not interfere with the SR830:
-            self.ui.wide_reserve_cbx.setCurrentIndex(self.lia.wide_reserve)
-            self.ui.close_reserve_cbx.setCurrentIndex(self.lia.close_reserve)
-            self.ui.input_impedance_cbx.setCurrentIndex(self.lia.input_impedance)
-            self.ui.ref_impedance_cbx.setCurrentIndex(self.lia.reference_impedance)
-            self.ui.sr844_harmonic_cbx.setCurrentIndex(self.lia.twoF_detect_mode)
-            print('About to start if statement')
-            if self.lia.model == 'SR844':
-                # Disable ui objects that relate only to the SR830
-                print('lockin.model == SR844')
-                self.ui.lockin_model_lnedt.setText('SR844 (25 kHz - 200 MHz)')
-                self.ui.sr844_checkbox.setChecked(True)
-                self.ui.sr830_checkbox.setChecked(False)
+            #TODO: Disable remaining stuff for the SRS lockins
+            self.ui.lockin_model_lnedt.setText('UHFLI - Zurich Instruments (DC - 600 MHz)')
+            self.ui.sr830_checkbox.setChecked(False)
+            self.ui.sr844_checkbox.setChecked(False)
+            self.ui.uhfli_checkbox.setChecked(True)
 
-                self.ui.sr844_gpib_address_spbx.setDisabled(False)
-                self.ui.sr830_gpib_address_spbx.setDisabled(True)
-                self.ui.wide_reserve_cbx.setDisabled(False)
-                self.ui.close_reserve_cbx.setDisabled(False)
-                self.ui.dynamic_reserve_cbx.setDisabled(True)
-                self.ui.ref_impedance_cbx.setDisabled(False)
-                self.ui.input_impedance_cbx.setDisabled(False)
-                self.ui.harmonic_spbx.setDisabled(True)
-                self.ui.sr844_harmonic_cbx.setDisabled(False)
+            self.ui.sr844_gpib_address_spbx.setDisabled(True)
+            self.ui.sr830_gpib_address_spbx.setDisabled(True)
 
-                self.lia.sens_list = self.lia.sr844_sens_list
-                self.lia.tc_list = self.lia.sr844_tc_list
-                self.lia.tc_numeric_list = self.lia.sr844_tc_options
-                self.lia.slope_list = self.lia.sr844_slope_list
+            self.ui.wide_reserve_cbx.setDisabled(True)
+            self.ui.close_reserve_cbx.setDisabled(True)
+            self.ui.dynamic_reserve_cbx.setDisabled(True)
+            self.ui.ref_impedance_cbx.setDisabled(True)
+            self.ui.input_impedance_cbx.setDisabled(True)
+            self.ui.harmonic_spbx.setDisabled(True)
+            self.ui.sr844_harmonic_cbx.setDisabled(True)
 
-                self.lia.gpib_address = self.sr844_gpib_address
-                self.lia.sensitivity = self.sr844_sensitivity
-                self.lia.time_constant = self.sr844_time_constant
-                self.lia.filter_slope = self.sr844_filter_slope
+            # Now set the relevant items
+            self.ui.uhfli_demodulator_idx_spbx.setValue(self.uhfli.demod1.idx + 1)
+            self.ui.uhfli_input_cbx.setCurrentIndex(self.uhfli.demod1.sigin)
+            self.ui.uhfli_input_impedance_cbx.setCurrentIndex(self.uhfli.demod1.inpz)
+            self.ui.uhfli_range_spbx.setValue(self.uhfli.demod1.range)
+            self.ui.uhfli_input_coupling_cbx.setCurrentIndex(self.uhfli.demod1.coupling)
+            self.ui.uhfli_ref_mode_cbx.setCurrentIndex(self.uhfli.demod1.ref_mode)
+            self.ui.uhfli_osc_idx_cbx.setCurrentIndex(self.uhfli.demod1.osc_idx)
+            self.ui.uhfli_harm_spbx.setValue(1)
+            self.ui.uhfli_filter_order_cbx.setCurrentIndex(self.uhfli.demod1.filter_order_idx)
+            self.ui.uhfli_time_constant_spbx.setValue(self.uhfli.demod1.time_constant)
+            self.ui.uhfli_output.setCurrentIndex(self.uhfli.demod1.data_out_idx)
 
-            elif self.lia.model == 'SR830':
-                print('lockin_model=SR830')
-                # Disable ui objects that relate only to the SR830
-                self.ui.lockin_model_lnedt.setText('SR830 (1 mHz - 102 kHz)')
-                self.ui.sr830_checkbox.setChecked(True)
-                self.ui.sr844_checkbox.setChecked(False)
+            self.ui.uhfli_demodulator_idx_spbx_2.setValue(self.uhfli.demod2.idx + 1)
+            self.ui.uhfli_input_cbx_2.setCurrentIndex(self.uhfli.demod2.sigin)
+            self.ui.uhfli_input_impedance_cbx_2.setCurrentIndex(self.uhfli.demod2.inpz)
+            self.ui.uhfli_range_spbx_2.setValue(self.uhfli.demod2.range)
+            self.ui.uhfli_input_coupling_cbx_2.setCurrentIndex(self.uhfli.demod2.coupling)
+            self.ui.uhfli_ref_mode_cbx_2.setCurrentIndex(self.uhfli.demod2.ref_mode)
+            self.ui.uhfli_osc_idx_cbx_2.setCurrentIndex(self.uhfli.demod2.osc_idx)
+            self.ui.uhfli_harm_spbx_2.setValue(1)
+            self.ui.uhfli_filter_order_cbx_2.setCurrentIndex(self.uhfli.demod2.filter_order_idx)
+            self.ui.uhfli_time_constant_spbx_2.setValue(self.uhfli.demod2.time_constant)
+            self.ui.uhfli_output_2.setCurrentIndex(self.uhfli.demod2.data_out_idx)
+            # Disable demodulator 2 if checkbox unselected
+            if self.uhfli.demod2.enable:
+                self.ui.uhfli_demod2_checkbox.setChecked(True)
+                self.enable_secondary_demodulator(True)
+            else:
+                self.ui.uhfli_demod2_checkbox.setChecked(False)
+                self.enable_secondary_demodulator(False)
 
-                self.ui.sr844_gpib_address_spbx.setDisabled(True)
-                self.ui.sr830_gpib_address_spbx.setDisabled(False)
-                self.ui.wide_reserve_cbx.setDisabled(True)
-                self.ui.close_reserve_cbx.setDisabled(True)
-                self.ui.dynamic_reserve_cbx.setDisabled(False)
-                self.ui.ref_impedance_cbx.setDisabled(True)
-                self.ui.input_impedance_cbx.setDisabled(True)
-                self.ui.harmonic_spbx.setDisabled(False)
-                self.ui.sr844_harmonic_cbx.setDisabled(True)
+            # self.ui.uhfli_time_constant_spbx.setValue(self.uhfli.time_constant)
+            # self.ui.uhfli_filter_order_cbx.setCurrentIndex((self.uhfli.filter_order - 1))
+            # self.ui.uhfli_demodulator_idx_spbx.setValue(self.uhfli.demodulator_idx)
 
-                self.lia.sens_list = self.lia.sr830_sens_list
-                self.lia.tc_list = self.lia.sr830_tc_list
-                self.lia.tc_numeric_list = self.lia.sr830_tc_options
-                self.lia.slope_list = self.lia.sr830_slope_list
+        elif self.lockin_model == 'SR844' or self.lockin_model == 'SR830':
+            self.ui.lockin_manufacturer_tabwidget.setCurrentIndex(1)
+            gpib_address = int(self.sr844_gpib_address)
+            self.ui.sr844_gpib_address_spbx.setValue(gpib_address)
 
-                self.lia.gpib_address = self.sr830_gpib_address
-                self.lia.sensitivity = self.sr830_sensitivity
-                self.lia.time_constant = self.sr830_time_constant
-                self.lia.filter_slope = self.sr830_filter_slope
-                print('Finished if statement')
-            print('Outside of if statement')
-            # These require first determining which lock-in will be used:
-            self.ui.sensitivity_cbx.clear()
-            print(str(self.lia.sens_list))
-            print(str(self.lia.sensitivity))
-            self.ui.sensitivity_cbx.addItems(self.lia.sens_list)
-            self.ui.sensitivity_cbx.setCurrentIndex(self.lia.sensitivity)
-            print('Added sens_list')
+            gpib_address = int(self.sr830_gpib_address)
+            self.ui.sr830_gpib_address_spbx.setValue(gpib_address)
 
-            self.ui.time_constant_cbx.clear()
-            self.ui.time_constant_cbx.addItems(self.lia.tc_list)
-            self.ui.time_constant_cbx.setCurrentIndex(self.lia.time_constant)
+            try:
+                print('Inside Try')
+                # First set the values that do not depend on which lock-in you're using
+                self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
+                self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate)
+                self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
+                self.ui.expand_cbx.setCurrentIndex(self.lia.expand)
 
-            self.ui.filter_slope_cbx.clear()
-            self.ui.filter_slope_cbx.addItems(self.lia.slope_list)
-            self.ui.filter_slope_cbx.setCurrentIndex(self.lia.filter_slope)
+                # These are specific to the SR830 but do not interfere with the SR844
+                self.ui.dynamic_reserve_cbx.setCurrentIndex(self.lia.dynamic_reserve)
+                self.ui.harmonic_spbx.setValue(self.lia.harmonic)
 
-            # self.lockin_model_changed()
-        except ValueError:
-            print('.ini file inconsistent with expectations')
-            print(str(sys.exc_info()[:]))
-        except Exception:
-            print(str(sys.exc_info()[:]))
+                # These are specific to the SR844, but do not interfere with the SR830:
+                self.ui.wide_reserve_cbx.setCurrentIndex(self.lia.wide_reserve)
+                self.ui.close_reserve_cbx.setCurrentIndex(self.lia.close_reserve)
+                self.ui.input_impedance_cbx.setCurrentIndex(self.lia.input_impedance)
+                self.ui.ref_impedance_cbx.setCurrentIndex(self.lia.reference_impedance)
+                self.ui.sr844_harmonic_cbx.setCurrentIndex(self.lia.twoF_detect_mode)
+                print('About to start if statement')
+                if self.lockin_model == 'SR844':
+                    # Disable ui objects that relate only to the SR830
+                    print('lockin.model == SR844')
+                    self.ui.lockin_model_lnedt.setText('SR844 (25 kHz - 200 MHz)')
+                    self.ui.sr844_checkbox.setChecked(True)
+                    self.ui.sr830_checkbox.setChecked(False)
+                    self.ui.uhfli_checkbox.setChecked(False)
+
+                    self.ui.sr844_gpib_address_spbx.setDisabled(False)
+                    self.ui.sr830_gpib_address_spbx.setDisabled(True)
+                    self.ui.wide_reserve_cbx.setDisabled(False)
+                    self.ui.close_reserve_cbx.setDisabled(False)
+                    self.ui.dynamic_reserve_cbx.setDisabled(True)
+                    self.ui.ref_impedance_cbx.setDisabled(False)
+                    self.ui.input_impedance_cbx.setDisabled(False)
+                    self.ui.harmonic_spbx.setDisabled(True)
+                    self.ui.sr844_harmonic_cbx.setDisabled(False)
+
+                    self.lia.sens_list = self.lia.sr844_sens_list
+                    self.lia.tc_list = self.lia.sr844_tc_list
+                    self.lia.tc_numeric_list = self.lia.sr844_tc_options
+                    self.lia.slope_list = self.lia.sr844_slope_list
+
+                    self.lia.gpib_address = self.sr844_gpib_address
+                    self.lia.sensitivity = self.sr844_sensitivity
+                    self.lia.time_constant = self.sr844_time_constant
+                    self.lia.filter_slope = self.sr844_filter_slope
+
+                elif self.lockin_model == 'SR830':  # Obviously separate these later
+                    print('lockin_model=SR830')
+                    # Disable ui objects that relate only to the SR830
+                    self.ui.lockin_model_lnedt.setText('SR830 (1 mHz - 102 kHz)')
+                    self.ui.sr830_checkbox.setChecked(True)
+                    self.ui.sr844_checkbox.setChecked(False)
+                    self.ui.uhfli_checkbox.setChecked(False)
+
+                    self.ui.sr844_gpib_address_spbx.setDisabled(True)
+                    self.ui.sr830_gpib_address_spbx.setDisabled(False)
+                    self.ui.wide_reserve_cbx.setDisabled(True)
+                    self.ui.close_reserve_cbx.setDisabled(True)
+                    self.ui.dynamic_reserve_cbx.setDisabled(False)
+                    self.ui.ref_impedance_cbx.setDisabled(True)
+                    self.ui.input_impedance_cbx.setDisabled(True)
+                    self.ui.harmonic_spbx.setDisabled(False)
+                    self.ui.sr844_harmonic_cbx.setDisabled(True)
+
+                    self.lia.sens_list = self.lia.sr830_sens_list
+                    self.lia.tc_list = self.lia.sr830_tc_list
+                    self.lia.tc_numeric_list = self.lia.sr830_tc_options
+                    self.lia.slope_list = self.lia.sr830_slope_list
+
+                    self.lia.gpib_address = self.sr830_gpib_address
+                    self.lia.sensitivity = self.sr830_sensitivity
+                    self.lia.time_constant = self.sr830_time_constant
+                    self.lia.filter_slope = self.sr830_filter_slope
+                    print('Finished if statement')
+
+                print('Outside of if statement')
+                # These require first determining which SRS lock-in will be used:
+                self.ui.sensitivity_cbx.clear()
+                print(str(self.lia.sens_list))
+                print(str(self.lia.sensitivity))
+                self.ui.sensitivity_cbx.addItems(self.lia.sens_list)
+                self.ui.sensitivity_cbx.setCurrentIndex(self.lia.sensitivity)
+                print('Added sens_list')
+
+                self.ui.time_constant_cbx.clear()
+                self.ui.time_constant_cbx.addItems(self.lia.tc_list)
+                self.ui.time_constant_cbx.setCurrentIndex(self.lia.time_constant)
+
+                self.ui.filter_slope_cbx.clear()
+                self.ui.filter_slope_cbx.addItems(self.lia.slope_list)
+                self.ui.filter_slope_cbx.setCurrentIndex(self.lia.filter_slope)
+
+                # self.lockin_model_changed()
+            except ValueError:
+                print('.ini file inconsistent with expectations')
+                print(str(sys.exc_info()[:]))
+            except Exception:
+                print(str(sys.exc_info()[:]))
 
     def update_md2000_tab(self):
         self.ui.mono_bl_comp_spbx.setValue(self.md2000.bl_amt)
@@ -326,6 +428,9 @@ class SettingsWindowForm(QWidget):
         self.md2000.gr_dens_val = self.md2000.gr_dens_opts[self.md2000.gr_dens_idx]
         self.ui.mono_act_wl_lnedt.setText(str(self.md2000.cur_wl))
         self.ui.mono_bl_comp_chkbx.setChecked(self.md2000.bl_bool)
+
+    def update_cryostat_tab(self):
+        pass
 
     def initialize_settings_window(self):
         # Initialize the general tab
@@ -337,6 +442,7 @@ class SettingsWindowForm(QWidget):
         self.ui.status_ind_md2000.setText(self.label_strings.off_led_str)
         self.ui.status_ind_toptica.setText(self.label_strings.off_led_str)
         self.ui.status_ind_smb100a.setText(self.label_strings.off_led_str)
+        self.ui.status_ind_uhfli.setText(self.label_strings.off_led_str)
 
         self.check_com_ports()
 
@@ -356,8 +462,6 @@ class SettingsWindowForm(QWidget):
         self.ui.md2000_com_port_cmb.addItems(resources)
         self.ui.md2000_com_port_cmb.setCurrentText(self.md2000.com_port)
 
-        self.ui.cryostat_com_port_cmb.addItems(resources)
-
         self.ui.toptica_com_port_cmb.addItems(resources)
         self.ui.toptica_com_port_cmb.setCurrentText(self.toptica.com_port)
 
@@ -365,6 +469,24 @@ class SettingsWindowForm(QWidget):
         self.ui.prologix_com_port_cmb.setCurrentText(self.prologix_com_port)
 
         self.ui.smb100a_com_port_cmb.addItems(resources)
+
+    @QtCore.pyqtSlot(bool)
+    def enable_secondary_demodulator(self, disable):
+        enable = not disable
+        self.ui.uhfli_demod2_label.setDisabled(enable)
+        self.ui.uhfli_demodulator_idx_spbx_2.setDisabled(enable)
+        self.ui.uhfli_input_cbx_2.setDisabled(enable)
+        self.ui.uhfli_filter_order_cbx_2.setDisabled(enable)
+        self.ui.uhfli_range_spbx_2.setDisabled(enable)
+        self.ui.uhfli_input_coupling_cbx_2.setDisabled(enable)
+        self.ui.uhfli_input_impedance_cbx_2.setDisabled(enable)
+        self.ui.uhfli_freq_spbx_2.setDisabled(enable)
+        self.ui.uhfli_phase_spbx_2.setDisabled(enable)
+        self.ui.uhfli_ref_mode_cbx_2.setDisabled(enable)
+        self.ui.uhfli_osc_idx_cbx_2.setDisabled(enable)
+        self.ui.uhfli_harm_spbx_2.setDisabled(enable)
+        self.ui.uhfli_time_constant_spbx_2.setDisabled(enable)
+        self.ui.uhfli_output_2.setDisabled(enable)
 
     @QtCore.pyqtSlot(str, int)
     def instrument_status_changed(self, which_instrument, new_status):
@@ -397,6 +519,8 @@ class SettingsWindowForm(QWidget):
             self.ui.status_ind_toptica.setText(text_str)
         elif which_instrument == 'smb100a':
             self.ui.status_ind_smb100a.setText(text_str)
+        elif which_instrument == 'uhfli':
+            self.ui.status_ind_uhfli.setText(text_str)
 
     # @QtCore.pyqtSlot(str, int)
     # def lockin_property_updated(self, property_name, new_value):
@@ -416,6 +540,9 @@ class SettingsWindowForm(QWidget):
     def toptica_start_btn_clicked(self):
         print('------------------------------------ STARTING LASER EMISSION ------------------------------------------')
         # self.ui.toptica_emission_indicator.setText(self.laser_on_str)
+        # if self.toptica.power >= 5:
+        #     pass
+        #
         # self.toptica_start_signal.emit()
         print('ATM, button does not engage laser')
 
@@ -428,14 +555,14 @@ class SettingsWindowForm(QWidget):
     @QtCore.pyqtSlot()
     def toptica_stop_btn_clicked(self):
         print('------------------------------------ STOPPING LASER EMISSION ------------------------------------------')
-        self.ui.toptica_emission_indicator.setText(self.label_strings.laser_off_str)
         self.toptica_stop_signal.emit()
+        self.ui.toptica_emission_indicator.setText(self.label_strings.laser_off_str)
         print('ATM, button does not engage laser')
 
     @QtCore.pyqtSlot(str, int)
     @QtCore.pyqtSlot(str, float)
     def update_topt_tab(self):
-        self.ui.toptica_power_spbx.setValue(self.toptica.power / 1000)
+        self.ui.toptica_power_spbx.setValue(self.toptica.power)
 
         self.ui.toptica_bias_spbx.setValue(self.toptica.bias_power)
 
@@ -494,7 +621,7 @@ class SettingsWindowForm(QWidget):
             if checked is True:
                 self.ui.sr844_checkbox.setChecked(False)
                 self.ui.sr830_checkbox.setChecked(True)
-                self.lia.model = 'SR830'
+                self.lockin_model = 'SR830'
                 self.initialize_settings_window()
             else:
                 print('Nothing happens in this case')
@@ -508,12 +635,23 @@ class SettingsWindowForm(QWidget):
             if checked is True:
                 self.ui.sr830_checkbox.setChecked(False)
                 self.ui.sr844_checkbox.setChecked(True)
-                self.lia.model = 'SR844'
+                self.lockin_model = 'SR844'
                 self.initialize_settings_window()
             else:
                 print('Nothing happens in this case')
         except:
             print(sys.exc_info()[:])
+
+    @QtCore.pyqtSlot(bool)
+    def uhfli_checkbox_clicked(self, checked):
+        print(checked)
+        if checked is True:
+            self.ui.sr830_checkbox.setChecked(False)
+            self.ui.sr844_checkbox.setChecked(False)
+            self.lockin_model = 'UHFLI'
+            self.initialize_settings_window()
+        else:
+            print('Nothing happens in this case')
 
     @QtCore.pyqtSlot(int)
     def sr844_gpib_address_changed(self, new_addr):

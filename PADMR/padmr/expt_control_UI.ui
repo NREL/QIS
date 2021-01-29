@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1427</width>
-    <height>856</height>
+    <width>1431</width>
+    <height>865</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>477</width>
+         <width>481</width>
          <height>1483</height>
         </rect>
        </property>
@@ -69,6 +69,11 @@
           <item>
            <property name="text">
             <string>Optical Absorption Spectrum</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>EPR Spectrum (Field-Swept)</string>
            </property>
           </item>
           <item>
@@ -842,7 +847,7 @@
            <number>10</number>
           </property>
           <item row="2" column="3">
-           <widget class="QLineEdit" name="lineEdit">
+           <widget class="QLineEdit" name="temp_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -852,7 +857,7 @@
            </widget>
           </item>
           <item row="13" column="3">
-           <widget class="QLineEdit" name="lineEdit_6">
+           <widget class="QLineEdit" name="rf_mod_freq_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -879,7 +884,7 @@
            </widget>
           </item>
           <item row="6" column="3">
-           <widget class="QLineEdit" name="lineEdit_3">
+           <widget class="QLineEdit" name="rf_freq_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -922,7 +927,7 @@
            </widget>
           </item>
           <item row="8" column="3">
-           <widget class="QLineEdit" name="lineEdit_4">
+           <widget class="QLineEdit" name="field_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -979,7 +984,7 @@
            </widget>
           </item>
           <item row="4" column="3">
-           <widget class="QLineEdit" name="lineEdit_2">
+           <widget class="QLineEdit" name="wavelength_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -989,7 +994,7 @@
            </widget>
           </item>
           <item row="11" column="3">
-           <widget class="QLineEdit" name="lineEdit_5">
+           <widget class="QLineEdit" name="pump_mod_freq_lnedt">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1058,8 +1063,11 @@
           </item>
           <item row="8" column="0" colspan="2">
            <widget class="CustomDoubleSpinBox" name="static_field_spbx">
+            <property name="minimum">
+             <double>-20000.000000000000000</double>
+            </property>
             <property name="maximum">
-             <double>100000.000000000000000</double>
+             <double>20000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -1299,7 +1307,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1427</width>
+     <width>1431</width>
      <height>26</height>
     </rect>
    </property>

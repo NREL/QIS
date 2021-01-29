@@ -118,7 +118,7 @@ class MonoDriver(QtCore.QObject):
         # self.settings.speed = 500
         self.status_message = None
         self.calibration_wavelength = 0
-        self.current_wavelength = 0
+        self.settings.cur_wl = 0
         self.move_cfm_iteration_timeout = 150
         self.stop_motion_bool = False
         self.continue_updating = False
@@ -200,13 +200,13 @@ class MonoDriver(QtCore.QObject):
 
     def go_to_wavelength(self, destination, backlash_amount, backlash_bool):
         # Decide which direction the move is:
-        # print('current wavelength: ' + str(self.current_wavelength))
+        # print('current wavelength: ' + str(self.settings.cur_wl))
         # self.status_message = 'Moving to ' + str(destination) + ' nm'
         self.status_message_signal.emit('Moving Mono to ' + str(destination) + ' nm')
         print('Moving to: ' + str(destination))
-        if destination < self.current_wavelength:
+        if destination < self.settings.cur_wl:
             direction = 'Down'
-        elif destination > self.current_wavelength:
+        elif destination > self.settings.cur_wl:
             direction = 'Up'
         else:
             self.status_message_signal.emit('No Wavelength Change Requested')
@@ -377,10 +377,10 @@ class MonoDriver(QtCore.QObject):
     def set_zero_position(self):  # Unsure if this is needed since it is done in the initialization.
         self.open_visa()
         self.write_str('X0=15T', read=True)
-        self.current_wavelength = self.get_current_pos()
+        self.settings.cur_wl = self.get_current_pos()
         self.close_visa()
 
-        self.status_message = 'Stepper Position set to ' + str(self.current_wavelength) + ' nm'
+        self.status_message = 'Stepper Position set to ' + str(self.settings.cur_wl) + ' nm'
 
     def set_home_position(self, home_wl):
         # self.zero_wavelength = self.ui.calib_wl_spinner.value()
@@ -430,7 +430,7 @@ class MonoDriver(QtCore.QObject):
         time.sleep(0.1)
         self.open_visa()
         print('getting current position...')
-        self.current_wavelength = self.get_current_pos()
+        self.settings.cur_wl = self.get_current_pos()
         print('closing visa after getting position')
         self.close_visa()
 
@@ -505,14 +505,14 @@ class MonoDriver(QtCore.QObject):
         self.last_wavelength = 0
         print('starting to check position')
         ii = 0
-        while (self.current_wavelength - self.last_wavelength) != 0 or ii < 6:
+        while (self.settings.cur_wl - self.last_wavelength) != 0 or ii < 6:
             if self.stop_moving is False:
                 # print('got inside while  measuring posn')
                 # time.sleep(0.01)
-                self.last_wavelength = self.current_wavelength
+                self.last_wavelength = self.settings.cur_wl
                 current_wl = self.get_current_pos()
                 print('current_wl: ' + str(current_wl))
-                self.current_wavelength = current_wl
+                self.settings.cur_wl = current_wl
             else:
                 break
             ii += 1

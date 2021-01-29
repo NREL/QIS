@@ -4,7 +4,7 @@ import sys
 import time
 from pyvisa.constants import StopBits
 from pyvisa.constants import VI_WRITE_BUF_DISCARD, VI_READ_BUF_DISCARD
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from typing import Union
 
 #TODO:
@@ -31,6 +31,7 @@ class TopticaSettings:
         self.bias_power = 0
         self.laser_status = 0   # 0 is off, 1 is on
         self.mod_on = 0
+        self.power_warning_threshold = None
 
 
 class TopticaInstr(QtCore.QObject):
@@ -83,9 +84,11 @@ class TopticaInstr(QtCore.QObject):
             self.settings.up_time = self.ask('show timer')
             self.settings.channel = self.ask('show channel')
             self.settings.status_temp = self.ask('status temp')
+            self.check_power()
             self.close_comms()
 
             self.property_updated_signal[str, int].emit('laser_status', status_idx)
+            self.property_updated_signal[str, float].emit('power', self.settings.power)
 
             if not self.error.status:
                 print('\nSerial: ' + self.settings.serial)
@@ -161,6 +164,7 @@ class TopticaInstr(QtCore.QObject):
                 self.send_error_signal.emit(self.error)
 
             response = self.wait_for_response()
+
         return response
 
     def wait_for_response(self):
@@ -217,71 +221,145 @@ class TopticaInstr(QtCore.QObject):
         self.open_comms()
         print('made it past self.open_comms')
         response = self.ask('laser on')
-        print('Laser on Response: ' + response)
-        status = self.ask('status laser')
-        self.close_comms()
-        if status == 'OFF':
-            print('status was off')
-            status_ind = 0
-        elif status == 'ON':
-            print('status was on')
-            status_ind = 1
-        self.property_updated_signal[str, int].emit('laser_status', status_ind)
-
-    def laser_start(self):
-        print('---------------------------- STARTING LASER (NORMAL/HIGH LEVEL) ---------------------------------------')
-        self.open_comms()
-        response = self.ask('enable 2')
-        print('Laser START Response: ' + response)
-        status = self.ask('status laser')
-
-        power_str = self.ask('show power')      # Should look like: '%SYS-I-077, scaled\r\nPIC  = 012000 uW  '
-        power_val = float(power_str.split()[4])
-
-        self.close_comms()
-        if status == 'OFF':
-            print('status was off')
-            status_ind = 0
-        elif status == 'ON':
-            print('status was on')
-            status_ind = 1
-        self.property_updated_signal[str, int].emit('laser_status', status_ind)
-        self.property_updated_signal[str, float].emit('power', power_val)
+        if response is None:
+            return
+        else:
+            print('Laser on Response: ' + response)
+            status = self.ask('status laser')
+            self.close_comms()
+            if status == 'OFF':
+                print('status was off')
+                status_ind = 0
+            elif status == 'ON':
+                print('status was on')
+                status_ind = 1
+            self.property_updated_signal[str, int].emit('laser_status', status_ind)
 
     def laser_disable(self):
         print('---------------------------------- STOPPING LASER OUTPUT ----------------------------------------------')
         self.open_comms()
         response = self.ask('disable 2')
-        print('disable 2 response: ' + response)
-        response = self.ask('laser off')
-        print('laser off response: ' + response)
-        status = self.ask('status laser')
-        self.close_comms()
-        if status == 'OFF':
-            print('status was off')
-            status_ind = 0
-        elif status == 'ON':
-            print('status was on')
-            status_ind = 1
-        self.property_updated_signal[str, int].emit('laser_status', status_ind)
+        if response is None:
+            self.close_comms()
+            return
+        else:
+            print('disable 2 response: ' + response)
+            response = self.ask('laser off')
+            print('laser off response: ' + response)
+            status = self.ask('status laser')
+            self.close_comms()
+            if status == 'OFF':
+                print('status was off')
+                status_ind = 0
+            elif status == 'ON':
+                print('status was on')
+                status_ind = 1
+            self.property_updated_signal[str, int].emit('laser_status', status_ind)
 
-    def set_power(self, power_value):
-        """
-        The units_idx is either 0 for microwatts or 1 for mW
-        """
-        print('This functionality not set up')
+    def check_with_user(self, ultimate_power):
+        print('Trying to generate warning_message_window')
+        # Compare the power AS IT WILL BE to the threshold
+
+        # First make sure that the power is up-to-date
+        # self.check_power()
+        # If it's below the threshold, the enclosure does not need to be sealed
+        print('Intended Power: ' + str(ultimate_power))
+        print('Threshold: ' + str(self.settings.power_warning_threshold))
+        if ultimate_power >= self.settings.power_warning_threshold:
+            print('Inside message box dealio')
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setTextFormat(2)
+            msg.setText('<b><big><center>Laser Hazard!</b></big></center>')
+            msg.setInformativeText('<center>Laser power setting is above class 2 threshold!<br></br><br></br>'
+                                   'Seal enclosure and engage lid interlock before continuing</center>')
+            msg.setWindowTitle(' - Danger - ')
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            return_value = msg.exec()
+            print('msg.clickedButton(): ' + str(msg.clickedButton()))
+            print('msg box return value: ' + str(return_value))
+            if return_value == QtWidgets.QMessageBox.Cancel:
+                ready = False
+            elif return_value == QtWidgets.QMessageBox.Ok:
+                ready = True
+            else:
+                ready = False
+            return ready
+        elif ultimate_power < self.settings.power_warning_threshold:
+            ready = True
+            return ready
+
+    def laser_start(self):
+        print('---------------------------- STARTING LASER (NORMAL/HIGH LEVEL) ---------------------------------------')
         self.open_comms()
 
-        if power_value > 150:
-            power_value = 150
-            print('Power has been trimmed to 150 mW (max output)')
+        # Check the power setting
+        self.check_power()
+        # Check that user is compliant with laser safety requirements before barrelling forwards
+        ready = self.check_with_user(ultimate_power=self.settings.power)
 
-        pow_str = 'ch2 pow ' + str(power_value)
-        response = self.ask(pow_str)
-        print('set power response: ' + response)
-        act_pow_str = self.ask('show power')
-        power_val = float(act_pow_str.split()[4])
-        self.close_comms()
+        if ready is False:
+            print('Safety First!')
+            return
+        else:
+            response = self.ask('enable 2')
+            if response is None:
+                self.close_comms()
+                return
+            else:
+                print('Laser START Response: ' + response)
+                status = self.ask('status laser')
+
+                # power_str = self.ask('show power')      # Should look like: '%SYS-I-077, scaled\r\nPIC  = 012000 uW  '
+                # power_val = float(power_str.split()[4])
+
+                act_pow_str = self.ask('show level power')
+                power_val = float(act_pow_str.split('CH2, PWR:')[1].split()[0])
+
+                self.close_comms()
+                if status == 'OFF':
+                    print('status was off')
+                    status_ind = 0
+                elif status == 'ON':
+                    print('status was on')
+                    status_ind = 1
+                self.property_updated_signal[str, int].emit('laser_status', status_ind)
+                self.property_updated_signal[str, float].emit('power', power_val)
+
+    def set_power(self, power_setpoint):
+        """
+        The power must be entered in mW.
+        """
+        self.open_comms()
+
+        if power_setpoint > 150:
+            power_setpoint = 150
+            print('Power has been trimmed to 150 mW (max output)')
+        print('attempting to set power')
+        ready = self.check_with_user(ultimate_power=power_setpoint)
+
+        if not ready:
+            self.close_comms()
+            print('Safety First!')
+            return
+        elif ready:
+            pow_str = 'ch 2 power ' + str(power_setpoint)
+            response = self.ask(pow_str)
+            if response is None:
+                self.close_comms()
+                return
+            else:
+                print('set power response: ' + response)
+                time.sleep(0.1)
+                act_pow_str = self.ask('show level power')
+                self.close_comms()
+                power_val = float(act_pow_str.split('CH2, PWR:')[1].split()[0])
+                self.property_updated_signal[str, float].emit('power', power_val)
+
+    def check_power(self):
+        act_pow_str = self.ask('show level power')
+        power_val = float(act_pow_str.split('CH2, PWR:')[1].split()[0])
+        self.settings.power = power_val
         self.property_updated_signal[str, float].emit('power', power_val)
 
     def set_bias_power(self, power_value, units_idx=1):
@@ -302,24 +380,35 @@ class TopticaInstr(QtCore.QObject):
 
         pow_str = 'ch1 pow ' + power_value + units_str
         response = self.ask(pow_str)
-        print('set_bias_power response: ' + response)
-        # act_bias_pow = float(self.ask())
+        if response is None:
+            return
+        else:
+            print('set_bias_power response: ' + response)
+            # act_bias_pow = float(self.ask())
         self.close_comms()
         # self.property_updated_signal[str, float].emit('bias_power', act_bias_pow)
 
     def start_digital_modulation(self):
         self.open_comms()
         response = self.ask('enable ext')
-        print('enable ext response: ' + response)
-        self.close_comms()
-        self.property_updated_signal[str, int].emit('mod_on', 1)
+        if response is None:
+            self.close_comms()
+            return
+        else:
+            print('enable ext response: ' + response)
+            self.close_comms()
+            self.property_updated_signal[str, int].emit('mod_on', 1)
 
     def stop_digital_modulation(self):
         self.open_comms()
         response = self.ask('disable ext')
-        print('disable ext response: ' + response)
-        self.close_comms()
-        self.property_updated_signal[str, int].emit('mod_on', 0)
+        if response is None:
+            self.close_comms()
+            return
+        else:
+            print('disable ext response: ' + response)
+            self.close_comms()
+            self.property_updated_signal[str, int].emit('mod_on', 0)
 
 if __name__ == '__main__':
     test_instr = TopticaInstr()
