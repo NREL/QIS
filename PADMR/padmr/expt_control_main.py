@@ -125,6 +125,7 @@ from padmr.supp import helpers
 pyqt = os.path.dirname(PyQt5.__file__)  # This and the following line are essential to make guis run
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 
+
 class PlottedData:
     def __init__(self, dims=1, output_names=['R(Volts)', 'Theta(Degrees)'], num_scans=[1, 1], notes='',
                  instr_settings=None):
@@ -133,6 +134,7 @@ class PlottedData:
         self.num_scans = num_scans
         self.details = notes
         self.instr_settings = instr_settings
+
 
 class MainWindow(QMainWindow):
     lockin_status_warning_signal = QtCore.pyqtSignal(str)
