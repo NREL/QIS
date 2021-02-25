@@ -64,6 +64,16 @@ class CryostatInstr(QtCore.QObject):
             self.send_error_signal.emit(self.error)
             return True
 
+    def close_comms(self):
+        try:
+            self.comms.__del__()
+            return False
+        except Exception as err:
+            self.error = ErrorCluster(status=True, code=7020,
+                                      details='Error closing communication with Cryostation.\n' + str(err))
+            self.send_error_signal.emit(self.error)
+            return True
+
     def enable_magnet(self):
         print('Attempting to enable Magnet')
         if self.error.status:
@@ -124,6 +134,9 @@ class CryostatInstr(QtCore.QObject):
                 self.send_error_signal.emit(self.error)
 
     def set_field(self, target_field):
+        """
+        Input field in gauss (it is converted to Tesla before sending to magnet)
+        """
         # Check that the input is valid
         if type(target_field) is not (float or int):
             try:

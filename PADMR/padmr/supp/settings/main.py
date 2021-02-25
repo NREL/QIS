@@ -14,6 +14,7 @@ from padmr.instr.zurich_lia.controls import ZiLockinSettings
 from padmr.instr.laser.controls import TopticaSettings, TopticaInstr
 from padmr.instr.mono.controls import MonoSettings
 from padmr.instr.cg635.controls import CG635Settings
+from padmr.instr.cryostat.controls import CryostatSettings
 
 #TODO:
 # 1. Split "initialize_settings_window" to create also an "update_settings_window"
@@ -105,6 +106,7 @@ class SettingsWindowForm(QWidget):
         self.cg = CG635Settings()
         self.toptica = TopticaSettings()
         self.md2000 = MonoSettings()
+        self.cryostat = CryostatSettings()
 
         self.label_strings = LabelStrings()
 
@@ -459,15 +461,19 @@ class SettingsWindowForm(QWidget):
         rm = pyvisa.ResourceManager()
         resources = list(rm.list_resources())
         resources.insert(0, '')
+        self.ui.md2000_com_port_cmb.clear()
         self.ui.md2000_com_port_cmb.addItems(resources)
         self.ui.md2000_com_port_cmb.setCurrentText(self.md2000.com_port)
 
+        self.ui.toptica_com_port_cmb.clear()
         self.ui.toptica_com_port_cmb.addItems(resources)
         self.ui.toptica_com_port_cmb.setCurrentText(self.toptica.com_port)
 
+        self.ui.prologix_com_port_cmb.clear()
         self.ui.prologix_com_port_cmb.addItems(resources)
         self.ui.prologix_com_port_cmb.setCurrentText(self.prologix_com_port)
 
+        self.ui.smb100a_com_port_cmb.clear()
         self.ui.smb100a_com_port_cmb.addItems(resources)
 
     @QtCore.pyqtSlot(bool)

@@ -87,7 +87,8 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
         changed whenever the instrument being addressed changes
         """
         super(PrologixAdaptedSRLockin, self).__init__(*args, **kwargs)
-        self.error = ErrorCluster()
+        self.error = ErrorCluster(status=True, code=3999,
+                                  details='Communication with the LIA has not been established')
 
         self.settings = LockinSettings()
 
@@ -113,10 +114,10 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
         elif model == 'SR830':
             self.settings.tc_numeric_list = self.settings.sr830_tc_options
 
-        if self.error.status:
+        if self.error.status and self.error.code != 3999:   # i.e. if there's an error other than "comms not est'd yet"
             print('Preexisting Error Found')
             self.send_error_signal.emit(self.error)
-        elif not self.error.status:
+        elif not self.error.status or self.error.code == 3999:
             try:
                 print('About to open resource for lockin at: ' + str(self.settings.resource))
                 self.comms = self.rm.open_resource(self.settings.resource)
@@ -131,6 +132,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
                 print('Lockin Identified: ' + identity)
 
                 self.connected = True
+                self.error = ErrorCluster(status=False, code=0, details='')
             except pyvisa.VisaIOError as err:
                 self.error = ErrorCluster(status=True, code=3000,
                                           details='Error attempting to start communications with lock-in.\n'
@@ -384,7 +386,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
 
     @QtCore.pyqtSlot(int)
     def update_harmonic(self, value):
-        print('updating something')
+        print('updating harmonic')
         self.write_string('HARM %d\n' % value, read=False)
         if not self.error.status:
             self.property_updated_signal.emit('harmonic', value)

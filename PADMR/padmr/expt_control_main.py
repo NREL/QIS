@@ -287,6 +287,8 @@ class MainWindow(QMainWindow):
 
     def connect_lockin(self):
         print('Setting up Lock-in...')
+        print(self.settings.lockin_model)
+        self.settings.prologix_com_port = self.settings.ui.prologix_com_port_cmb.currentText()
         if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
             did_comms_fail = self.lockin.start_comms(self.settings.prologix_com_port,
                                                      gpib_address=self.settings.lia.gpib_address,
@@ -322,11 +324,13 @@ class MainWindow(QMainWindow):
             raise ValueError('Invalid Lock-in Model Selected')
 
         if did_comms_fail is False:
-            self.lockin.settings = self.settings.uhfli # This needs to be changed so that settings.uhfli contains t
-            self.lockin.update_all()
             if self.settings.lockin_model == 'UHFLI':
+                self.lockin.settings = self.settings.uhfli  # This needs to be changed so that settings.uhfli contains t
+                self.lockin.update_all()
                 self.lockin_delay = self.settings.lockin_settling_factor * self.settings.uhfli.time_constant_value
             else:
+                self.lockin.settings = self.settings.lia  # This needs to be changed so that settings.uhfli contains t
+                self.lockin.update_all()
                 self.lockin_delay = self.settings.lockin_settling_factor * self.settings.lia.time_constant_value
             print('Lockin Settings Set')
 
@@ -1435,10 +1439,12 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def pause_btn_clicked(self):
-        if self.ui.pause_btn.text() == 'Pause':
+        if not self.pause_scan:
             self.pause_scan = True
-        elif self.ui.pause_btn.text() == 'Resume':
+            self.ui.pause_btn.setText('Resume')
+        elif self.pause_scan:
             self.pause_scan = False
+            self.ui.pause_btn.setText('Pause')
 
     @QtCore.pyqtSlot()
     def stop_btn_clicked(self):
