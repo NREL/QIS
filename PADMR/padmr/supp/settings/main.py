@@ -133,7 +133,7 @@ class SettingsWindowForm(QWidget):
         #TODO:
         # Change Refout To separate harmonic mode and internal/external options for the SR844
 
-        ini_file_object = open(r'C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\settings'
+        ini_file_object = open(r'C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\settings'
                                r'\initialization_parameters.ini', 'r')
         param_lines = ini_file_object.readlines()
         print('attempting to read initialization file')
@@ -144,8 +144,8 @@ class SettingsWindowForm(QWidget):
         self.lockin_model_preference = param_lines[3].split('#')[0].split()[2]
         self.lockin_model = self.lockin_model_preference
 
-        self.lockin_settling_factor = int(param_lines[4].split('#')[0].split()[2])
-        # self.lockin_settling_factor = self.lockin_delay_scaling_factor
+        self.settling_delay_factor = int(param_lines[4].split('#')[0].split()[2])
+        # self.settling_delay_factor = self.lockin_delay_scaling_factor
 
         self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
         self.lia.outputs = self.lockin_outputs
@@ -256,7 +256,7 @@ class SettingsWindowForm(QWidget):
         print('----------------------------------Initializing the lock-in Tab-----------------------------------------')
         self.ui.lockin_model_lnedt.setDisabled(True)
 
-        self.ui.lockin_delay_scale_spbx.setValue(self.lockin_settling_factor)
+        self.ui.lockin_delay_scale_spbx.setValue(self.settling_delay_factor)
 
         if self.lockin_model == 'UHFLI':
             self.ui.lockin_manufacturer_tabwidget.setCurrentIndex(0)

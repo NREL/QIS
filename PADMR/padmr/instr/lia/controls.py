@@ -34,6 +34,7 @@ class LockinSettings:
         self.reference_source = None
         self.twoF_detect_mode = None
         self.harmonic = None
+        self.frequency = None
         self.phase = 0
         self.expand = None
 
@@ -413,14 +414,25 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             self.write_string('DDEF 1, 1\n', read=False)
             self.write_string('DDEF 2, 1\n', read=False)
         elif self.settings.model == 'SR844' and idx == 1:
+            print('Attempting to set outputs to X and Y')
             self.write_string('DDEF 1, 0\n', read=False)
             self.write_string('DDEF 2, 0\n', read=False)
+        elif self.settings.model == 'SR844' and idx == 2:
+            print('Attempting to set channel 1 to Aux In 1...')
+            print('Channel 2 will be left as is.')
+            self.write_string('DDEF 1, 4\n', read=False)
         elif self.settings.model == 'SR830' and idx == 0:
+            print('Attempting to set outputs to R and Theta')
             self.write_string('DDEF 1, 1, 0\n', read=False)
             self.write_string('DDEF 2, 1, 0\n', read=False)
         elif self.settings.model == 'SR830' and idx == 1:
+            print('Attempting to set outputs to X and Y')
             self.write_string('DDEF 1, 0, 0\n', read=False)
             self.write_string('DDEF 2, 0, 0\n', read=False)
+        elif self.settings.model == 'SR830' and idx == 2:
+            print('Attempting to set channel 1 to Aux In 1...')
+            print('Channel 2 will not be recorded.')
+            self.write_string('DDEF 1, 3, 0\n', read=False)
 
         if not self.error.status:
             self.property_updated_signal.emit('outputs', idx)
@@ -438,6 +450,18 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
         self.write_string('FMOD %d\n' % idx, read=False)
         if not self.error.status:
             self.property_updated_signal.emit('reference_source', idx)
+
+    @QtCore.pyqtSlot(int)
+    def update_freq(self, target_freq):
+        print('updating reference frequency...')
+        if (self.settings.model == 'SR844' or self.settings.model == 'SR830') and self.connected is True:
+            self.write_string('FREQ %d\n' % target_freq, read=False)
+            new_value = float(self.write_string('FREQ?\n', read=True))
+            self.settings.frequency = new_value
+            if not self.error.status:
+                self.property_updated_signal.emit('frequency', new_value)
+        else:
+            print('Sorry, this case not coded yet...')
 
     @QtCore.pyqtSlot(int)
     def update_sampling_rate(self, idx):
@@ -526,6 +550,9 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             # I tried getting FAST transfer to work but the transfer would fail above 64 Hz (not sure why)
             # TRCL at least allows for X/Y sampling > 256 Hz on average (including data transfer and conversion)
 
+            errors = self.comms.query('ERRS?\n')
+            print('Lockin Error Register: ' + str(errors))
+
             if self.settings.model == 'SR844' or self.settings.model == 'SR830':
                 print('SR844 or SR830')
                 samples_to_read = int(self.comms.query('SPTS?\n'))
@@ -547,6 +574,10 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
                         break
                 # Now the data has been read by the computer
                 # Now convert these values into something useful (the format for TRCL is quite strange but is much faster):
+
+                errors = self.comms.query('ERRS?\n')
+                print('Lockin Error Register: ' + str(errors))
+
                 mantissas_ch1 = []
                 exponents_ch1 = []
                 values_ch1 = []

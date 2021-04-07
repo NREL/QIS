@@ -1,11 +1,23 @@
 #TODO:
 # Priorities:
+# 1. The lock-in will have problems transferring data if the averaging time is too short (<0.2 seconds). Not sure why.
 # 2. Toptica signals/slots/error handling
 # 2b. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 3. Test fluorescence lifetime experiment
 # 4. Get probe wavelength scanning working
 # 5. Finish setting up 2D experiments
 # Various:
+# -88. Give "experiment setup" presets their own standardized format (e.g. DeltaT scan, T, BG, etc.)
+# -87. Fast scan option? Does every other point on first scan and then the rest on the next scan. Alternates
+# -86. Modify so that abort saves current scan even if incomplete
+# -85. Automatically save the plot at the end of an experiment
+# -84. Lock-in overload causes crashes in comms with other instruments
+# -83. Add an option to only auto adjust the sensitivity if specifically overloaded (for data with large dynamic range)
+# -82. Add a "scan nothing" option (lock-in signal vs time) - this can already be done, but the x axis scales if anything remains in steps
+# -81. Add a "hide Average" and "Hide Current Scan" checkbox for the plots
+# -80. Add a "record baseline signal" for zero correction (I'm thinking for T scans, but probably it will apply to others)
+# -79. Make it so "aux in" measurement doesn't also record channel 2
+# -78. Lock-in delay seems to not update properly (I changed it to 1X and it still says "lockin_delay : 3.0" in the readout
 # -76. Attempting to restart experiment after aborting due to lock-in not locking, caused crash
 # -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
 # -74. Move number of scans to the respective abscissa block (ui objects)
@@ -274,7 +286,7 @@ class MainWindow(QMainWindow):
     def connect_cryostat(self):
         """If connection is "actively refused" - likely the IP address or port number is incorrect."""
         print('Setting up Cryostat...')
-        did_comms_fail = self.cryostat.start_comms(cryostation_ip='169.254.65.20', cryostation_port=7773)
+        did_comms_fail = self.cryostat.start_comms(cryostation_ip='169.254.252.134', cryostation_port=7773)
 
         if did_comms_fail is True:
             self.cryostat.settings.connected = False
@@ -327,11 +339,11 @@ class MainWindow(QMainWindow):
             if self.settings.lockin_model == 'UHFLI':
                 self.lockin.settings = self.settings.uhfli  # This needs to be changed so that settings.uhfli contains t
                 self.lockin.update_all()
-                self.lockin_delay = self.settings.lockin_settling_factor * self.settings.uhfli.time_constant_value
+                self.lockin_delay = self.settings.settling_delay_factor * self.settings.uhfli.time_constant_value
             else:
                 self.lockin.settings = self.settings.lia  # This needs to be changed so that settings.uhfli contains t
                 self.lockin.update_all()
-                self.lockin_delay = self.settings.lockin_settling_factor * self.settings.lia.time_constant_value
+                self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             print('Lockin Settings Set')
 
     def connect_md2000(self):
@@ -404,17 +416,23 @@ class MainWindow(QMainWindow):
             self.abort_scan = False  # This should probably go before the if/elif statement
             self.pause_scan = False
             # Add here a save Experiment Notes and details to file
-            if self.settings.lockin_outputs == 0:  # 0 is R/Theta
+            if self.settings.lia.outputs == 0:  # 0 is R/Theta
                 self.output_name[0] = 'R (V)'
                 self.output_name[1] = 'Theta (Degrees)'
-            elif self.settings.lockin_outputs == 1:
+            elif self.settings.lia.outputs == 1:
                 self.output_name[0] = 'X (V)'
                 self.output_name[1] = 'Y (V)'
+            elif self.settings.lia.outputs == 2:
+                self.output_name[0] = 'Aux1 (V)'
+                self.output_name[1] = 'Unknown'
             else:
                 self.output_name[0] = 'Channel 1 Display'
                 self.output_name[1] = 'Channel 2 Display'
             print('Lockin time Constant: ' + str(self.settings.lia.time_constant_value))
-            self.lockin_delay = self.settings.lockin_settling_factor * self.settings.lia.time_constant_value
+            print('settling delay factor: ' + str(self.settings.settling_delay_factor))
+            self.settings.settling_delay_factor = self.settings.ui.lockin_delay_scale_spbx.value()
+            print('settling delay factor: ' + str(self.settings.settling_delay_factor))
+            self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             print('lockin_delay: ' + str(self.lockin_delay))
 
             # self.prepare_for_collection()
@@ -536,9 +554,10 @@ class MainWindow(QMainWindow):
                     #     return
                     # while self.pause_scan is True:
                     #     time.sleep(0.05)
+                    self.axis_1.set_title('Scan %d' % (jj+1))
                     print('------------------------------------ SCAN %d -----------------------------------------' % jj)
                     ii = 0
-                    while ii < self.step_count[0]:
+                    while ii < self.step_count[0]:  # INNERMOST LOOP
                         # This loops over all the points for abscissa_1
                         if self.abort_scan is True:
                             return
@@ -569,7 +588,9 @@ class MainWindow(QMainWindow):
     @helpers.measure_time
     def set_abscissa(self, which_abscissa, next_step):
         wa = which_abscissa
-        if self.abscissae[wa] == 0:  # Empty Header line
+        if self.abscissae[wa] is None or self.abscissae[wa] == 0:  # Empty Header line
+            print('No Abscissa')
+            actual_pos = time.time()
             pass
         elif self.abscissae[wa] == 1:  # Pump Modulation Frequency
             print('------------------------ SETTING CG635 MODULATION FREQUENCY -----------------------')
@@ -644,8 +665,21 @@ class MainWindow(QMainWindow):
             print('This case has not been coded yet')
         elif self.abscissae[wa] == 5:  # RF Modulation Frequency
             print('This case has not been coded yet')
-        elif self.abscissae[wa] == 6:  # TBD
-            print('This case has not been coded yet')
+        elif self.abscissae[wa] == 6:  # Lock-in Internal Ref Frequency
+            print('Attempting to set internal reference frequency...')
+            if self.lockin.error.status:
+                print('Lock-in had a pre-existing error')
+                self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                'Text': ' Experiment Aborted',
+                                                'Informative Text': 'Cryostat Error Found',
+                                                'Details': ('Error Code: ' + str(self.lockin.error.code))})
+                self.abort_scan = True
+                return None
+            else:
+                self.lockin.update_freq(target_freq=next_step)
+                actual_pos = self.lockin.settings.frequency
+                print('Actual pos: ' + str(actual_pos))
+
         else:
             print('there are this many possible abscissae?')
 
@@ -717,8 +751,15 @@ class MainWindow(QMainWindow):
             self.lockin.auto_sens()
 
         print('Collecting Data....')
-        ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
-                                                      record_both_channels=True)
+        if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1:
+            print('From X/Y or R/Theta')
+            ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
+                                                          record_both_channels=True)
+        elif self.settings.lia.outputs == 2:
+            print('From Aux in 1')
+            ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
+                                                          record_both_channels=True)
+
         print('Averaging New Data...')
         ch1 = np.average(ch1_data)
         ch2 = np.average(ch2_data)
@@ -1100,6 +1141,8 @@ class MainWindow(QMainWindow):
         print('label set')
         if self.output_variables == 'R/Theta':
             self.axis_2.set_ylim(bottom=-180, top=180)
+        else:  # self.output_variables == 'X/Y':
+            self.axis_2.set_ylim(auto=True)
 
         self.ui.PlotWidget.canvas.draw()
 
@@ -1365,6 +1408,10 @@ class MainWindow(QMainWindow):
         elif self.abscissae[abscissa_idx] == 5:
             print('RF Mod Freq Selected')
             # self.ui.PlotWidget.canvas.axes_main.set_xlabel('RF Modulation Frequency (Hz)')
+        elif self.abscissae[abscissa_idx] == 6:
+            print('Lockin Ref Freq Selected')
+        else:
+            print('This case not coded yet')
 
     @QtCore.pyqtSlot(str)
     def experiment_preset_cbx_activated(self, experiment_str):
@@ -1467,7 +1514,7 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot(str, str, float)  # This is called "overloading" a signal and slot. This is now TWO slots
     @QtCore.pyqtSlot(str, str, int)  # Which require different variable type inputs. str, int is default if unspec'd
     def update_instr_property(self, instr, prop_name, new_val):
-        print('Attempting to update ' + instr + prop_name + ' to value: ' + str(new_val))
+        print('Attempting to update ' + instr + ' ' + prop_name + ' to value: ' + str(new_val))
         if instr == 'lockin':
             setattr(self.lockin.settings, prop_name, new_val)
             setattr(self.settings.lia, prop_name, new_val)
@@ -1500,32 +1547,32 @@ class MainWindow(QMainWindow):
 
     def set_icons(self):
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon1.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\settings_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.actionSettings.setIcon(icon1)
 
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon2.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\help-button.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.actionHelp.setIcon(icon2)
 
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon3.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\save_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.actionSave_Data.setIcon(icon3)
 
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon4.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\connect_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.actionConnect_All.setIcon(icon4)
 
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon5.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\play_pause_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.pause_btn.setIcon(icon5)
 
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(r"C:\Users\ryand\OneDrive\Documents\PythonProjects\QIS\PADMR\padmr\supp\icons"
+        icon6.addPixmap(QtGui.QPixmap(r"C:\Users\padmr\Desktop\QIS\PADMR\padmr\supp\icons"
                                       r"\arrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.go_to_temp_btn.setIcon(icon6)
         self.ui.go_to_probe_wl_btn.setIcon(icon6)

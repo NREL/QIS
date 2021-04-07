@@ -53,7 +53,7 @@ class CryostatInstr(QtCore.QObject):
 
         self.comms = None
 
-    def start_comms(self, cryostation_ip='169.254.65.20', cryostation_port='7773'):
+    def start_comms(self, cryostation_ip='169.254.252.134', cryostation_port='7773'):
         try:
             self.comms = CryostationComm.CryoComm(cryostation_ip, cryostation_port)
             self.error = ErrorCluster(status=False, code=0, details='')

@@ -5,8 +5,10 @@ import time
 from pyvisa.constants import VI_WRITE_BUF_DISCARD, VI_READ_BUF_DISCARD
 from PyQt5 import QtCore
 
+
 class LockinError(BaseException):
     pass
+
 
 class PrologixAdaptedSRLockin:
     send_error_signal = QtCore.pyqtSignal(dict)

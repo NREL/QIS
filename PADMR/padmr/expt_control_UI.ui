@@ -30,8 +30,8 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
-         <width>481</width>
+         <y>-46</y>
+         <width>477</width>
          <height>1483</height>
         </rect>
        </property>
@@ -260,6 +260,11 @@
           <item>
            <property name="text">
             <string>RF Modulation Frequency</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Internal Ref Frequency (Lock-in)</string>
            </property>
           </item>
          </widget>
@@ -562,6 +567,11 @@
           <item>
            <property name="text">
             <string>RF Modulation Frequency</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Internal Ref Frequency (Lock-in)</string>
            </property>
           </item>
          </widget>
