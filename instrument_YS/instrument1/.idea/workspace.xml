@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e52e4941-52e1-43b7-b5da-5e792a23e05f" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1rXKPog4mG2XNi7Kvnv0ue3q2MA" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  </component>
+  <component name="RunManager" selected="Python.UI3">
+    <configuration name="PhotonCnt" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="instrument1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python3.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/PhotonCnt.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Tektronix" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="instrument1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python3.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Tektronix.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="UI3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="instrument1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python3.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/.." />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../UI3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="checkeq" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="instrument1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python3.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/checkeq.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="try1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="instrument1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python3.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/try1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.UI3" />
+      <item itemvalue="Python.Tektronix" />
+      <item itemvalue="Python.checkeq" />
+      <item itemvalue="Python.PhotonCnt" />
+      <item itemvalue="Python.try1" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.UI3" />
+        <item itemvalue="Python.try1" />
+        <item itemvalue="Python.PhotonCnt" />
+        <item itemvalue="Python.checkeq" />
+        <item itemvalue="Python.Tektronix" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e52e4941-52e1-43b7-b5da-5e792a23e05f" name="Default Changelist" comment="" />
+      <created>1619116972310</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1619116972310</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="0" y="147" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1619555255996">
+      <screen x="0" y="23" width="1680" height="972" />
+    </state>
+    <state x="0" y="146" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.966@0.23.1680.966" timestamp="1619539993547" />
+    <state x="0" y="146" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.967@0.23.1680.967" timestamp="1619550844175" />
+    <state x="0" y="147" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.972@0.23.1680.972" timestamp="1619555255996" />
+    <state x="0" y="147" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.973@0.23.1680.973" timestamp="1619117170619" />
+    <state x="0" y="147" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.974@0.23.1680.974" timestamp="1619470269332" />
+    <state x="0" y="147" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.975@0.23.1680.975" timestamp="1619462795935" />
+    <state width="868" height="166" key="GridCell.Tab.0.bottom" timestamp="1619562123327">
+      <screen x="0" y="23" width="1680" height="972" />
+    </state>
+    <state width="868" height="166" key="GridCell.Tab.0.bottom/0.23.1680.965@0.23.1680.965" timestamp="1619540868965" />
+    <state width="868" height="166" key="GridCell.Tab.0.bottom/0.23.1680.966@0.23.1680.966" timestamp="1619543513297" />
+    <state width="868" height="166" key="GridCell.Tab.0.bottom/0.23.1680.967@0.23.1680.967" timestamp="1619555806790" />
+    <state width="868" height="166" key="GridCell.Tab.0.bottom/0.23.1680.972@0.23.1680.972" timestamp="1619562123327" />
+    <state width="949" height="166" key="GridCell.Tab.0.bottom/0.23.1680.973@0.23.1680.973" timestamp="1619465192075" />
+    <state width="868" height="166" key="GridCell.Tab.0.bottom/0.23.1680.974@0.23.1680.974" timestamp="1619470749411" />
+    <state width="949" height="166" key="GridCell.Tab.0.bottom/0.23.1680.975@0.23.1680.975" timestamp="1619467285678" />
+    <state width="949" height="166" key="GridCell.Tab.0.bottom/0.23.1680.976@0.23.1680.976" timestamp="1619467017460" />
+    <state width="868" height="166" key="GridCell.Tab.0.center" timestamp="1619562123326">
+      <screen x="0" y="23" width="1680" height="972" />
+    </state>
+    <state width="868" height="166" key="GridCell.Tab.0.center/0.23.1680.965@0.23.1680.965" timestamp="1619540868964" />
+    <state width="868" height="166" key="GridCell.Tab.0.center/0.23.1680.966@0.23.1680.966" timestamp="1619543513296" />
+    <state width="868" height="166" key="GridCell.Tab.0.center/0.23.1680.967@0.23.1680.967" timestamp="1619555806790" />
+    <state width="868" height="166" key="GridCell.Tab.0.center/0.23.1680.972@0.23.1680.972" timestamp="1619562123326" />
+    <state width="949" height="166" key="GridCell.Tab.0.center/0.23.1680.973@0.23.1680.973" timestamp="1619465192075" />
+    <state width="868" height="166" key="GridCell.Tab.0.center/0.23.1680.974@0.23.1680.974" timestamp="1619470749410" />
+    <state width="949" height="166" key="GridCell.Tab.0.center/0.23.1680.975@0.23.1680.975" timestamp="1619467285678" />
+    <state width="949" height="166" key="GridCell.Tab.0.center/0.23.1680.976@0.23.1680.976" timestamp="1619467017459" />
+    <state width="868" height="166" key="GridCell.Tab.0.left" timestamp="1619562123326">
+      <screen x="0" y="23" width="1680" height="972" />
+    </state>
+    <state width="868" height="166" key="GridCell.Tab.0.left/0.23.1680.965@0.23.1680.965" timestamp="1619540868964" />
+    <state width="868" height="166" key="GridCell.Tab.0.left/0.23.1680.966@0.23.1680.966" timestamp="1619543513295" />
+    <state width="868" height="166" key="GridCell.Tab.0.left/0.23.1680.967@0.23.1680.967" timestamp="1619555806789" />
+    <state width="868" height="166" key="GridCell.Tab.0.left/0.23.1680.972@0.23.1680.972" timestamp="1619562123326" />
+    <state width="949" height="166" key="GridCell.Tab.0.left/0.23.1680.973@0.23.1680.973" timestamp="1619465192074" />
+    <state width="868" height="166" key="GridCell.Tab.0.left/0.23.1680.974@0.23.1680.974" timestamp="1619470749410" />
+    <state width="949" height="166" key="GridCell.Tab.0.left/0.23.1680.975@0.23.1680.975" timestamp="1619467285677" />
+    <state width="949" height="166" key="GridCell.Tab.0.left/0.23.1680.976@0.23.1680.976" timestamp="1619467017459" />
+    <state width="868" height="166" key="GridCell.Tab.0.right" timestamp="1619562123327">
+      <screen x="0" y="23" width="1680" height="972" />
+    </state>
+    <state width="868" height="166" key="GridCell.Tab.0.right/0.23.1680.965@0.23.1680.965" timestamp="1619540868964" />
+    <state width="868" height="166" key="GridCell.Tab.0.right/0.23.1680.966@0.23.1680.966" timestamp="1619543513296" />
+    <state width="868" height="166" key="GridCell.Tab.0.right/0.23.1680.967@0.23.1680.967" timestamp="1619555806790" />
+    <state width="868" height="166" key="GridCell.Tab.0.right/0.23.1680.972@0.23.1680.972" timestamp="1619562123327" />
+    <state width="949" height="166" key="GridCell.Tab.0.right/0.23.1680.973@0.23.1680.973" timestamp="1619465192075" />
+    <state width="868" height="166" key="GridCell.Tab.0.right/0.23.1680.974@0.23.1680.974" timestamp="1619470749411" />
+    <state width="949" height="166" key="GridCell.Tab.0.right/0.23.1680.975@0.23.1680.975" timestamp="1619467285678" />
+    <state width="949" height="166" key="GridCell.Tab.0.right/0.23.1680.976@0.23.1680.976" timestamp="1619467017459" />
+    <state x="148" y="315" key="com.intellij.ide.util.TipDialog" timestamp="1619538350013">
+      <screen x="0" y="23" width="1680" height="965" />
+    </state>
+    <state x="148" y="315" key="com.intellij.ide.util.TipDialog/0.23.1680.965@0.23.1680.965" timestamp="1619538350013" />
+    <state x="148" y="316" key="com.intellij.ide.util.TipDialog/0.23.1680.967@0.23.1680.967" timestamp="1619129586909" />
+    <state x="148" y="318" key="com.intellij.ide.util.TipDialog/0.23.1680.972@0.23.1680.972" timestamp="1619118682076" />
+    <state x="148" y="318" key="com.intellij.ide.util.TipDialog/0.23.1680.973@0.23.1680.973" timestamp="1619117008012" />
+    <state x="148" y="318" key="com.intellij.ide.util.TipDialog/0.23.1680.974@0.23.1680.974" timestamp="1619450498599" />
+    <state x="651" y="52" width="1138" height="678" key="dock-window-1" timestamp="1619469451643">
+      <screen x="0" y="23" width="1680" height="974" />
+    </state>
+    <state x="731" y="23" width="949" height="678" key="dock-window-1/0.23.1680.972@0.23.1680.972" timestamp="1619455205862" />
+    <state x="610" y="140" width="949" height="572" key="dock-window-1/0.23.1680.973@0.23.1680.973" timestamp="1619118557342" />
+    <state x="651" y="52" width="1138" height="678" key="dock-window-1/0.23.1680.974@0.23.1680.974" timestamp="1619469451643" />
+    <state x="1008" y="49" width="949" height="678" key="dock-window-1/0.23.1680.975@0.23.1680.975" timestamp="1619467415385" />
+    <state x="827" y="28" width="949" height="678" key="dock-window-1/0.23.1680.976@0.23.1680.976" timestamp="1619466986147" />
+    <state x="669" y="84" width="986" height="678" key="dock-window-2" timestamp="1619469485024">
+      <screen x="0" y="23" width="1680" height="974" />
+    </state>
+    <state x="669" y="84" width="986" height="678" key="dock-window-2/0.23.1680.974@0.23.1680.974" timestamp="1619469485024" />
+  </component>
+</project>

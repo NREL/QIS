@@ -1,17 +1,19 @@
-# https://pyvisa.readthedocs.io/en/latest/
 # Rohde&schewarz 100kHz-12.75GHz signal generator
 # manual: https://www.rohde-schwarz.com/us/manual/r-s-smb100a-rf-and-microwave-signal-generator-operating-manual-manuals-gb1_78701-29347.html
 
-
 import pyvisa
 
-def Freqset(freq, level):
+def RSf(freq):
     rm = pyvisa.ResourceManager()
     inst = rm.open_resource('USB0::0x0AAD::0x0054::181799::INSTR')    #USB-B cable
     # inst=rm.open_resource('GPIB0::28::INSTR')    #GBIP cable
     inst.write('FREQ '+str(freq)+' MHz')   ##'SOUR1: FREQ 2.8 GHz' SOUR can be omitted
-    inst.write('POW '+str(level))
 
+def RSp(level):
+    rm = pyvisa.ResourceManager()
+    inst = rm.open_resource('USB0::0x0AAD::0x0054::181799::INSTR')    #USB-B cable
+    # inst=rm.open_resource('GPIB0::28::INSTR')    #GBIP cable
+    inst.write('POW '+str(level))
 
 def Freqsweep(start, stop, step, dwell, level):
     rm = pyvisa.ResourceManager()
@@ -19,6 +21,7 @@ def Freqsweep(start, stop, step, dwell, level):
     # inst=rm.open_resource('GPIB0::28::INSTR')    #GBIP cable
     inst.write('FREQ:MODE SWE')  ##sets the frequency sweep mode
     inst.write('TRIG:FSW:SOUR EXT')    #trigger=external single
+    # inst.write('TRIG:FSW:SOUR SING')    #trigger=single sweep
     inst.write('FREQ:STAR '+str(start)+' MHz')
     inst.write('FREQ:STOP '+str(stop)+' MHz')
     inst.write('SWE:FREQ:STEP '+str(step)+' MHz')
@@ -31,16 +34,13 @@ if __name__ == "__main__":
     folder = '/Users/yshi2/Documents/2020.8.19/'
     filename = 'ys20081901'
     freq = 2875  # MHz
-    level = 12   # dBm
-    start = 2820 # MHz
-    stop = 2920  # MHz
+    level = -11   # dBm
+    start = 2700 # MHz
+    stop = 3000  # MHz
     step = 1     # MHz
-    dwell = 500  # ms
+    dwell = 100  # ms
 
-    Freqset(freq, level)
-    # Freqsweep(start, stop, step, dwell, level)
-
-
+    Freqsweep(start, stop, step, dwell, level)
 
 
 
