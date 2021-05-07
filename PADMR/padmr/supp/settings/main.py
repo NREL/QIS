@@ -15,6 +15,8 @@ from padmr.instr.laser.controls import TopticaSettings, TopticaInstr
 from padmr.instr.mono.controls import MonoSettings
 from padmr.instr.cg635.controls import CG635Settings
 from padmr.instr.cryostat.controls import CryostatSettings
+from padmr.instr.smb100a.controls import SMB100ASettings
+
 
 #TODO:
 # 1. Split "initialize_settings_window" to create also an "update_settings_window"
@@ -37,6 +39,14 @@ class Presets:              # Presumably I should incorporate these into the Set
         self.field_start = 2000
         self.field_end = 4500
         self.field_num_steps = 151
+
+        self.rf_freq_start = 500        # MHz
+        self.rf_freq_end = 4500         # MHz
+        self.rf_freq_num_steps = 201
+
+        self.rf_mod_freq_start = 10     # kHz
+        self.rf_mod_freq_end = 100      # kHz
+        self.rf_mod_freq_num_steps = 9
 
         # self.lockin_sampling_rate = 512     # Hertz
         self.lockin_sampling_duration = 1   # Seconds
@@ -107,6 +117,7 @@ class SettingsWindowForm(QWidget):
         self.toptica = TopticaSettings()
         self.md2000 = MonoSettings()
         self.cryostat = CryostatSettings()
+        self.smb100a = SMB100ASettings()
 
         self.label_strings = LabelStrings()
 
@@ -159,6 +170,8 @@ class SettingsWindowForm(QWidget):
         self.toptica.power_warning_threshold = float(param_lines[8].split('#')[0].split()[2])
         print(self.lockin_model_preference)
         print("prologix com port: " + str(self.prologix_com_port))
+
+        self.smb100a_com_port = str(param_lines[9].split('#')[0].split()[2])
 
         # SR844 Settings
         self.sr844_gpib_address = int(param_lines[20].split('#')[0].split()[2])
@@ -434,6 +447,10 @@ class SettingsWindowForm(QWidget):
     def update_cryostat_tab(self):
         pass
 
+    def update_smb100a_tab(self):
+        print('Updating SMB100a Tab')
+        self.ui.smb100a_freq_units_cbx.setCurrentText('Hz')
+
     def initialize_settings_window(self):
         # Initialize the general tab
 
@@ -446,6 +463,8 @@ class SettingsWindowForm(QWidget):
         self.ui.status_ind_smb100a.setText(self.label_strings.off_led_str)
         self.ui.status_ind_uhfli.setText(self.label_strings.off_led_str)
 
+        self.ui.smb100a_modulate_checkbox.setChecked(False)
+
         self.check_com_ports()
 
         self.init_lockin_tab()
@@ -456,6 +475,7 @@ class SettingsWindowForm(QWidget):
         self.ui.cg635_freq_units_cbx.setCurrentIndex(self.cg635_freq_units)
 
         self.update_topt_tab()
+        self.update_smb100a_tab()
 
     def check_com_ports(self):
         rm = pyvisa.ResourceManager()
@@ -475,6 +495,7 @@ class SettingsWindowForm(QWidget):
 
         self.ui.smb100a_com_port_cmb.clear()
         self.ui.smb100a_com_port_cmb.addItems(resources)
+        self.ui.smb100a_com_port_cmb.setCurrentText(self.smb100a_com_port)
 
     @QtCore.pyqtSlot(bool)
     def enable_secondary_demodulator(self, disable):

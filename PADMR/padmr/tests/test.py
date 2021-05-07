@@ -53,3 +53,36 @@ if __name__ == '__main__':
     ex.lockin_error_window(3)
     sys.exit(app.exec_())
 
+
+x = 1
+y = 2
+z = 3
+t0 = time.time()
+for ii in range(0, 1000000):
+    if x == y and not x == z:
+        test_str = 'heres ' + 'a' + ' string!1'
+    elif not x == y and x == z:
+        test_str = 'heres ' + 'a' + ' string!2'
+    elif x == y and x == z:
+        test_str = 'heres ' + 'a' + ' string!3'
+    elif not x == y and not x == z:
+        test_str = 'heres ' + 'a' + ' string!4'
+
+print('duration' + str(time.time() - t0))
+print('test string: ' + str(test_str))
+
+x = 1
+y = 2
+z = 1
+t0 = time.time()
+for ii in range(0, 1000000):
+    if x == y:
+        test_str = 'heres ' + 'a' + ' string!1'
+    elif not x == y:
+        test_str = 'heres ' + 'a' + ' string!NOT'
+
+    if x == z:
+        test_str = 'rewrite!'
+
+print('duration' + str(time.time() - t0))
+print('test string: ' + str(test_str))

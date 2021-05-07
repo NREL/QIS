@@ -28,3 +28,4 @@ class LabelStrings:
                             "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
                             "<img src=\":/led_icons/RED_LED_ON.png\"/><img src=\":/led_icons/RED_LED_ON.png\"/>" \
                             "</p><p> ! LASER ON ! </p></body></html>"
+
