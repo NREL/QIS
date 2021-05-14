@@ -61,6 +61,7 @@ class SettingsWindowForm(QWidget):
 
     lockin_property_updated_signal = QtCore.pyqtSignal(str, int)
     cg635_property_updated_signal = QtCore.pyqtSignal(str, int)
+    cryostat_property_updated_signal = QtCore.pyqtSignal([str, int], [str, float])
 
     test_signal = QtCore.pyqtSignal(str)
     cg635_set_phase_signal = QtCore.pyqtSignal(bool)  # Do I need the bools here?
@@ -161,8 +162,8 @@ class SettingsWindowForm(QWidget):
         self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
         self.lia.outputs = self.lockin_outputs
 
-        self.lockin_sampling_rate = int(param_lines[6].split('#')[0].split()[2])
-        self.lia.sampling_rate = self.lockin_sampling_rate
+        self.lockin_sampling_rate_idx = int(param_lines[6].split('#')[0].split()[2])
+        self.lia.sampling_rate_idx = self.lockin_sampling_rate_idx
 
         self.lockin_ref_source = int(param_lines[7].split('#')[0].split()[2])
         self.lia.reference_source = self.lockin_ref_source
@@ -213,6 +214,11 @@ class SettingsWindowForm(QWidget):
         self.cg635_gpib_address = int(param_lines[71].split('#')[0].split()[2])
         self.cg635_freq_units = int(param_lines[72].split('#')[0].split()[2])
         self.cg635_max_freq = int(param_lines[73].split('#')[0].split()[2])
+
+        # Cryostat / Magnet Settings
+        self.cryostat.magnet_settling_time = float(param_lines[90].split('#')[0].split()[2])
+        self.cryostat.magnet_prescan_settling_time = float(param_lines[91].split('#')[0].split()[2])
+        self.cryostat.is_zero_magnet_between_scans = bool(param_lines[92].split('#')[0].split()[2])
 
         # Toptica Settings
         self.toptica.com_port = param_lines[100].split('#')[0].split()[2]
@@ -339,7 +345,7 @@ class SettingsWindowForm(QWidget):
                 print('Inside Try')
                 # First set the values that do not depend on which lock-in you're using
                 self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
-                self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate)
+                self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate_idx)
                 self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
                 self.ui.expand_cbx.setCurrentIndex(self.lia.expand)
 
@@ -445,7 +451,11 @@ class SettingsWindowForm(QWidget):
         self.ui.mono_bl_comp_chkbx.setChecked(self.md2000.bl_bool)
 
     def update_cryostat_tab(self):
-        pass
+        print('Updating Cryostat Tab')
+        self.ui.cryostat_magnet_settling_time_sbpx.setValue(self.cryostat.magnet_settling_time)
+        self.ui.cryostat_delay_between_scans_spbx.setValue(self.cryostat.magnet_prescan_settling_time)
+        self.ui.cryostat_zero_between_scans_chkbx.setChecked(self.cryostat.is_zero_magnet_between_scans)
+        # self.cryostat_property_updated_signal.emit('magnet_settling_time', self.cryostat.magnet_settling_time)
 
     def update_smb100a_tab(self):
         print('Updating SMB100a Tab')
@@ -476,6 +486,7 @@ class SettingsWindowForm(QWidget):
 
         self.update_topt_tab()
         self.update_smb100a_tab()
+        self.update_cryostat_tab()
 
     def check_com_ports(self):
         rm = pyvisa.ResourceManager()

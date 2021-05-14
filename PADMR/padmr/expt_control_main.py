@@ -1,16 +1,13 @@
 #TODO:
 # Priorities:
-# 1. The lock-in will have problems transferring data if the averaging time is too short (<0.2 seconds). Not sure why.
-# 2. Toptica signals/slots/error handling
-# 2b. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
-# 3. Test fluorescence lifetime experiment
-# 4. Get probe wavelength scanning working
+# 1. Determine optimal delay to use for magnet
+# 2. Get UHFLI set up
+# 3. Toptica signals/slots/error handling
+# 4. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 5. Finish setting up 2D experiments
 # Various:
-# -94. Faster option (don't plot points live - plotting takes almost as long as getting the lockin results -
-# or plot in separate window in a separate thread)
-# -93. Fix neverending recursive frequency setting
-# -92. Make an option for non-50% duty cycles
+# -95. Fix labelling of plots for transient measurement
+# -92. Make an option for non-50% duty cycles (SMB100a)
 # -91. Make RnS source Modulation Trigger Impedance changeable
 # -90. Add a "pause after each point" option
 # -89. Send email or text when experiment complete
@@ -20,17 +17,14 @@
 # -85. Automatically save the plot at the end of an experiment
 # -84. Lock-in overload causes crashes in comms with other instruments
 # -83. Add an option to only auto adjust the sensitivity if specifically overloaded (for data with large dynamic range)
-# -82. Add a "scan nothing" option (lock-in signal vs time) - this can already be done, but the x axis scales if anything remains in steps
 # -81. Add a "hide Average" and "Hide Current Scan" checkbox for the plots
 # -80. Add a "record baseline signal" for zero correction (I'm thinking for T scans, but probably it will apply to others)
 # -79. Make it so "aux in" measurement doesn't also record channel 2
-# -78. Lock-in delay seems to not update properly (I changed it to 1X and it still says "lockin_delay : 3.0" in the readout
 # -76. Attempting to restart experiment after aborting due to lock-in not locking, caused crash
 # -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
 # -74. Move number of scans to the respective abscissa block (ui objects)
 # -73. Change saving so that if only 1 scan, Ave Data is saved (rather than scans)
 # -72. Retest saving data (including 2D with > 1 scan)
-# -71. The laser power buttons lost their arrows. Also, the uW/mW thing is confused.
 # -70. Figure out the settings window laser buttons (they seem to be redundant)
 # -69. Find a good way to average multiple 2d scans together (perhaps create the "Scans" file, and treat both
 # scan dimensions the same as is currently done for 1d scans)
@@ -163,6 +157,7 @@ class MainWindow(QMainWindow):
     general_error_signal = QtCore.pyqtSignal(dict)
     status_message_signal = QtCore.pyqtSignal(str)
     results_are_in_signal = QtCore.pyqtSignal([int, int])
+    change_plot_title_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -193,6 +188,7 @@ class MainWindow(QMainWindow):
 
         self.abort_scan = False
         self.pause_scan = False
+        self.experiment_in_progress = False
 
         self.lockin_delay = 0
 
@@ -221,6 +217,7 @@ class MainWindow(QMainWindow):
         self.units = [None, None]
         abs_set_delay = [0, 0]
 
+        self.is_recording_transient = False
         self.num_dims = 1
         self.num_scans = [1, 1]
         self.averaging_time = 0
@@ -265,6 +262,7 @@ class MainWindow(QMainWindow):
         self.cg635 = CG635Instrument()
         self.md2000 = MonoDriver()
         self.cryostat = CryostatInstr()
+        self.cryostat.settings = self.settings.cryostat
         self.smb100a = SMB100AInstrument()
         self.md2000.settings = self.settings.md2000
         print(str(self.settings.md2000.com_port))
@@ -445,6 +443,7 @@ class MainWindow(QMainWindow):
     def start_experiment(self):
         # TODO: Save notes and details to file before the worker
         if self.lockin.connected:
+            self.experiment_in_progress = True
             self.status_message_signal.emit('Getting Ready to Start Experiment...........')
 
             notes = self.ui.notes_plain_text_edit.toPlainText()
@@ -486,6 +485,12 @@ class MainWindow(QMainWindow):
             self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             print('lockin_delay: ' + str(self.lockin_delay))
 
+            if self.ui.is_recording_transient_chkbx.isChecked():
+                self.is_recording_transient = True
+                self.transient_duration = self.ui.time_trace_window_length_spbx.value()
+            else:
+                self.is_recording_transient = False
+
             # self.prepare_for_collection()
 
             if self.abscissae[1] is None or self.abscissae[1] == 0:
@@ -523,14 +528,8 @@ class MainWindow(QMainWindow):
                                             notes=notes, instr_settings=None)
 
             self.set_1d_plot_properties()
-            if self.plot1 is not None:
-                self.ui.PlotWidget.removeItem(self.plot1)
-            if self.plot2 is not None:
-                self.ui.PlotWidget2.removeItem(self.plot2)
-            if self.plot3 is not None:
-                self.ui.PlotWidget.removeItem(self.plot3)
-            if self.plot4 is not None:
-                self.ui.PlotWidget2.removeItem(self.plot4)
+
+            self.clear_plots()
 
             data_collection_worker = helpers.Worker(self.collect_data, filename, filetype)
             self.thread_pool.start(data_collection_worker)
@@ -540,34 +539,6 @@ class MainWindow(QMainWindow):
                                             'Informative Text': 'One or more instruments not set up',
                                             'Details': None})
 
-    # @helpers.measure_time
-    # def prepare_for_collection(self):
-    #     print('----------------------------------- Preparing Data Storage Arrays -------------------------------------')
-    #
-    #     if self.abscissae[1] is None or self.abscissae[1] == 0:
-    #         self.num_dims = 1
-    #         self.data_type = '1D'
-    #     elif 0 < self.abscissae[1] < 6:
-    #         self.num_dims = 2
-    #         self.data_type = '2D'
-    #     else:
-    #         raise ValueError('Invalid Value for abscissa[1] (second independent variable)')
-    #
-    #     self.num_scans[0] = self.ui.num_scans_spbx.value()
-    #     self.num_scans[1] = self.ui.num_scans_dim2_spbx.value()
-    #
-    #     self.averaging_time = self.ui.averaging_time_spbx.value()
-    #
-    #     self.column_headers = [self.abscissa_name[0], self.output_name[0], self.output_name[1]]
-    #     # self.ave_data_df = pd.DataFrame(columns=self.column_headers)
-    #
-    #     self.actual_x_values = np.empty((self.step_count[0], 1))
-    #     self.actual_x_values[:] = np.nan
-    #     self.actual_x_values = self.actual_x_values.flatten()
-    #
-    #     # self.axis_1.clear()
-    #     # self.axis_2.clear()
-    #     # self.set_1d_plot_properties()
 
     @helpers.measure_time
     def collect_data(self, filename=None, filetype=None):
@@ -596,19 +567,21 @@ class MainWindow(QMainWindow):
                 while self.pause_scan is True:
                     time.sleep(0.05)
 
-                # As long as the plot is 1D, we'll have to clear it before each 2nd Dimension change
-                # line1, line2, line3, line4 = None, None, None, None
-                # self.axis_1.clear()
-                # self.axis_2.clear()
-
-                # This will need to be somewhere, maybe not here:
-                # self.set_1d_plot_properties()
-                # print('Escaped Set 1D Plot Properties')
-
                 # These storage variables must be refreshed when they are to be reused for the 2nd dimensional scan
-                self.ch1_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
-                self.ch2_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
-                self.ave_data_df = pd.DataFrame(columns=self.column_headers)
+                if not self.is_recording_transient:
+                    self.ch1_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
+                    self.ch2_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
+                    self.ave_data_df = pd.DataFrame(columns=self.column_headers)
+                else:
+                    num_times = int((self.transient_duration * self.settings.lia.sampling_rate))
+                    period = 1 / self.settings.lia.sampling_rate
+                    self.ch1_scans_df = pd.DataFrame(
+                        # columns=[self.abscissa_name[0]] + (np.linspace(0, self.transient_duration, num_times)).tolist())
+                        columns=[self.abscissa_name[0]] + (np.arange(0, num_times)).tolist())
+                    self.ch2_scans_df = pd.DataFrame(
+                        # columns=[self.abscissa_name[0]] + (np.linspace(0, self.transient_duration, num_times)).tolist())
+                        columns=[self.abscissa_name[0]] + (np.arange(0, num_times)).tolist())
+                    self.ave_data_df = pd.DataFrame(columns=self.column_headers)
 
                 if self.num_dims == 2:
                     next_step_dim2 = self.step_pts[1][ll]
@@ -626,8 +599,11 @@ class MainWindow(QMainWindow):
                     #     return
                     # while self.pause_scan is True:
                     #     time.sleep(0.05)
-                    # self.axis_1.set_title('Scan %d' % (jj+1))
+                    if jj > 0:
+                        self.ready_for_new_scan(which_abscissa=0)
+
                     print('------------------------------------ SCAN %d -----------------------------------------' % jj)
+                    self.change_plot_title_signal.emit('Scan %d' % (jj + 1))
                     ii = 0
                     while ii < self.step_count[0]:  # INNERMOST LOOP
                         # This loops over all the points for abscissa_1
@@ -639,9 +615,21 @@ class MainWindow(QMainWindow):
                         next_step = self.step_pts[0][ii]
                         print('Next Step (dim1 ) is: ' + str(next_step) + '(' + str(ii+1) + ' of ' + str(self.step_count[0]) + ')')
 
-                        self.current_position[0] = float(self.set_abscissa(which_abscissa=0, next_step=next_step))
+                        cur_pos = self.set_abscissa(which_abscissa=0, next_step=next_step);
 
-                        self.ch1_scans_df.loc[ii, jj+1], self.ch2_scans_df.loc[ii, jj+1] = self.get_lockin_results()
+                        # At the moment, set_abscissa is typically the source of self.abort_scan=True
+                        if cur_pos is None and self.abort_scan is True:
+                            return
+
+                        self.current_position[0] = float(cur_pos)
+
+                        if not self.is_recording_transient:
+                            self.ch1_scans_df.loc[ii, jj+1], self.ch2_scans_df.loc[ii, jj+1] = self.get_lockin_results()
+                        elif self.is_recording_transient:   # Each output is a full time trace now
+                            ch1, ch2 = self.get_lockin_results()
+                            num_samples = len(ch1)
+                            self.ch1_scans_df.loc[ii, 0:num_samples-1] = ch1
+                            self.ch2_scans_df.loc[ii, 0:num_samples-1] = ch2
 
                         self.distribute_results(ii, jj, ll, mm)
                         # cur_ch1_array = self.ch1_scans_df.to_numpy(np.float32)
@@ -660,6 +648,7 @@ class MainWindow(QMainWindow):
             mm = mm+1
         # self.save_stuff(filename, filetype, 'end', sc_idx_1d=jj, sc_idx_2d=mm, manual=False) # Ave of 2Dscans(not yet)
         self.abort_scan = False
+        self.experiment_in_progress = False
         print('------------------------------------- EXPERIMENT COMPLETED --------------------------------------------')
 
     @helpers.measure_time
@@ -736,6 +725,8 @@ class MainWindow(QMainWindow):
                                                     'Details': ('Error Code: ' + str(self.cryostat.error.code))})
                     self.abort_scan = True
                 actual_pos = self.cryostat.settings.current_field
+                print('Waiting magnet_settling_time = ' + str(self.cryostat.settings.magnet_settling_time) + ' seconds')
+                time.sleep(self.cryostat.settings.magnet_settling_time)
 
         elif self.abscissae[wa] == 4:  # RF Carrier Frequency
             print('------------------------ SETTING RF FREQUENCY -------------------------')
@@ -789,6 +780,19 @@ class MainWindow(QMainWindow):
             print('there are this many possible abscissae?')
 
         return actual_pos
+
+    @helpers.measure_time
+    def ready_for_new_scan(self, which_abscissa=0):
+        print('Preparing for next scan')
+        wa = which_abscissa
+        if self.abscissae[wa] == 3:     # Magnet is what's being set
+            if self.settings.cryostat.is_zero_magnet_between_scans:
+                # self.cryostat.zero_magnet()
+                pass
+            time.sleep(self.settings.cryostat.magnet_prescan_settling_time)
+        else:
+            print('No instruments have pre-scan requirements except the magnet yet.')
+
 
     @helpers.measure_time
     def get_lockin_results(self):
@@ -858,24 +862,119 @@ class MainWindow(QMainWindow):
         print('Collecting Data....')
         if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
             print('From X/Y or R/Theta or Aux In 1')
-            if not self.is_averaging_pts:  # Single snapshot measurement at each point
+            if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
                 ch1, ch2 = self.lockin.collect_single_point()
-            elif self.is_averaging_pts:    # If averaging lockin results
-                ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
+            elif self.is_averaging_pts and not self.is_recording_transient:    # If averaging lockin results
+                ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
                                                               record_both_channels=True)
                 print('Averaging New Data...')
                 ch1 = np.average(ch1_data)
                 ch2 = np.average(ch2_data)
+            elif self.is_recording_transient:
+                ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
+                                                    record_both_channels=True)
         # elif self.settings.lia.outputs == 2:
         #     print('From Aux in 1')
         #     if self.is_averaging_pts:  # Single snapshot measurement at each point
         #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
         #     elif not self.is_averaging_pts:    # If averaging lockin results
-        #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
+        #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
         #                                                       record_both_channels=True)
         #         print('Averaging New Data...')
         #         ch1 = np.average(ch1_data)
         #         ch2 = np.average(ch2_data)
+
+        return ch1, ch2
+
+    # @helpers.measure_time
+    # def get_lockin_transient(self):
+    #     print('Checking for lock-in issues...')
+    #     # As in overloads, phase locking to reference, etc.
+    #     self.lockin.open_comms()  # Open also sets the correct GPIB address
+    #     self.lockin.comms.write('*CLS\n')
+    #     self.lockin.clear_buffers()
+    #
+    #     # if self.offset_each is True:
+    #     #
+    #     #     self.toptica.laser_disable()
+    #     #
+    #     #     lia_status = self.lockin.check_status()
+    #     #     kk = 0
+    #     #     while not lia_status == 0 and kk < 200:
+    #     #         lia_status = self.lockin.check_status()
+    #     #         if lia_status == -1:  # Comm failure
+    #     #             return
+    #     #         # print('lia error' + str(lia_error))
+    #     #         # print('loop iteration: ' + str(kk))
+    #     #         time.sleep(0.001)
+    #     #         kk = kk + 1
+    #     #
+    #     #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
+    #     #         self.pause_scan = True
+    #     #         # The following should be optimized
+    #     #         self.lockin_status_warning_signal.emit(str(lia_status))
+    #     #
+    #     #     print('Pausing for Lock-in settling...')
+    #     #     print('lockin_delay: ' + str(self.lockin_delay))
+    #     #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+    #     #
+    #     #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
+    #     #         print('Optimizing Lock-in Sensitivity...')
+    #     #         self.lockin.auto_sens()
+    #     #
+    #     #     self.lockin.comms.write('AOFF 1, 1\n')
+    #     #     self.toptica.laser_enable()
+    #     #     self.toptica.laser_start()
+    #
+    #     lia_status = self.lockin.check_status()
+    #     kk = 0
+    #     # It may take some time for the lockin internal oscillator  to lock to the reference freq
+    #     while not lia_status == 0 and kk < 200:
+    #         lia_status = self.lockin.check_status()
+    #         if lia_status == -1:  # Comm failure
+    #             return
+    #         # print('lia error' + str(lia_error))
+    #         # print('loop iteration: ' + str(kk))
+    #         time.sleep(0.001)
+    #         kk = kk + 1
+    #
+    #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
+    #         self.pause_scan = True
+    #         # The following should be optimized
+    #         self.lockin_status_warning_signal.emit(str(lia_status))
+    #
+    #     print('Pausing for Lock-in settling...')
+    #     print('lockin_delay: ' + str(self.lockin_delay))
+    #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+    #
+    #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
+    #         print('Optimizing Lock-in Sensitivity...')
+    #         self.lockin.auto_sens()
+    #
+    #     print('Collecting Data....')
+    #     if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
+    #         print('From X/Y or R/Theta or Aux In 1')
+    #         if not self.is_averaging_pts and not self.is_recording_transient :  # Single snapshot measurement at each point
+    #             ch1, ch2 = self.lockin.collect_single_point()
+    #         elif self.is_averaging_pts and not self.is_recording_transient:  # If averaging lockin results
+    #             ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
+    #                                                           record_both_channels=True)
+    #             print('Averaging New Data...')
+    #             ch1 = np.average(ch1_data)
+    #             ch2 = np.average(ch2_data)
+    #         elif self.is_recording_transient:
+    #             ch1, ch2 = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
+    #                                                 record_both_channels=True)
+    #     # elif self.settings.lia.outputs == 2:
+    #     #     print('From Aux in 1')
+    #     #     if self.is_averaging_pts:  # Single snapshot measurement at each point
+    #     #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
+    #     #     elif not self.is_averaging_pts:    # If averaging lockin results
+    #     #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
+    #     #                                                       record_both_channels=True)
+    #     #         print('Averaging New Data...')
+    #     #         ch1 = np.average(ch1_data)
+    #     #         ch2 = np.average(ch2_data)
 
         return ch1, ch2
 
@@ -906,6 +1005,20 @@ class MainWindow(QMainWindow):
         print('self.ave_data_df:')
         print(self.ave_data_df)
 
+    def clear_plots(self):
+        if self.plot1 is not None:
+            self.ui.PlotWidget.removeItem(self.plot1)
+            self.plot1 = None
+        if self.plot2 is not None:
+            self.ui.PlotWidget2.removeItem(self.plot2)
+            self.plot2 = None
+        if self.plot3 is not None:
+            self.ui.PlotWidget.removeItem(self.plot3)
+            self.plot3 = None
+        if self.plot4 is not None:
+            self.ui.PlotWidget2.removeItem(self.plot4)
+            self.plot4 = None
+
     @helpers.measure_time
     @QtCore.pyqtSlot(int, int)
     def plot_results(self, ii, jj):
@@ -919,13 +1032,26 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget.update()
             # self.ui.PlotWidget2.update()
         # self.set_1d_plot_properties()
+        if not self.is_recording_transient:
+            ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
+            ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
+            cur_x = ch1_scans[:, 0]
+            cur_ch1 = ch1_scans[:, jj+1]
+            cur_ch2 = ch2_scans[:, jj+1]
+            ave_data = self.ave_data_df.to_numpy(np.float32)
+        else:
+            ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
+            ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
 
-        ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
-        ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
-        cur_x = ch1_scans[:, 0]
-        cur_ch1 = ch1_scans[:, jj+1]
-        cur_ch2 = ch2_scans[:, jj+1]
-        ave_data = self.ave_data_df.to_numpy(np.float32)
+            print('ch1_scans[0]: ' + str(ch1_scans[ii, 0]))
+            print('ch1_scans[1]: ' + str(ch1_scans[ii, 1]))
+
+            cur_ch1 = ch1_scans[ii, 1:]
+            cur_ch2 = ch2_scans[ii, 1:]
+            cur_length = len(cur_ch1)
+            actual_dur = cur_length / self.settings.lia.sampling_rate
+            cur_x = np.linspace(0, actual_dur, cur_length)
+            ave_data = self.ave_data_df.to_numpy(np.float32)
 
         # I think this should go in set_1d_plot_properties, but I'm not sure right now
         # self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
@@ -966,7 +1092,7 @@ class MainWindow(QMainWindow):
             print('Second Scan Plotting')
             print('attempting to remove lines')
             self.ui.PlotWidget.removeItem(self.plot1)
-            self.ui.PlotWidget.removeItem(self.plot2)
+            self.ui.PlotWidget2.removeItem(self.plot2)
             # self.plot1.setData(cur_x, cur_ch1)
             # self.plot2.setData(cur_x, cur_ch2)
             color_plot1 = '#AFAFFF'
@@ -1169,6 +1295,15 @@ class MainWindow(QMainWindow):
         file_name = file_name.split('.txt')[0].split('.csv')[0]  # In case the user included the extension
         return file_name, file_type
 
+    # @QtCore.pyqtSlot()
+    # def start_time_trace(self):
+    #     print('Starting Time Trace...')
+    #     # I'll need to know how long the measurement should be
+    #     # And the sampling rate. Sampling rate is already set
+    #     window_length = self.ui.time_trace_window_length_spbx.value()
+    #     s_rat = self.settings.lia.sampling_rate_idx
+
+
     @QtCore.pyqtSlot(dict)
     def general_error_window(self, window_details):
         """
@@ -1234,6 +1369,8 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def open_settings_window(self):
         self.settings.show()
+        self.settings.setWindowState(self.settings.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
+        self.settings.activateWindow()
 
     @QtCore.pyqtSlot(str)
     def cg635_freq_changed_slot(self, new_freq):
@@ -1334,6 +1471,9 @@ class MainWindow(QMainWindow):
         # self.ui.PlotWidget2.setLabel('bottom', self.abscissa_name[0])
         # self.axis_1.set_xlabel(self.abscissa_name[0])
         print('label set')
+        if self.is_recording_transient:
+            self.ui.PlotWidget.setXRange(0, self.transient_duration, padding=0.05)
+            self.ui.PlotWidget2.setXRange(0, self.transient_duration, padding=0.05)
         # if self.output_name[1] == 'Theta (Degrees)':
         #     self.ui.PlotWidget2.setYRange(-180, 180, padding=0.05)
         #     self.axis_2.set_ylim(bottom=-180, top=180)
@@ -1407,6 +1547,21 @@ class MainWindow(QMainWindow):
         idx = dim_idx
         print('inside calc_from_num')
         self.step_count[idx] = self.num_steps_spbxs[idx].value()
+
+        if not self.experiment_in_progress:
+            self.clear_plots()
+            # if self.plot1 is not None:
+            #     self.ui.PlotWidget.removeItem(self.plot1)
+            #     self.plot1 = None
+            # if self.plot2 is not None:
+            #     self.ui.PlotWidget2.removeItem(self.plot2)
+            #     self.plot2 = None
+            # if self.plot3 is not None:
+            #     self.ui.PlotWidget.removeItem(self.plot3)
+            #     self.plot3 = None
+            # if self.plot4 is not None:
+            #     self.ui.PlotWidget2.removeItem(self.plot4)
+            #     self.plot4 = None
 
         if self.abscissae[idx] is None or self.abscissae[idx] == 0:
             self.scale_factor[idx] = 1
@@ -1503,9 +1658,9 @@ class MainWindow(QMainWindow):
     #     #TODO:
     #     # 1. This estimate is only valid for the CG635/Lockin experiments. Incorporate the others
     #     # 2. The condition is kind of stupid at the moment but prevents crashes at least
-    #     if self.lockin_delay is not None and self.settings.lia.sampling_rate is not None:
+    #     if self.lockin_delay is not None and self.settings.lia.sampling_rate_idx is not None:
     #         averaging_time = self.ui.averaging_time_spbx.value()
-    #         data_transfer_time = self.settings.lia.sampling_rate * averaging_time * 0.00132  # This estimate is good
+    #         data_transfer_time = self.settings.lia.sampling_rate_idx * averaging_time * 0.00132  # This estimate is good
     #         # 0.00132 is for transferring both channels using TRCL (1.32 ms per sample)
     #         freq_set_delay = 0.44  # Estimated using the CG635
     #         check_lia_delay = 0.44  # Very rough estimate. This one depends a lot on situation
@@ -1515,7 +1670,7 @@ class MainWindow(QMainWindow):
     #         print('--------------------- Expt Duration Estimate-----------------')
     #         print('lockin_delay: ' + str(self.lockin_delay))
     #         print('ave_time: ' + str(averaging_time))
-    #         print('Sampling rate: ' + str(self.settings.lia.sampling_rate))
+    #         print('Sampling rate: ' + str(self.settings.lia.sampling_rate_idx))
     #         print("num_scans: " + str(num_scans))
     #         print('self.step_count: ' + str(self.step_count))
     #         expt_duration_estimate = self.step_count[0] * self.num_scans[0] * (freq_set_delay + check_lia_delay +
@@ -1642,7 +1797,7 @@ class MainWindow(QMainWindow):
 
         elif self.abscissae[abscissa_idx] == 2:
             print('Probe wl selected')
-            self.get_abs_name()
+            self.get_abs_name(abscissa_idx)
             self.units[abscissa_idx] = 'nm'
 
             try:
@@ -1664,7 +1819,7 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget.canvas.axes_main.set_xlabel('Probe Wavelength (nm)')
         elif self.abscissae[abscissa_idx] == 3:
             print('Static Field Selected')
-            self.get_abs_name()
+            self.get_abs_name(abscissa_idx)
             self.units[abscissa_idx] = 'G'
 
             try:
@@ -1710,7 +1865,7 @@ class MainWindow(QMainWindow):
                 #
                 # self.x_axis_label = 'RF Frequency (' + self.units[abscissa_idx] + ')'
                 # self.abscissa_name[abscissa_idx] = self.x_axis_label
-                self.get_abs_name()
+                self.get_abs_name(abscissa_idx)
 
                 self.log_spacing_checkboxes[abscissa_idx].setChecked(False)
                 self.log_spacing[abscissa_idx] = False
@@ -1814,13 +1969,21 @@ class MainWindow(QMainWindow):
         else:
             print('experiment/case not set up yet')
 
-    def disable_dim2(self):
-        self.ui.variable_2_cbx.setCurrentIndex(0)
-        self.ui.variable_2_cbx.setEnabled(False)
+    def disable_dim2(self, is_disabling=True):
+        if is_disabling:
+            self.ui.variable_2_cbx.setCurrentIndex(0)
+            self.ui.variable_2_cbx.setEnabled(False)
 
-        self.ui.sweep_start_spbx_dim2.setEnabled(False)
-        self.ui.sweep_end_spbx_dim2.setEnabled(False)
-        self.ui.num_steps_spbx_dim2.setEnabled(False)
+            self.ui.sweep_start_spbx_dim2.setEnabled(False)
+            self.ui.sweep_end_spbx_dim2.setEnabled(False)
+            self.ui.num_steps_spbx_dim2.setEnabled(False)
+        else:
+            self.ui.variable_2_cbx.setCurrentIndex(0)
+            self.ui.variable_2_cbx.setEnabled(True)
+
+            self.ui.sweep_start_spbx_dim2.setEnabled(True)
+            self.ui.sweep_end_spbx_dim2.setEnabled(True)
+            self.ui.num_steps_spbx_dim2.setEnabled(True)
 
     @QtCore.pyqtSlot()
     def pause_btn_clicked(self):
@@ -1866,7 +2029,7 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot(str, str, float)  # This is called "overloading" a signal and slot. This is now TWO slots
     @QtCore.pyqtSlot(str, str, int)  # Which require different variable type inputs. str, int is default if unspec'd
     def update_instr_property(self, instr, prop_name, new_val):
-        print('Attempting to update ' + instr + ' ' + prop_name + ' to value: ' + str(new_val))
+        print('Attempting to update ' + instr + ' ' + prop_name + ' to value: ' + str(new_val) + '\n')
         if instr == 'lockin':
             setattr(self.lockin.settings, prop_name, new_val)
             setattr(self.settings.lia, prop_name, new_val)
@@ -2017,6 +2180,7 @@ class MainWindow(QMainWindow):
         # self.settings.ui.smb100a_com_port_cmb.currentTextChanged[str].connect(
         # lambda i: self.update_instr_property('smb100a', 'com_port', i))
         self.results_are_in_signal[int, int].connect(lambda i, j: self.plot_results(i, j))
+        self.change_plot_title_signal[str].connect(lambda i: self.ui.plot_title_label.setText(i))
 
         self.settings.ui.refresh_com_ports_btn.clicked.connect(self.settings.check_com_ports)
         self.settings.ui.md2000_com_port_cmb.currentTextChanged[str].connect(
@@ -2066,6 +2230,11 @@ class MainWindow(QMainWindow):
         self.ui.actionSave_Data.triggered.connect(lambda: self.save_stuff(manual=True))
 
         self.ui.scatter_pt_size_cbx.activated[int].connect(lambda i: self.set_marker_settings(i))
+        # self.ui.record_time_trace_btn.clicked.connect(self.start_time_trace)
+        self.ui.is_recording_transient_chkbx.toggled[bool].connect(lambda i: self.disable_dim2(i))
+        self.ui.is_recording_transient_chkbx.toggled[bool].connect(lambda i: self.ui.average_each_point_checkbox.setDisabled(i))
+        # self.ui.is_recording_transient_chkbx.toggled[bool].connect(
+        #     lambda i: setattr(self, 'is_averaging_pts', i))
 
         # ----------------------------------------- TOPTICA LASER ------------------------------------------------------
         self.settings.toptica_enable_signal.connect(self.toptica.laser_enable)
@@ -2133,6 +2302,13 @@ class MainWindow(QMainWindow):
         self.settings.ui.cryostat_send_cmd_btn.clicked.connect(self.cryostat_write_manual_cmd)
         self.ui.go_to_static_field_btn.clicked.connect(
             lambda i: self.cryostat.set_field(self.ui.static_field_spbx.value()))
+        self.settings.ui.cryostat_magnet_settling_time_sbpx.valueChanged[float].connect(
+            lambda i: self.update_instr_property('cryostat', 'magnet_settling_time', i))
+        self.settings.ui.cryostat_zero_magnet_now_btn.clicked.connect(self.cryostat.zero_magnet)
+        self.settings.ui.cryostat_delay_between_scans_spbx.valueChanged[float].connect(
+            lambda i: self.update_instr_property('cryostat', 'magnet_prescan_settling_time', i))
+        self.settings.ui.cryostat_zero_between_scans_chkbx.toggled[bool].connect(
+            lambda i: self.update_instr_property('cryostat', 'is_zero_magnet_between_scans', i))
 
         # ----------------------------------- SMB100A (Microwave Source) -----------------------------------------------
         self.settings.ui.smb100a_run_btn.clicked.connect(self.smb100a.run)

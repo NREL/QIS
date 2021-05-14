@@ -29,6 +29,7 @@ class LockinSettings:
         self.close_reserve = None
         self.dynamic_reserve = None
         self.sampling_rate = None
+        self.sampling_rate_idx = None
         self.input_impedance = None
         self.reference_impedance = None
         self.reference_source = None
@@ -67,6 +68,8 @@ class LockinSettings:
 
         self.sr830_tc_options = [10E-6, 30E-6, 100E-6, 300E-6, 1E-3, 3E-3, 10E-3, 30E-3, 100E-3, 300E-3,
                                 1, 3, 10, 30, 100, 300, 1000, 3000, 10E3, 30E3]
+
+        # self.sampling_rate_list = [62.5E-3, 125E-3, 250E-3, 500E-3, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
 
 class PrologixAdaptedSRLockin(QtCore.QObject):
@@ -469,7 +472,9 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
         print('updating something')
         self.write_string('SRAT %d\n' % idx, read=False)
         if not self.error.status:
-            self.property_updated_signal.emit('sampling_rate', idx)
+            self.property_updated_signal.emit('sampling_rate_idx', idx)
+            srat = 2**(idx-4)
+            self.property_updated_signal.emit('sampling_rate', srat)
 
     @QtCore.pyqtSlot(int)
     def update_sensitivity(self, idx):
@@ -498,7 +503,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
         self.update_phase(self.settings.phase)
         self.update_outputs(self.settings.outputs)
         self.update_ref_source(self.settings.reference_source)
-        self.update_sampling_rate(self.settings.sampling_rate)
+        self.update_sampling_rate(self.settings.sampling_rate_idx)
         self.update_sensitivity(self.settings.sensitivity)
         self.update_time_constant(self.settings.time_constant)
 

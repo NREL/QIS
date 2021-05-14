@@ -13,9 +13,37 @@
   <property name="windowTitle">
    <string>PA-DMR Experiment Control</string>
   </property>
+  <property name="whatsThis">
+   <string extracomment="Record lock-in signal as function of time, rather than as single point. This is useful for debugging and helping to choose a lock-in time constant and settling time. May be buggy."/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0" rowspan="17">
+    <item row="2" column="3">
+     <widget class="QComboBox" name="scatter_pt_size_cbx">
+      <property name="maximumSize">
+       <size>
+        <width>140</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <item>
+       <property name="text">
+        <string>Small</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Large</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Line</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="3" column="0" rowspan="17">
      <widget class="QScrollArea" name="scroll_area_control_panel">
       <property name="maximumSize">
        <size>
@@ -32,7 +60,7 @@
          <x>0</x>
          <y>0</y>
          <width>477</width>
-         <height>1489</height>
+         <height>1657</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -122,6 +150,39 @@
            </property>
           </item>
          </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Notes:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPlainTextEdit" name="notes_plain_text_edit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>500</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="placeholderText">
+             <string>Contents will be written to file in saved data folder</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -217,7 +278,7 @@
            </font>
           </property>
           <property name="text">
-           <string>1° Scan Variable:</string>
+           <string>Scan Variable 1:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -409,17 +470,20 @@
         <item>
          <layout class="QGridLayout" name="gridLayout_5">
           <property name="topMargin">
-           <number>10</number>
+           <number>0</number>
           </property>
           <item row="0" column="1">
            <widget class="QLabel" name="label_25">
             <property name="text">
-             <string># of Scans (1°)</string>
+             <string># of Scans (Var 1)</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="CustomSpinBox" name="num_scans_spbx">
+            <property name="toolTip">
+             <string>This can be modified during an experiment</string>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
@@ -428,19 +492,6 @@
             </property>
             <property name="value">
              <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="CustomDoubleSpinBox" name="averaging_time_spbx">
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.500000000000000</double>
             </property>
            </widget>
           </item>
@@ -457,20 +508,7 @@
           <item row="0" column="2">
            <widget class="QLabel" name="label_27">
             <property name="text">
-             <string># of 2D Scans (2°)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="average_each_point_checkbox">
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>Each Point (seconds)</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
+             <string># of 2D Scans (Var 2)</string>
             </property>
            </widget>
           </item>
@@ -546,7 +584,7 @@
            </font>
           </property>
           <property name="text">
-           <string>2° Scan Variable (2D):</string>
+           <string>Scan Variable 2 (2D Expt):</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -749,21 +787,145 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Notes:</string>
+         <widget class="QFrame" name="frame_7">
+          <property name="frameShape">
+           <enum>QFrame::HLine</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="lineWidth">
+           <number>3</number>
+          </property>
+          <property name="midLineWidth">
+           <number>5</number>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPlainTextEdit" name="notes_plain_text_edit">
-          <property name="maximumSize">
+         <spacer name="verticalSpacer_17">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::MinimumExpanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
            <size>
-            <width>500</width>
-            <height>16777215</height>
+            <width>20</width>
+            <height>20</height>
            </size>
           </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_28">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Advanced</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="is_recording_transient_chkbx">
+            <property name="toolTip">
+             <string>Record signal as function of time, rather than as single points. Each step generates a full transient, which is ~Window Length in duration. Sampling rate is obtained from settings window.</string>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Record Signal as f(t)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>Window Length (s)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="time_trace_window_length_spbx">
+              <property name="toolTip">
+               <string>Each f(t) measurement will record a transient of this duration, at the sampling rate specified in the Settings Window.</string>
+              </property>
+              <property name="whatsThis">
+               <string/>
+              </property>
+              <property name="value">
+               <double>3.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="average_each_point_checkbox">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generally, leave this unchecked.&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Details:&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;If checked, lock-in measurements are recorded&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;at the sampling rate from the settings window,&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;for the duration indicated below, and then &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;averaged together to generate a single point.&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;If UNchecked, lock-in measurements are single&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;snapshots (faster).&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string>Average Each Point</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Averaging Duration (s)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="CustomDoubleSpinBox" name="averaging_time_spbx">
+              <property name="maximum">
+               <double>1000.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.500000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer_3">
@@ -1227,74 +1389,30 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_11">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
+    <item row="3" column="2" rowspan="18" colspan="2">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="topMargin">
+       <number>0</number>
       </property>
-      <property name="text">
-       <string>Experiment Setup</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="QComboBox" name="scatter_pt_size_cbx">
-      <property name="maximumSize">
-       <size>
-        <width>140</width>
-        <height>16777215</height>
-       </size>
+      <property name="bottomMargin">
+       <number>0</number>
       </property>
       <item>
-       <property name="text">
-        <string>Small</string>
-       </property>
+       <widget class="PlotWidget" name="PlotWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>200</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item>
-       <property name="text">
-        <string>Large</string>
-       </property>
+       <widget class="PlotWidget" name="PlotWidget2" native="true"/>
       </item>
-      <item>
-       <property name="text">
-        <string>Line</string>
-       </property>
-      </item>
-     </widget>
+     </layout>
     </item>
-    <item row="0" column="2">
-     <widget class="QLabel" name="label">
-      <property name="minimumSize">
-       <size>
-        <width>500</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>50</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>20</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Plot</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="18" column="0">
+    <item row="20" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
       <property name="sizeConstraint">
        <enum>QLayout::SetMinAndMaxSize</enum>
@@ -1341,28 +1459,47 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="2" rowspan="18" colspan="2">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="topMargin">
-       <number>0</number>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_11">
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
       </property>
-      <property name="bottomMargin">
-       <number>0</number>
+      <property name="text">
+       <string>Experiment Setup</string>
       </property>
-      <item>
-       <widget class="PlotWidget" name="PlotWidget" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>200</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="PlotWidget" name="PlotWidget2" native="true"/>
-      </item>
-     </layout>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLabel" name="plot_title_label">
+      <property name="minimumSize">
+       <size>
+        <width>500</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>50</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Plot</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
