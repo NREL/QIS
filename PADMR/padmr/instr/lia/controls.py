@@ -522,7 +522,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
                                       details='Lock-in model is invalid\n')
             self.send_error_signal.emit(self.error)
 
-    def collect_single_point(self):
+    def collect_snapshot(self):
         if self.error.status:
             return None, None
 

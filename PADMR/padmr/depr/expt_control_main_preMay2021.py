@@ -832,7 +832,7 @@ class MainWindow(QMainWindow):
         if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
             print('From X/Y or R/Theta or Aux In 1')
             if not self.is_averaging_pts:  # Single snapshot measurement at each point
-                ch1, ch2 = self.lockin.collect_single_point()
+                ch1, ch2 = self.lockin.collect_snapshot()
             elif self.is_averaging_pts:    # If averaging lockin results
                 ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate,
                                                               record_both_channels=True)

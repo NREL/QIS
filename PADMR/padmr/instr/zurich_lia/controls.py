@@ -45,8 +45,8 @@ class ZiLockinSettings:
         self.settling_delay_factor = None
         self.sensitivity = None
         self.filter_slope = None
-        self.time_constant = None
-        self.time_constant_value = None
+        # self.time_constant = None
+        # self.time_constant_value = None
         self.sampling_rate = None
         self.input_impedance = None
         self.reference_impedance = None
@@ -93,7 +93,7 @@ class ZiLIA(QtCore.QObject):
 
         self.rm = pyvisa.ResourceManager()
 
-    def start_comms(self, device_id):
+    def start_comms(self, device_id='dev2025'):
         api_level = 6   # This is required for the UHF instrument
         err_msg = "Only supports instruments with demodulators"
 
@@ -131,25 +131,31 @@ class ZiLIA(QtCore.QObject):
             ]
             self.daq.set(exp_setting)
 
-            time.sleep(self.settings.settling_factor * self.settings.time_constant)
+            # time.sleep(self.settings.settling_factor * self.settings.time_constant_value)
 
             self.daq.sync()
             self.error = ErrorCluster(status=False, code=0, details='')
             did_comms_fail = False
+            self.connected = True
 
         except RuntimeError as err:
             self.error = ErrorCluster(status=True, code=9000,
                                       details='Could not connect to UHF LI\n' + str(err))
             self.send_error_signal.emit(self.error)
             did_comms_fail = True
+            self.connected = False
         except Exception as err:
             self.error = ErrorCluster(status=True, code=9001,
                                       details='Could not connect to UHF LI\n' + str(err))
             self.send_error_signal.emit(self.error)
             did_comms_fail = True
+            self.connected = False
         return did_comms_fail
 
-    def measure_sample(self):
+    def get_current_settings(self):
+        pass
+
+    def collect_sample(self):
         # Obtain one demodulator sample via ziself.daqServer's low-level getSample()
         # method - for extended data acquisition it's preferable to use
         # ziDAQServer's poll() method or the ziDAQRecorder class.
@@ -157,9 +163,9 @@ class ZiLIA(QtCore.QObject):
         # Calculate the demodulator's magnitude and phase and add them to the sample
         # dict.
         sample["R"] = np.abs(sample["x"] + 1j * sample["y"])
-        sample["phi"] = np.angle(sample["x"] + 1j * sample["y"])
+        sample["theta"] = np.angle(sample["x"] + 1j * sample["y"], deg=True)
         print(f"Measured RMS amplitude is {sample['R'][0]:.3e} V.\n"
-              f"Phase is {sample['phi'][0]:.3e} Degrees")
+              f"Phase is {sample['theta'][0]:.3e} Degrees")
         return sample
 
     def record_data(self, duration):
@@ -202,6 +208,9 @@ class ZiLIA(QtCore.QObject):
     def change_setting(self):
         pass
 
+    def auto_sens(self):
+        pass
+
     def check_for_errors(self):
         pass
 
@@ -219,7 +228,7 @@ class ZiLIA(QtCore.QObject):
         sig_in = self.settings.in_channel
         exp_setting = [
             ["/%s/sigins/%d/ac" % (self.device, sig_in), 0],  # not AC coupling (no highpass filter)
-            ["/%s/sigins/%d/range" % (self.device, sig_in), self.settings.sensitivity],  # Init to max so no overloads
+            ["/%s/sigins/%d/range" % (self.device, sig_in), 1.5],  # Init to max so no overloads
             ["/%s/demods/%d/enable" % (self.device, demod), 1],  # Enable the demodulator
             ["/%s/demods/%d/rate" % (self.device, demod), self.settings.demod_rate],  # Data transfer rate
             ["/%s/demods/%d/adcselect" % (self.device, demod), sig_in],  # Demod input signal

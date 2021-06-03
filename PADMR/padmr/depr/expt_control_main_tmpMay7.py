@@ -118,7 +118,8 @@ import matplotlib.pyplot as plt
 from pyvisa.constants import VI_READ_BUF_DISCARD, VI_WRITE_BUF_DISCARD, StopBits
 from decorator import decorator
 import PyQt5
-from pyqtgraph import PlotWidget, plot, mkPen
+import pyqtgraph as pg
+from pyqtgraph import PlotWidget, plot
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -166,10 +167,12 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
+        pg.setConfigOption('background', 'w')
+        pg.setConfigOption('foreground', 'k')
+
         # Load the ui.py file and prepare the UI
         self.ui = ExptControlMainWindow()
         self.ui.setupUi(self)
-
 
         # ------------------------------- initialize attribute values - ------------------------------------------------
         # These are attributes of the MainWindow class, not of the ui instance
@@ -193,31 +196,21 @@ class MainWindow(QMainWindow):
 
         self.lockin_delay = 0
 
+        # ---- Plot Stuff---
         self.x_axis_label = None
         self.abscissa_name = ['Indep Var 1', 'Indep Var 2']
         self.output_name = ['Channel 1', 'Channel 2']
-        # self.axis_1 = self.ui.PlotWidget.canvas.axes_main
-        # self.axis_2 = self.ui.PlotWidget.canvas.axes_main.twinx()
-        # pg.setConfigOption('background', 'w')
-        # pg.setConfigOption('foreground', 'k')
-        # self.figure = pg.plot()
-        # self.figure.setBackground('w')
+
+        self.plot1 = None
+        self.plot2 = None
+        self.plot3 = None
+        self.plot4 = None
         self.ui.PlotWidget.setBackground('w')
         self.ui.PlotWidget2.setBackground('w')
+
         self.line_width = 1
-        test_x = np.arange(1, 20, 1)
-        test_y = np.arange(10, 200, 10)
-        # self.ui.PlotWidget.plot(test_x, test_y)
-        color_plot1 = '#0000FF'
-        # self.ui.PlotWidget2.plot(test_x, test_y, pen=None, symbol='o',
-        #                          symbolPen=color_plot1, symbolSize=5)
-        # self.ui.PlotWidget2.plot(test_x, test_y, pen=mkPen(color_plot1, width=1), symbol='o',
-        #                          symbolPen=color_plot1, symbolSize=self.marker_size)
-        # The following code demonstrates some pyqtgraph commands
-        # self.ui.PlotWidget.setLogMode(x=True, y=False)
-        # test_line = self.ui.PlotWidget.plotItem
-        self.marker_size = 5
-        self.line_style = None
+        self.marker_size = (self.line_width / 1.2)
+        self.line_style = QtCore.Qt.SolidLine
 
         # self.scan_range = None
         self.output_variables = 'R/Theta'
@@ -284,7 +277,7 @@ class MainWindow(QMainWindow):
         self.ui.num_scans_dim2_spbx.setValue(1)
         self.ui.num_steps_spbx_dim2.setValue(1)
         self.ui.averaging_time_spbx.setDisabled(True)
-        self.ui.scatter_pt_size_cbx.setCurrentIndex(1)
+        self.ui.scatter_pt_size_cbx.setCurrentIndex(2)
 
         self.sweep_start_spbxs[0].setEnabled(False)
         self.sweep_start_spbxs[1].setEnabled(False)
@@ -493,6 +486,11 @@ class MainWindow(QMainWindow):
             self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             print('lockin_delay: ' + str(self.lockin_delay))
 
+            if self.ui.is_recording_transient_chkbx.isChecked():
+                self.record_transient = True
+            else:
+                self.record_transient = False
+
             # self.prepare_for_collection()
 
             if self.abscissae[1] is None or self.abscissae[1] == 0:
@@ -530,6 +528,14 @@ class MainWindow(QMainWindow):
                                             notes=notes, instr_settings=None)
 
             self.set_1d_plot_properties()
+            if self.plot1 is not None:
+                self.ui.PlotWidget.removeItem(self.plot1)
+            if self.plot2 is not None:
+                self.ui.PlotWidget2.removeItem(self.plot2)
+            if self.plot3 is not None:
+                self.ui.PlotWidget.removeItem(self.plot3)
+            if self.plot4 is not None:
+                self.ui.PlotWidget2.removeItem(self.plot4)
 
             data_collection_worker = helpers.Worker(self.collect_data, filename, filetype)
             self.thread_pool.start(data_collection_worker)
@@ -905,7 +911,7 @@ class MainWindow(QMainWindow):
         print('self.ave_data_df:')
         print(self.ave_data_df)
 
-    # @helpers.measure_time
+    @helpers.measure_time
     @QtCore.pyqtSlot(int, int)
     def plot_results(self, ii, jj):
         print('inside plot results 2')
@@ -919,138 +925,100 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget2.update()
         # self.set_1d_plot_properties()
 
-
-        cur_ch1 = self.ch1_scans_df.to_numpy(np.float32)
-        cur_ch2 = self.ch2_scans_df.to_numpy(np.float32)
+        ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
+        ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
+        cur_x = ch1_scans[:, 0]
+        cur_ch1 = ch1_scans[:, jj+1]
+        cur_ch2 = ch2_scans[:, jj+1]
         ave_data = self.ave_data_df.to_numpy(np.float32)
 
         # I think this should go in set_1d_plot_properties, but I'm not sure right now
         # self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
         # self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0], left=self.output_name[1])
 
-        if jj == 0:
+        if jj == 0 and ii == 0:
             color_plot1 = '#0000FF'  # Blue
+            self.ui.PlotWidget.addLegend()
+            self.ui.PlotWidget2.addLegend()
 
             if self.line_style is None:
                 print('If No Line')
 
-                self.ui.PlotWidget.plot(cur_ch1[:, 0], cur_ch1[:, 1],
-                                                pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size)
+                self.plot1 = self.ui.PlotWidget.plot(cur_x, cur_ch1,
+                                                pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
+                # self.ui.PlotWidget.addLegend()
 
-                self.ui.PlotWidget2.plot(cur_ch1[:, 0], cur_ch1[:, 1],
-                                                 pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size)
+                self.plot2 = self.ui.PlotWidget2.plot(cur_x, cur_ch1,
+                                                 pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
+                # self.ui.PlotWidget2.addLegend()
             else:
                 print('If Line Plot (else case)')
+                # self.ui.PlotWidget.addLegend()
+                self.plot1 = self.ui.PlotWidget.plot(cur_x, cur_ch1,
+                                        pen=pg.mkPen(color_plot1, width=self.line_width), symbol='o',
+                                        symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
 
-                self.ui.PlotWidget.plot(cur_ch1[:, 0], cur_ch1[:, 1],
-                                        pen=mkPen(color_plot1, width=self.line_width), symbol='o',
-                                        symbolPen=color_plot1, symbolSize=self.marker_size)
+                # self.ui.PlotWidget2.addLegend()
+                self.plot2 = self.ui.PlotWidget2.plot(cur_x, cur_ch2,
+                                         pen=pg.mkPen(color_plot1, width=self.line_width), symbol='o',
+                                         symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
 
-                self.ui.PlotWidget2.plot(cur_ch2[:, 0], cur_ch2[:, 1],
-                                         pen=mkPen(color_plot1, width=self.line_width), symbol='o',
-                                         symbolPen=color_plot1, symbolSize=self.marker_size)
+        elif jj == 0 and ii > 0:
+            self.plot1.setData(cur_x, cur_ch1)
+            self.plot2.setData(cur_x, cur_ch2)
 
-        elif jj > 0:
+        elif jj > 0 and ii == 0:
             print('Second Scan Plotting')
-            color_plot1 = '#BFBFFF'
+            print('attempting to remove lines')
+            self.ui.PlotWidget.removeItem(self.plot1)
+            self.ui.PlotWidget.removeItem(self.plot2)
+            # self.plot1.setData(cur_x, cur_ch1)
+            # self.plot2.setData(cur_x, cur_ch2)
+            color_plot1 = '#AFAFFF'
 
             if self.line_style is None:
                 print('No Line style - second Scan')
-                self.ui.PlotWidget.plot(cur_ch1[:, 0], cur_ch1[:, 1],
-                                        pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size)
+                self.plot1 = self.ui.PlotWidget.plot(cur_x, cur_ch1,
+                                        pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
 
-                self.ui.PlotWidget2.plot(cur_ch2[:, 0], cur_ch2[:, 1],
-                                         pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size)
+                self.plot2 = self.ui.PlotWidget2.plot(cur_x, cur_ch2,
+                                         pen=None, symbol='o', symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
+
             else:
                 print('Lines - second Scan')
-                self.ui.PlotWidget.plot(cur_ch1[:, 0], cur_ch1[:, 1],
-                                        pen=mkPen(color_plot1, width=1), symbol='o',
-                                        symbolPen=color_plot1, symbolSize=self.marker_size)
+                self.plot1 = self.ui.PlotWidget.plot(cur_x, cur_ch1,
+                                        pen=pg.mkPen(color_plot1, width=1), symbol='o',
+                                        symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
+                self.plot2 = self.ui.PlotWidget2.plot(cur_x, cur_ch2,
+                                         pen=pg.mkPen(color_plot1, width=1), symbol='o',
+                                         symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
 
-                self.ui.PlotWidget2.plot(cur_ch2[:, 0], cur_ch2[:, 1],
-                                         pen=mkPen(color_plot1, width=1), symbol='o',
-                                         symbolPen=color_plot1, symbolSize=self.marker_size)
-            # AVERAGES
             if self.line_style is None:
                 print('No lines - Average')
-                self.ui.PlotWidget.plot(ave_data[:, 0], ave_data[:, 1],
-                                        pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size)
-
-                self.ui.PlotWidget2.plot(ave_data[:, 0], ave_data[:, 2],
-                                         pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size)
+                self.plot3 = self.ui.PlotWidget.plot(ave_data[:, 0], ave_data[:, 1],
+                                        pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # self.ui.PlotWidget.addLegend()
+                self.plot4 = self.ui.PlotWidget2.plot(ave_data[:, 0], ave_data[:, 2],
+                                         pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # self.ui.PlotWidget2.addLegend()
             else:
                 print('Lines - Average')
-                self.ui.PlotWidget.plot(ave_data[:, 0], ave_data[:, 1],
-                                        pen=mkPen('#FF0000', width=1), symbol='o',
-                                        symbolPen='#FF0000', symbolSize=self.marker_size)
+                self.plot3 = self.ui.PlotWidget.plot(ave_data[:, 0], ave_data[:, 1],
+                                        pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                                        symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # self.ui.PlotWidget.addLegend()
+                self.plot4 = self.ui.PlotWidget2.plot(ave_data[:, 0], ave_data[:, 2],
+                                         pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                                         symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # self.ui.PlotWidget2.addLegend()
+        elif jj > 0 and ii > 0:
+            print('Second Scan Plotting')
+            self.plot1.setData(cur_x, cur_ch1)
+            self.plot2.setData(cur_x, cur_ch2)
 
-                self.ui.PlotWidget2.plot(ave_data[:, 0], ave_data[:, 2],
-                                         pen=mkPen('#FF0000', width=1), symbol='o',
-                                         symbolPen='#FF0000', symbolSize=self.marker_size)
+            self.plot3.setData(ave_data[:, 0], ave_data[:, 1])
+            self.plot4.setData(ave_data[:, 0], ave_data[:, 2])
         return
-
-    # @helpers.measure_time
-    # def plot_results(self, ii, jj, line1, line2, line3, line4):
-    #     # x_val_current = self.ch1_scans_df.iloc[0:ii+1, 0].to_numpy()
-    #     print('inside plot results')
-    #     color1 = '#0000FF'  # Blue
-    #     color2 = '#FF0000'  # Red
-    #     self.axis_1.set_xlabel(self.abscissa_name[0])
-    #     self.axis_1.set_ylabel(self.output_name[0], c=color1)
-    #
-    #     self.axis_1.tick_params(axis='y', labelcolor=color1)
-    #
-    #     self.axis_2.set_ylabel(self.output_name[1], c=color2)
-    #
-    #     self.axis_2.tick_params(axis='y', labelcolor=color2)
-    #
-    #     if jj == 0:
-    #         if ii > 0:
-    #             line1.remove()
-    #             line2.remove()
-    #
-    #         color_plot1 = '#0000FF'  # Blue
-    #         color_plot2 = '#FF0000'  # Red
-    #         # ch_1_array_current (and 2) were both 1d arrays of values. Same for ch_1_array_average
-    #         line1, = self.axis_1.plot(self.ch1_scans_df.iloc[:, 0], self.ch1_scans_df.iloc[:, jj+1], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c=color_plot1, label='Current Scan')
-    #         # line1, = self.axis_1.plot(self.actual_x_values_current, ch_1_array_current, ls='None', marker='o',
-    #         #                           markersize=5, c=color_plot1, label='Current Scan')
-    #         line2, = self.axis_2.plot(self.ch2_scans_df.iloc[:, 0], self.ch2_scans_df.iloc[:, jj+1], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c=color_plot2, label='Current Scan')
-    #         # line2, = self.axis_2.plot(self.actual_x_values_current, ch_2_array_current, ls='None', marker='o',
-    #         #                           markersize=5, c=color_plot2, label='Current Scan')
-    #         self.axis_1.legend(loc=2)
-    #         self.axis_2.legend(loc=1)
-    #     elif jj > 0:
-    #         line1.remove()
-    #         line2.remove()
-    #
-    #         if ii > 0 or jj > 1:
-    #             line3.remove()
-    #             line4.remove()
-    #
-    #         color_plot1 = '#BFBFFF'
-    #         color_plot2 = '#FFBFBF'
-    #
-    #         line1, = self.axis_1.plot(self.ch1_scans_df.iloc[:, 0], self.ch1_scans_df.iloc[:, jj+1], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c=color_plot1, label='Current Scan')
-    #         line2, = self.axis_2.plot(self.ch2_scans_df.iloc[:, 0], self.ch2_scans_df.iloc[:, jj+1], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c=color_plot2, label='Current Scan')
-    #
-    #         # Averages
-    #         line3, = self.axis_1.plot(self.ave_data_df.iloc[:, 0], self.ave_data_df.iloc[:, 1], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c='#0000FF', label='Average')
-    #         line4, = self.axis_2.plot(self.ave_data_df.iloc[:, 0], self.ave_data_df.iloc[:, 2], ls=self.line_style, marker='o',
-    #                                   markersize=self.marker_size, c='#FF0000', label='Average')
-    #
-    #         self.axis_1.legend(loc=2)
-    #         self.axis_2.legend(loc=1)
-    #     t0 = time.time()
-    #     self.ui.PlotWidget.canvas.draw()
-    #     delta_t = time.time() - t0
-    #     print('Draw took ' + str(delta_t) + ' seconds')
-    #     return line1, line2, line3, line4
 
     @helpers.measure_time
     def save_stuff(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
@@ -1206,6 +1174,15 @@ class MainWindow(QMainWindow):
         file_name = file_name.split('.txt')[0].split('.csv')[0]  # In case the user included the extension
         return file_name, file_type
 
+    @QtCore.pyqtSlot()
+    def start_time_trace(self):
+        print('Starting Time Trace...')
+        # I'll need to know how long the measurement should be
+        # And the sampling rate. Sampling rate is already set
+        window_length = self.ui.time_trace_window_length_spbx.value()
+        s_rat = self.settings.lia.sampling_rate
+
+
     @QtCore.pyqtSlot(dict)
     def general_error_window(self, window_details):
         """
@@ -1320,8 +1297,8 @@ class MainWindow(QMainWindow):
     def set_1d_plot_properties(self):
         print('inside set_1d_plot_properties2')
         print('self.is_x_log_scaled = ' + str(self.is_x_log_scaled[0]))
-        self.ui.PlotWidget.setLogMode(self.is_x_log_scaled[0])
-        self.ui.PlotWidget2.setLogMode(self.is_x_log_scaled[1])
+        # self.ui.PlotWidget.setLogMode(x=self.is_x_log_scaled[0])
+        # self.ui.PlotWidget2.setLogMode(x=self.is_x_log_scaled[0])
 
         self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
         self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0], left=self.output_name[1])
@@ -1362,7 +1339,7 @@ class MainWindow(QMainWindow):
                     self.ui.PlotWidget.setXRange((self.end[0] - 0.1 * self.end[0]),
                                                  (self.start[0] + 0.1 * self.start[0]), padding=0.05)
                     self.ui.PlotWidget2.setXRange((self.end[0] - 0.1 * self.end[0]),
-                                                 (self.start[0] + 0.1 * self.start[0]), padding=0.05)
+                                                  (self.start[0] + 0.1 * self.start[0]), padding=0.05)
                     # self.axis_1.set_xlim(left=(self.end[0] - 0.1 * self.end[0]),
                     #                      right=(self.start[0] + 0.1 * self.start[0]))
         print('limits set')
@@ -1383,6 +1360,8 @@ class MainWindow(QMainWindow):
         # self.ui.PlotWidget.enableAutoRange(axis='y')
         # self.ui.PlotWidget.setAutoVisible(y=True)
         # self.ui.PlotWidget.autoRange(padding=0.05)
+        # self.ui.PlotWidget.setLogMode(x=self.is_x_log_scaled[0])
+        # self.ui.PlotWidget2.setLogMode(x=self.is_x_log_scaled[0])
 
         t0 = time.time()
         QApplication.processEvents()
@@ -1641,7 +1620,7 @@ class MainWindow(QMainWindow):
         print('abscissa %d selected for change' % abscissa_idx)
         self.abscissae[abscissa_idx] = var_idx
 
-        if not self.abscissa[abscissa_idx] == 0:
+        if not self.abscissae[abscissa_idx] == 0:
             self.sweep_start_spbxs[0].setEnabled(True)
             self.sweep_start_spbxs[1].setEnabled(True)
             self.sweep_end_spbxs[0].setEnabled(True)
@@ -1655,7 +1634,7 @@ class MainWindow(QMainWindow):
             self.sweep_end_spbxs[1].setEnabled(False)
         elif self.abscissae[abscissa_idx] == 1:
             print('Pump Mod Selected')
-            self.get_abs_name()
+            self.get_abs_name(abscissa_idx)
             self.units[abscissa_idx] = 'Hz'
 
             try:
@@ -1849,13 +1828,21 @@ class MainWindow(QMainWindow):
         else:
             print('experiment/case not set up yet')
 
-    def disable_dim2(self):
-        self.ui.variable_2_cbx.setCurrentIndex(0)
-        self.ui.variable_2_cbx.setEnabled(False)
+    def disable_dim2(self, is_disabling=True):
+        if is_disabling:
+            self.ui.variable_2_cbx.setCurrentIndex(0)
+            self.ui.variable_2_cbx.setEnabled(False)
 
-        self.ui.sweep_start_spbx_dim2.setEnabled(False)
-        self.ui.sweep_end_spbx_dim2.setEnabled(False)
-        self.ui.num_steps_spbx_dim2.setEnabled(False)
+            self.ui.sweep_start_spbx_dim2.setEnabled(False)
+            self.ui.sweep_end_spbx_dim2.setEnabled(False)
+            self.ui.num_steps_spbx_dim2.setEnabled(False)
+        else:
+            self.ui.variable_2_cbx.setCurrentIndex(0)
+            self.ui.variable_2_cbx.setEnabled(True)
+
+            self.ui.sweep_start_spbx_dim2.setEnabled(True)
+            self.ui.sweep_end_spbx_dim2.setEnabled(True)
+            self.ui.num_steps_spbx_dim2.setEnabled(True)
 
     @QtCore.pyqtSlot()
     def pause_btn_clicked(self):
@@ -2100,7 +2087,9 @@ class MainWindow(QMainWindow):
         self.ui.start_btn.clicked.connect(self.start_experiment)
         self.ui.actionSave_Data.triggered.connect(lambda: self.save_stuff(manual=True))
 
-        self.ui.scatter_pt_size_cbx.activated[int].connect(lambda i : self.set_marker_settings(i))
+        self.ui.scatter_pt_size_cbx.activated[int].connect(lambda i: self.set_marker_settings(i))
+        self.ui.record_time_trace_btn.clicked.connect(self.start_time_trace)
+        self.ui.is_recording_transient_chkbx.toggled[bool].connect(lambda i: self.disable_dim2(i))
 
         # ----------------------------------------- TOPTICA LASER ------------------------------------------------------
         self.settings.toptica_enable_signal.connect(self.toptica.laser_enable)

@@ -474,6 +474,7 @@ class SettingsWindowForm(QWidget):
         self.ui.status_ind_uhfli.setText(self.label_strings.off_led_str)
 
         self.ui.smb100a_modulate_checkbox.setChecked(False)
+        self.ui.debug_mode_checkbox.setChecked(False)
 
         self.check_com_ports()
 

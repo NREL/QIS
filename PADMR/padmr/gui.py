@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIjYqquf.ui'
+# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIYzuPpB.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -540,6 +540,23 @@ class Ui_MainWindow(object):
         self.PlotWidget.setMinimumSize(QtCore.QSize(300, 200))
         self.PlotWidget.setObjectName("PlotWidget")
         self.verticalLayout_2.addWidget(self.PlotWidget)
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+        self.label_29 = QtWidgets.QLabel(self.centralwidget)
+        self.label_29.setObjectName("label_29")
+        self.horizontalLayout_7.addWidget(self.label_29)
+        self.upper_plot_obs_cmbx = QtWidgets.QComboBox(self.centralwidget)
+        self.upper_plot_obs_cmbx.setObjectName("upper_plot_obs_cmbx")
+        self.horizontalLayout_7.addWidget(self.upper_plot_obs_cmbx)
+        spacerItem16 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem16)
+        self.label_30 = QtWidgets.QLabel(self.centralwidget)
+        self.label_30.setObjectName("label_30")
+        self.horizontalLayout_7.addWidget(self.label_30)
+        self.lower_plot_obs_cmbx = QtWidgets.QComboBox(self.centralwidget)
+        self.lower_plot_obs_cmbx.setObjectName("lower_plot_obs_cmbx")
+        self.horizontalLayout_7.addWidget(self.lower_plot_obs_cmbx)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_7)
         self.PlotWidget2 = PlotWidget(self.centralwidget)
         self.PlotWidget2.setObjectName("PlotWidget2")
         self.verticalLayout_2.addWidget(self.PlotWidget2)
@@ -713,6 +730,8 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Probe Wavelength (nm)"))
         self.label_2.setText(_translate("MainWindow", "Temperature (K)"))
         self.label_31.setText(_translate("MainWindow", "Setpoint"))
+        self.label_29.setText(_translate("MainWindow", "Upper"))
+        self.label_30.setText(_translate("MainWindow", "Lower"))
         self.start_btn.setText(_translate("MainWindow", "Start"))
         self.stop_btn.setText(_translate("MainWindow", "Stop"))
         self.label_11.setText(_translate("MainWindow", "Experiment Setup"))

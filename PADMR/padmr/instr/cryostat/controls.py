@@ -201,41 +201,41 @@ class CryostatInstr(QtCore.QObject):
         Zeros the magnet. "Magnet True Zero". The field setpoint is varied as a damped oscillator so as to remove
         residual magnetization.
         """
-        print('Currently, the zero_magnet command does nothing')
+        print('Attempting to Zero the Magnet')
         # Check that there are no pre-existing errors
-        # if self.error.status:
-        #     print('preexisting cryostat error prevents magnet true zero')
-        #     return
-        # else:
-        #     try:
-        #         # Try to enable the magnet. If it fails, try again a few times before giving up
-        #         enabled = self.enable_magnet()
-        #         ii = 0
-        #         while (not enabled) and ii < 3:
-        #             enabled = self.enable_magnet()
-        #             ii += 1
-        #
-        #         if not enabled:
-        #             print('Magnet failed to enable, cannot zero\n')
-        #             self.error = ErrorCluster(status=True, code=7022,
-        #                                       details='Magnet failed to enable.\n')
-        #             self.send_error_signal.emit(self.error)
-        #             return
-        #
-        #         response = self.comms.send_command_get_response('SMTZ')
-        #         print('Response: ' + str(response))
-        #         if response.startswith('OK'):
-        #             print('Magnet True Zero Initiated...')
-        #         else:
-        #             print('error case 1')
-        #             self.error = ErrorCluster(status=True, code=7023,
-        #                                       details='Could not zero magnet. Cryostat response:\n' + response + '\n')
-        #             self.send_error_signal.emit(self.error)
-        #     except Exception as err:
-        #         self.error = ErrorCluster(status=True, code=7024,
-        #                                   details='Could not zero magnet.\n' + str(err))
-        #         self.send_error_signal.emit(self.error)
-        # return
+        if self.error.status:
+            print('preexisting cryostat error prevents magnet true zero')
+            return
+        else:
+            try:
+                # Try to enable the magnet. If it fails, try again a few times before giving up
+                enabled = self.enable_magnet()
+                ii = 0
+                while (not enabled) and ii < 3:
+                    enabled = self.enable_magnet()
+                    ii += 1
+
+                if not enabled:
+                    print('Magnet failed to enable, cannot zero\n')
+                    self.error = ErrorCluster(status=True, code=7022,
+                                              details='Magnet failed to enable.\n')
+                    self.send_error_signal.emit(self.error)
+                    return
+
+                response = self.comms.send_command_get_response('SMTZ')
+                print('Response: ' + str(response))
+                if response.startswith('OK'):
+                    print('Magnet True Zero Initiated...')
+                else:
+                    print('error case 1')
+                    self.error = ErrorCluster(status=True, code=7023,
+                                              details='Could not zero magnet. Cryostat response:\n' + response + '\n')
+                    self.send_error_signal.emit(self.error)
+            except Exception as err:
+                self.error = ErrorCluster(status=True, code=7024,
+                                          details='Could not zero magnet.\n' + str(err))
+                self.send_error_signal.emit(self.error)
+        return
 
     def check_instrument(self):
         pass
