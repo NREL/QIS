@@ -720,7 +720,7 @@ class MainWindow(QMainWindow):
                         elif self.is_recording_transient:   # Each output is a full time trace now
                             self.status_message_signal.emit('Transient Measurement Under Construction...')
 
-                        self.distribute_results_uhfli(step_num, scan_num, dim2_step_num, dim2_scan_num)
+                        self.distribute_results(step_num, scan_num, dim2_step_num, dim2_scan_num)
 
                         if not self.is_debug_mode:
                             self.results_are_in_signal.emit(step_num, scan_num)     # Lets the UI know it's time to plot results
@@ -733,7 +733,8 @@ class MainWindow(QMainWindow):
                         step_num = step_num + 1
                     # Save data after each scan (add scan)
                     # self.stored_data.add_scan(self.current_scan, dim2_scan_num, dim2_step_num)
-                    self.save_stuff_uhfli(filename, filetype, 'scan_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False) # 1D scans + ave
+                    self.save_stuff(filename, filetype, 'scan_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num,
+                                    manual=False)  # 1D scans + ave
                     scan_num = scan_num + 1
                 # End of each 2nd Dim Step (i.e. end of each 1st Dim Sweep)
                 # self.save_stuff_uhfli(filename, filetype, 'dim2_step_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False)  # Ave of 1D scans
@@ -1138,10 +1139,10 @@ class MainWindow(QMainWindow):
     #     #         ch1 = np.average(ch1_data)
     #     #         ch2 = np.average(ch2_data)
 
-        return ch1, ch2
+        # return ch1, ch2
 
     @helpers.measure_time
-    def distribute_results_uhfli(self, step_num, scan_num, dim2_step_num, dim2_scan_num):
+    def distribute_results(self, step_num, scan_num, dim2_step_num, dim2_scan_num):
         # x = self.sample["x"]
         self.actual_x_values[step_num] = self.current_position[0]
 
@@ -1430,7 +1431,7 @@ class MainWindow(QMainWindow):
     #                 self.status_message_signal.emit('Saved 2D Scan Data........')
 
     @helpers.measure_time
-    def save_stuff_uhfli(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
+    def save_stuff(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
         if self.data_details is None:
             self.status_message_signal.emit('No stored data to save')
             return
