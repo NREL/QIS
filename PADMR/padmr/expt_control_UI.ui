@@ -1417,7 +1417,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="upper_plot_obs_cmbx"/>
+         <widget class="QComboBox" name="upper_plot_obs_cmbx">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer">
@@ -1440,7 +1447,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="lower_plot_obs_cmbx"/>
+         <widget class="QComboBox" name="lower_plot_obs_cmbx">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

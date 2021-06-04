@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIYzuPpB.ui'
+# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIqfTfTB.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -546,6 +546,7 @@ class Ui_MainWindow(object):
         self.label_29.setObjectName("label_29")
         self.horizontalLayout_7.addWidget(self.label_29)
         self.upper_plot_obs_cmbx = QtWidgets.QComboBox(self.centralwidget)
+        self.upper_plot_obs_cmbx.setMinimumSize(QtCore.QSize(100, 0))
         self.upper_plot_obs_cmbx.setObjectName("upper_plot_obs_cmbx")
         self.horizontalLayout_7.addWidget(self.upper_plot_obs_cmbx)
         spacerItem16 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -554,6 +555,7 @@ class Ui_MainWindow(object):
         self.label_30.setObjectName("label_30")
         self.horizontalLayout_7.addWidget(self.label_30)
         self.lower_plot_obs_cmbx = QtWidgets.QComboBox(self.centralwidget)
+        self.lower_plot_obs_cmbx.setMinimumSize(QtCore.QSize(100, 0))
         self.lower_plot_obs_cmbx.setObjectName("lower_plot_obs_cmbx")
         self.horizontalLayout_7.addWidget(self.lower_plot_obs_cmbx)
         self.verticalLayout_2.addLayout(self.horizontalLayout_7)

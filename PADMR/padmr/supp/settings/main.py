@@ -159,8 +159,8 @@ class SettingsWindowForm(QWidget):
         self.settling_delay_factor = int(param_lines[4].split('#')[0].split()[2])
         # self.settling_delay_factor = self.lockin_delay_scaling_factor
 
-        self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
-        self.lia.outputs = self.lockin_outputs
+        # self.lockin_outputs = int(param_lines[5].split('#')[0].split()[2])
+        # self.lia.outputs = self.lockin_outputs
 
         self.lockin_sampling_rate_idx = int(param_lines[6].split('#')[0].split()[2])
         self.lia.sampling_rate_idx = self.lockin_sampling_rate_idx
@@ -173,7 +173,7 @@ class SettingsWindowForm(QWidget):
         print("prologix com port: " + str(self.prologix_com_port))
 
         self.smb100a_com_port = str(param_lines[9].split('#')[0].split()[2])
-
+        self.save_observables = param_lines[10].split('#')[0].split()[2].split(',')
         # SR844 Settings
         self.sr844_gpib_address = int(param_lines[20].split('#')[0].split()[2])
         # self.sr844_outputs = int(param_lines[21].split('#')[0].split()[2])      # This is now deprecated
@@ -344,7 +344,7 @@ class SettingsWindowForm(QWidget):
             try:
                 print('Inside Try')
                 # First set the values that do not depend on which lock-in you're using
-                self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
+                # self.ui.outputs_cbx.setCurrentIndex(self.lia.outputs)
                 self.ui.sampling_rate_cbx.setCurrentIndex(self.lia.sampling_rate_idx)
                 self.ui.ref_source_cbx.setCurrentIndex(self.lia.reference_source)
                 self.ui.expand_cbx.setCurrentIndex(self.lia.expand)
@@ -461,6 +461,40 @@ class SettingsWindowForm(QWidget):
         print('Updating SMB100a Tab')
         self.ui.smb100a_freq_units_cbx.setCurrentText('Hz')
 
+    def check_observables(self):
+        if '1' in self.save_observables:
+            self.ui.is_record_x.setChecked(True)
+        else:
+            self.ui.is_record_x.setChecked(False)
+        if '2' in self.save_observables:
+            self.ui.is_record_y.setChecked(True)
+        else:
+            self.ui.is_record_y.setChecked(False)
+        if '3' in self.save_observables:
+            self.ui.is_record_r.setChecked(True)
+        else:
+            self.ui.is_record_r.setChecked(False)
+        if '4' in self.save_observables:
+            self.ui.is_record_theta.setChecked(True)
+        else:
+            self.ui.is_record_theta.setChecked(False)
+        if '5' in self.save_observables:
+            self.ui.is_record_auxin1.setChecked(True)
+        else:
+            self.ui.is_record_auxin1.setChecked(False)
+        if '6' in self.save_observables:
+            self.ui.is_record_auxin2.setChecked(True)
+        else:
+            self.ui.is_record_auxin2.setChecked(False)
+        if '7' in self.save_observables:
+            self.ui.is_record_freq.setChecked(True)
+        else:
+            self.ui.is_record_freq.setChecked(False)
+        if '8' in self.save_observables:
+            self.ui.is_record_phase.setChecked(True)
+        else:
+            self.ui.is_record_phase.setChecked(False)
+
     def initialize_settings_window(self):
         # Initialize the general tab
 
@@ -479,6 +513,7 @@ class SettingsWindowForm(QWidget):
         self.check_com_ports()
 
         self.init_lockin_tab()
+        self.check_observables()
         self.update_md2000_tab()
 
         print('----------------------------------Initializing the cg635 Tab---------------------------------------')
@@ -512,7 +547,7 @@ class SettingsWindowForm(QWidget):
     @QtCore.pyqtSlot(bool)
     def enable_secondary_demodulator(self, disable):
         enable = not disable
-        self.ui.uhfli_demod2_label.setDisabled(enable)
+        # self.ui.uhfli_demod2_label.setDisabled(enable)
         self.ui.uhfli_demodulator_idx_spbx_2.setDisabled(enable)
         self.ui.uhfli_input_cbx_2.setDisabled(enable)
         self.ui.uhfli_filter_order_cbx_2.setDisabled(enable)

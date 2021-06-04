@@ -491,6 +491,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             self.property_updated_signal[str, int].emit('time_constant', idx)
             new_tc = self.settings.tc_numeric_list[idx]
             print('new_tc: ' + str(new_tc))
+            self.settings.time_constant_value = new_tc
             self.property_updated_signal[str, float].emit('time_constant_value', new_tc)
             print('self.settings.time_constant_value: ' + str(self.settings.time_constant_value))
 
@@ -522,7 +523,7 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
                                       details='Lock-in model is invalid\n')
             self.send_error_signal.emit(self.error)
 
-    def collect_snapshot(self):
+    def collect_sample(self):
         if self.error.status:
             return None, None
 
@@ -532,30 +533,37 @@ class PrologixAdaptedSRLockin(QtCore.QObject):
             self.comms.write('REST\n')
             self.comms.timeout = 3000
 
-            if self.settings.model == 'SR844' and not self.settings.outputs == 2:
-                output_str = 'SNAP? ' + '9,10\n'      # Read whatever is on the display
-            elif self.settings.model == 'SR830' and not self.settings.outputs == 2:
-                output_str = 'SNAP? ' + '10,11\n'     # Read whatever is on the display
-            elif self.settings.model == 'SR844' and self.settings.outputs == 2:
-                output_str = 'SNAP? ' + '6\n'         # Aux In 1
-            elif self.settings.model == 'SR830' and self.settings.outputs == 2:
-                output_str = 'SNAP? ' + '5\n'         # Aux In 1
+            # if self.settings.model == 'SR844' and not self.settings.outputs == 2:
+            #     output_str = 'SNAP? ' + '9,10\n'      # Read whatever is on the display
+            # elif self.settings.model == 'SR830' and not self.settings.outputs == 2:
+            #     output_str = 'SNAP? ' + '10,11\n'     # Read whatever is on the display
+            # elif self.settings.model == 'SR844' and self.settings.outputs == 2:
+            #     output_str = 'SNAP? ' + '6\n'         # Aux In 1
+            # elif self.settings.model == 'SR830' and self.settings.outputs == 2:
+            #     output_str = 'SNAP? ' + '5\n'         # Aux In 1
+            if self.settings.model == 'SR830':
+                output_str = 'SNAP? 1,2,5,6,9'
+            elif self.settings.model == 'SR844':
+                output_str = 'SNAP? 1,2,6,7,8'
 
             response = self.comms.query(output_str)
-            [str1, str2] = response.split('\n')[0].split(',')
-            ch1 = float(str1)
-            ch2 = float(str2)
+
+            sample = {}
+            (sample['x'], sample['y'], sample['auxin0'], sample['auxin1'], sample['frequency']) = \
+                np.array(response.split('\n')[0].split(','), dtype=np.float32)
+
+            sample["R"] = np.abs(sample["x"] + 1j * sample["y"])
+            sample["theta"] = np.angle(sample["x"] + 1j * sample["y"], deg=True)
 
         except pyvisa.VisaIOError as err:
             self.error = ErrorCluster(status=True, code=3008,
                                       details='Error while attempting to collect data.\n' + str(err))
             self.send_error_signal.emit(self.error)
-            ch1 = None
-            ch2 = None
+            sample = None
 
         self.comms.timeout = 3000
         self.close_comms()
-        return ch1, ch2
+        return sample
 
     def collect_data(self, duration, sampling_rate_idx, record_both_channels=True):
         """

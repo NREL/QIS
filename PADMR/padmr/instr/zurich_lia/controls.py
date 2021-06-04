@@ -156,9 +156,12 @@ class ZiLIA(QtCore.QObject):
         pass
 
     def collect_sample(self):
+        # Perform a "global synchronization". Must happen AFTER low-pass settling delay
+        self.daq.sync()
         # Obtain one demodulator sample via ziself.daqServer's low-level getSample()
         # method - for extended data acquisition it's preferable to use
         # ziDAQServer's poll() method or the ziDAQRecorder class.
+
         sample = self.daq.getSample("/%s/demods/%d/sample" % (self.device, self.settings.demod_index))
         # Calculate the demodulator's magnitude and phase and add them to the sample
         # dict.
@@ -166,6 +169,9 @@ class ZiLIA(QtCore.QObject):
         sample["theta"] = np.angle(sample["x"] + 1j * sample["y"], deg=True)
         print(f"Measured RMS amplitude is {sample['R'][0]:.3e} V.\n"
               f"Phase is {sample['theta'][0]:.3e} Degrees")
+        for key in sample:
+            sample[key] = sample[key][0]
+
         return sample
 
     def record_data(self, duration):

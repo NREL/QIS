@@ -6,6 +6,8 @@
 # 4. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 5. Finish setting up 2D experiments
 # Various:
+# -99. Get SR830 working again with new code
+# -98. Fix transient measurements
 # -97. Modify so that settings.main ONLY sets up the settings window? (i.e. does not affect the actual settings).
 # -96. Make a setting so the user doesn't have to record ALL UHFLI sample outputs.
 # -95. Fix labelling of plots for transient measurement
@@ -145,7 +147,7 @@ QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
 
 
 class PlottedData:
-    def __init__(self, dims=1, output_names=['R(Volts)', 'Theta(Degrees)'], num_scans=[1, 1], notes='',
+    def __init__(self, dims=1, output_names=['Channel 1', 'Channel 2'], num_scans=[1, 1], notes='',
                  instr_settings=None):
         self.num_dims = dims
         self.output_names = output_names
@@ -153,6 +155,34 @@ class PlottedData:
         self.details = notes
         self.instr_settings = instr_settings
 
+# class ScanData:
+#     def __init__(self):
+#         self.headers = []
+#         self.indep_var = []
+#         self.data = []
+#     def add_data_point(self, row_idx, col_name):
+#         pass
+
+class StoredData:
+    def __init__(self):  #, num_scans_2d, num_steps_2d, num_scans, num_steps):
+        self.scans_2d = []
+
+    def add_2d_scan(self):
+        self.scans_2d.append([])
+
+    def add_2d_step(self, scan_2d_idx):
+        self.scans_2d[scan_2d_idx].append([])
+
+    def add_scan(self, sweep_results_dataframe, scan_2d_idx, step_2d_idx):
+        while scan_2d_idx > (len(self.scans_2d) - 1):
+            self.add_2d_scan()
+        while step_2d_idx > (len(self.scans_2d[scan_2d_idx]) - 1):
+            self.add_2d_step(scan_2d_idx)
+
+        self.scans_2d[scan_2d_idx][step_2d_idx].append(sweep_results_dataframe)
+
+    def replace_scan(self, sweep_results_dataframe, scan_2d_idx, step_2d_idx, scan_idx):
+        self.scans_2d[scan_2d_idx][step_2d_idx][scan_idx] = sweep_results_dataframe
 
 class MainWindow(QMainWindow):
     lockin_status_warning_signal = QtCore.pyqtSignal(str)
@@ -285,6 +315,9 @@ class MainWindow(QMainWindow):
         self.sweep_end_spbxs[0].setEnabled(False)
         self.sweep_end_spbxs[1].setEnabled(False)
 
+        # Disable while under construction:
+        self.ui.is_recording_transient_chkbx.setEnabled(False)
+        self.ui.average_each_point_checkbox.setEnabled(False)
         # ------------------------------------ Run any initialization Functions ----------------------------------------
         self.set_icons()
         self.connect_signals_and_slots()
@@ -342,6 +375,12 @@ class MainWindow(QMainWindow):
         print(self.settings.lockin_model)
         self.settings.prologix_com_port = self.settings.ui.prologix_com_port_cmb.currentText()
         if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+            # self.lockin = PrologixAdaptedSRLockin()
+            if self.settings.lockin_model == 'SR844':
+                self.settings.lia.gpib_address = self.settings.ui.sr844_gpib_address_spbx.value()
+            else:
+                self.settings.lia.gpib_address = self.settings.ui.sr830_gpib_address_spbx.value()
+
             did_comms_fail = self.lockin.start_comms(self.settings.prologix_com_port,
                                                      gpib_address=self.settings.lia.gpib_address,
                                                      model=self.settings.lockin_model)
@@ -380,10 +419,13 @@ class MainWindow(QMainWindow):
                 self.lockin.settings = self.settings.uhfli  # This needs to be changed so that settings.uhfli contains t
                 self.lockin.update_all()
                 self.lockin_delay = self.settings.settling_delay_factor * self.settings.uhfli.time_constant_value
+                self.settings.ui.is_record_phase.setDisabled(False)
             else:
                 self.lockin.settings = self.settings.lia  # This needs to be changed so that settings.uhfli contains t
                 self.lockin.update_all()
-                self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
+                self.lockin_delay = self.settings.settling_delay_factor * self.lockin.settings.time_constant_value
+                self.settings.ui.is_record_phase.setChecked(False)
+                self.settings.ui.is_record_phase.setDisabled(True)
             print('Lockin Settings Set')
 
     def connect_md2000(self):
@@ -469,18 +511,18 @@ class MainWindow(QMainWindow):
             self.abort_scan = False  # This should probably go before the if/elif statement
             self.pause_scan = False
             # Add here a save Experiment Notes and details to file
-            if self.settings.lia.outputs == 0:  # 0 is R/Theta
-                self.output_name[0] = 'R (V)'
-                self.output_name[1] = 'Theta (Degrees)'
-            elif self.settings.lia.outputs == 1:
-                self.output_name[0] = 'X (V)'
-                self.output_name[1] = 'Y (V)'
-            elif self.settings.lia.outputs == 2:
-                self.output_name[0] = 'Aux1 (V)'
-                self.output_name[1] = 'Unknown'
-            else:
-                self.output_name[0] = 'Channel 1 Display'
-                self.output_name[1] = 'Channel 2 Display'
+            # if self.settings.lia.outputs == 0:  # 0 is R/Theta
+            #     self.output_name[0] = 'R (V)'
+            #     self.output_name[1] = 'Theta (Degrees)'
+            # elif self.settings.lia.outputs == 1:
+            #     self.output_name[0] = 'X (V)'
+            #     self.output_name[1] = 'Y (V)'
+            # elif self.settings.lia.outputs == 2:
+            #     self.output_name[0] = 'Aux1 (V)'
+            #     self.output_name[1] = 'Unknown'
+            # else:
+            #     self.output_name[0] = 'Channel 1 Display'
+            #     self.output_name[1] = 'Channel 2 Display'
             print('Lockin time Constant: ' + str(self.settings.lia.time_constant_value))
             print('settling delay factor: ' + str(self.settings.settling_delay_factor))
             self.settings.settling_delay_factor = self.settings.ui.lockin_delay_scale_spbx.value()
@@ -522,15 +564,37 @@ class MainWindow(QMainWindow):
             self.num_scans[0] = self.ui.num_scans_spbx.value()
             self.num_scans[1] = self.ui.num_scans_dim2_spbx.value()
 
-            self.all_scans = []
+            # # Create a data storage structure
+            # self.data_stored = []
+
+            # self.all_scans_dim1 = []
             self.averaging_time = self.ui.averaging_time_spbx.value()
 
             # Before UHFLI
             # self.column_headers = [self.abscissa_name[0], self.output_name[0], self.output_name[1]]
 
             # Make a setting so that the user doesn't have to record ALL of these:
-            self.column_headers = [self.abscissa_name[0], 'X (Vrms)', 'Y (Vrms)', 'R (Vrms)', 'Theta (deg)',
-                                   'Aux In 1', 'Aux In 2', 'Frequency', 'Phase']
+
+            # self.column_headers = [self.abscissa_name[0], 'X (Vrms)', 'Y (Vrms)', 'R (Vrms)', 'Theta (deg)',
+            #                        'Aux In 1', 'Aux In 2', 'Frequency', 'Phase']
+
+            self.column_headers = [self.abscissa_name[0]]
+            if self.settings.ui.is_record_x.isChecked():
+                self.column_headers.append('X (Vrms)')
+            if self.settings.ui.is_record_y.isChecked():
+                self.column_headers.append('Y (Vrms)')
+            if self.settings.ui.is_record_r.isChecked():
+                self.column_headers.append('R (Vrms)')
+            if self.settings.ui.is_record_theta.isChecked():
+                self.column_headers.append('Theta (deg)')
+            if self.settings.ui.is_record_auxin1.isChecked():
+                self.column_headers.append('Aux In 1')
+            if self.settings.ui.is_record_auxin2.isChecked():
+                self.column_headers.append('Aux In 2')
+            if self.settings.ui.is_record_freq.isChecked():
+                self.column_headers.append('Frequency')
+            if self.settings.ui.is_record_phase.isChecked():
+                self.column_headers.append('Phase')
 
             self.ui.upper_plot_obs_cmbx.addItems(self.column_headers[1:6])
             self.ui.upper_plot_obs_cmbx.setCurrentIndex(0)
@@ -543,7 +607,10 @@ class MainWindow(QMainWindow):
             self.actual_x_values[:] = np.nan
             self.actual_x_values = self.actual_x_values.flatten()
 
-            self.data_details = PlottedData(dims=self.num_dims, output_names=self.output_name, num_scans=self.num_scans,
+            # self.data_details = PlottedData(dims=self.num_dims, output_names=self.output_name, num_scans=self.num_scans,
+            #                                 notes=notes, instr_settings=None)
+
+            self.data_details = PlottedData(dims=self.num_dims, num_scans=self.num_scans,
                                             notes=notes, instr_settings=None)
 
             self.set_1d_plot_properties()
@@ -567,16 +634,16 @@ class MainWindow(QMainWindow):
         #TODO: Incorporate 2D Data
         # 1. SAMPLING Rate for the SR844 is currently used no matter which lock-in you choose (bad)
         print('---------------------------------- BEGINNING MAIN EXPERIMENT LOOP -------------------------------------')
+        # Create a data storage structure
+        self.stored_data = StoredData()
+
+        # At the beginning of each scan, add that scan to the stored data
         dim2_scan_num = 0
         while dim2_scan_num < self.num_scans[1]:
             # Repeat entire 2D scan dim2_scan_num times
 
             if self.num_dims == 2:
                 pass
-                # If 2D data, column headers should be the "actual value" of the second dimension (not yet known)
-                # self.column_headers_2d = [self.abscissa_name[0] + '\\' + self.abscissa_name[1]]
-                # self.ave_data_ch1_df.append(pd.DataFrame(columns=self.column_headers_2d))
-                # self.ave_data_ch2_df.append(pd.DataFrame(columns=self.column_headers_2d))
 
             dim2_step_num = 0
             while dim2_step_num < self.step_count[1]:
@@ -591,10 +658,7 @@ class MainWindow(QMainWindow):
                     # self.current_scan = pd.DataFrame(columns=self.column_headers)
 
                     self.ave_data_df = pd.DataFrame(columns=self.column_headers)
-                    # BEfore UHFLI:
-                    # self.ch1_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
-                    # self.ch2_scans_df = pd.DataFrame(columns=[self.abscissa_name[0]] + (np.arange(1, self.num_scans[0] + 1)).tolist())
-                    # self.ave_data_df = pd.DataFrame(columns=self.column_headers)
+
                 else:
                     self.status_message_signal.emit('Transient Recording Under Construction...')
 
@@ -612,12 +676,11 @@ class MainWindow(QMainWindow):
                 if self.num_dims == 2:
                     self.status_message_signal.emit('2D Experiments Under Construction')
                     # Before UHFLI
-                    # next_step_dim2 = self.step_pts[1][dim2_step_num]
-                    # print('Next Step (dim2) is: ' + str(next_step_dim2) + '(' + str(dim2_step_num + 1) + ' of ' + str(self.step_count[1]) + ')')
-                    # self.current_position[1] = float(self.set_abscissa(which_abscissa=1, next_step=next_step_dim2))
-                    # # self.axis_1.set_title(str(self.current_position[1]) + self.units[1])
-                    # self.ave_data_ch1_df[dim2_scan_num].insert(loc=dim2_step_num+1, column=str(self.current_position[1]), value=np.nan)
-                    # self.ave_data_ch2_df[dim2_scan_num].insert(loc=dim2_step_num+1, column=str(self.current_position[1]), value=np.nan)
+                    next_step_dim2 = self.step_pts[1][dim2_step_num]
+                    print('Next Step (dim2) is: ' + str(next_step_dim2) + '(' + str(dim2_step_num + 1) + ' of ' + str(self.step_count[1]) + ')')
+                    self.current_position[1] = float(self.set_abscissa(which_abscissa=1, next_step=next_step_dim2))
+                    # self.axis_1.set_title(str(self.current_position[1]) + self.units[1])
+
                 else:
                     self.current_position[1] = None
 
@@ -625,7 +688,11 @@ class MainWindow(QMainWindow):
                 while scan_num < self.num_scans[0]:
                     self.ready_for_new_scan(which_abscissa=0)
                     self.current_scan = pd.DataFrame(columns=self.column_headers)
-                    self.all_scans.append(self.current_scan)
+                    # Before each scan, add the empty scan data to the stored data
+                    self.stored_data.add_scan(self.current_scan, dim2_scan_num, dim2_step_num)
+
+
+                    # self.all_scans_dim1.append(self.current_scan)
                     print('------------------------------------ SCAN %d -----------------------------------------' % scan_num)
                     self.change_plot_title_signal.emit('Scan %d' % (scan_num + 1))
                     step_num = 0
@@ -648,26 +715,30 @@ class MainWindow(QMainWindow):
                         self.current_position[0] = float(cur_pos)
 
                         if not self.is_recording_transient:
-                            self.current_sample = self.get_lockin_results_uhfli()
-                            # Before UHFLI
-                            # self.ch1_scans_df.loc[step_num, scan_num+1], self.ch2_scans_df.loc[step_num, scan_num+1] = self.get_lockin_results()
+                            self.current_sample = self.get_lockin_results()
+
                         elif self.is_recording_transient:   # Each output is a full time trace now
                             self.status_message_signal.emit('Transient Measurement Under Construction...')
-                            # Before UHFLI
-                            # ch1, ch2 = self.get_lockin_results()
-                            # num_samples = len(ch1)
-                            # self.ch1_scans_df.loc[step_num, 0:num_samples-1] = ch1
-                            # self.ch2_scans_df.loc[step_num, 0:num_samples-1] = ch2
 
                         self.distribute_results_uhfli(step_num, scan_num, dim2_step_num, dim2_scan_num)
 
-                        self.results_are_in_signal.emit(step_num, scan_num)     # Lets the UI know it's time to plot results
+                        if not self.is_debug_mode:
+                            self.results_are_in_signal.emit(step_num, scan_num)     # Lets the UI know it's time to plot results
+                        elif self.is_debug_mode:
+                            self.plot_results(step_num, scan_num)
+
+                        # Update the stored data container
+                        self.stored_data.replace_scan(self.current_scan, dim2_scan_num, dim2_step_num, scan_num)
 
                         step_num = step_num + 1
+                    # Save data after each scan (add scan)
+                    # self.stored_data.add_scan(self.current_scan, dim2_scan_num, dim2_step_num)
                     self.save_stuff_uhfli(filename, filetype, 'scan_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False) # 1D scans + ave
                     scan_num = scan_num + 1
-                self.save_stuff_uhfli(filename, filetype, 'dim2_step_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False)  # Ave of 1D scans
+                # End of each 2nd Dim Step (i.e. end of each 1st Dim Sweep)
+                # self.save_stuff_uhfli(filename, filetype, 'dim2_step_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False)  # Ave of 1D scans
                 dim2_step_num = dim2_step_num + 1
+            # End of each 2nd Dim Scan
             # self.save_stuff(filename, filetype, 'dim2_scan_num', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False)    # Save each 2D scan
             dim2_scan_num = dim2_scan_num + 1
         # self.save_stuff(filename, filetype, 'end', sc_idx_1d=scan_num, sc_idx_2d=dim2_scan_num, manual=False) # Ave of 2Dscans(not yet)
@@ -825,20 +896,113 @@ class MainWindow(QMainWindow):
             print('No instruments have pre-scan requirements except the magnet yet.')
 
 
+    # @helpers.measure_time
+    # def get_lockin_results(self):
+    #     print('Checking for lock-in issues...')
+    #     # As in overloads, phase locking to reference, etc.
+    #     self.lockin.open_comms()  # Open also sets the correct GPIB address
+    #     self.lockin.comms.write('*CLS\n')
+    #     self.lockin.clear_buffers()
+    #
+    #     if self.offset_each is True:
+    #
+    #         self.toptica.laser_disable()
+    #
+    #         lia_status = self.lockin.check_status()
+    #         kk = 0
+    #         while not lia_status == 0 and kk < 200:
+    #             lia_status = self.lockin.check_status()
+    #             if lia_status == -1:  # Comm failure
+    #                 return
+    #             # print('lia error' + str(lia_error))
+    #             # print('loop iteration: ' + str(kk))
+    #             time.sleep(0.001)
+    #             kk = kk + 1
+    #
+    #         if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
+    #             self.pause_scan = True
+    #             # The following should be optimized
+    #             self.lockin_status_warning_signal.emit(str(lia_status))
+    #
+    #         self.status_message_signal.emit('Pausing for Lock-in settling...')
+    #         print('lockin_delay: ' + str(self.lockin_delay))
+    #         time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+    #
+    #         if self.settings.ui.scan_auto_sens_checkbox.isChecked():
+    #             print('Optimizing Lock-in Sensitivity...')
+    #             self.lockin.auto_sens()
+    #
+    #         self.lockin.comms.write('AOFF 1, 1\n')
+    #         self.toptica.laser_enable()
+    #         self.toptica.laser_start()
+    #
+    #     lia_status = self.lockin.check_status()
+    #     kk = 0
+    #     # It may take some time for the lockin internal oscillator  to lock to the reference freq
+    #     while not lia_status == 0 and kk < 200:
+    #         lia_status = self.lockin.check_status()
+    #         if lia_status == -1:  # Comm failure
+    #             return
+    #         # print('lia error' + str(lia_error))
+    #         # print('loop iteration: ' + str(kk))
+    #         time.sleep(0.001)
+    #         kk = kk + 1
+    #
+    #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
+    #         self.pause_scan = True
+    #         # The following should be optimized
+    #         self.lockin_status_warning_signal.emit(str(lia_status))
+    #
+    #     print('Pausing for Lock-in settling...')
+    #     print('lockin_delay: ' + str(self.lockin_delay))
+    #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+    #
+    #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
+    #         print('Optimizing Lock-in Sensitivity...')
+    #         self.lockin.auto_sens()
+    #
+    #     print('Collecting Data....')
+    #     if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
+    #         print('From X/Y or R/Theta or Aux In 1')
+    #         if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
+    #             ch1, ch2 = self.lockin.collect_snapshot()
+    #         elif self.is_averaging_pts and not self.is_recording_transient:    # If averaging lockin results
+    #             ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
+    #                                                           record_both_channels=True)
+    #             print('Averaging New Data...')
+    #             ch1 = np.average(ch1_data)
+    #             ch2 = np.average(ch2_data)
+    #         elif self.is_recording_transient:
+    #             ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
+    #                                                 record_both_channels=True)
+    #     # elif self.settings.lia.outputs == 2:
+    #     #     print('From Aux in 1')
+    #     #     if self.is_averaging_pts:  # Single snapshot measurement at each point
+    #     #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
+    #     #     elif not self.is_averaging_pts:    # If averaging lockin results
+    #     #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
+    #     #                                                       record_both_channels=True)
+    #     #         print('Averaging New Data...')
+    #     #         ch1 = np.average(ch1_data)
+    #     #         ch2 = np.average(ch2_data)
+    #
+    #     return ch1, ch2
+
     @helpers.measure_time
     def get_lockin_results(self):
         print('Checking for lock-in issues...')
         # As in overloads, phase locking to reference, etc.
-        self.lockin.open_comms()  # Open also sets the correct GPIB address
-        self.lockin.comms.write('*CLS\n')
-        self.lockin.clear_buffers()
 
-        if self.offset_each is True:
 
-            self.toptica.laser_disable()
+        if self.settings.lockin_model == 'SR830' or self.settings.lockin_model == 'SR844':
+            self.lockin.open_comms()  # Open also sets the correct GPIB address
+            self.lockin.comms.write('*CLS\n')
+            self.lockin.clear_buffers()
 
             lia_status = self.lockin.check_status()
             kk = 0
+            # It may take some time for the lockin internal oscillator  to lock to the reference freq
+            # Not yet sure how to check if PLL is locked with UHFLI
             while not lia_status == 0 and kk < 200:
                 lia_status = self.lockin.check_status()
                 if lia_status == -1:  # Comm failure
@@ -853,122 +1017,34 @@ class MainWindow(QMainWindow):
                 # The following should be optimized
                 self.lockin_status_warning_signal.emit(str(lia_status))
 
-            self.status_message_signal.emit('Pausing for Lock-in settling...')
-            print('lockin_delay: ' + str(self.lockin_delay))
-            time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-
-            if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-                print('Optimizing Lock-in Sensitivity...')
-                self.lockin.auto_sens()
-
-            self.lockin.comms.write('AOFF 1, 1\n')
-            self.toptica.laser_enable()
-            self.toptica.laser_start()
-
-        lia_status = self.lockin.check_status()
-        kk = 0
-        # It may take some time for the lockin internal oscillator  to lock to the reference freq
-        while not lia_status == 0 and kk < 200:
-            lia_status = self.lockin.check_status()
-            if lia_status == -1:  # Comm failure
-                return
-            # print('lia error' + str(lia_error))
-            # print('loop iteration: ' + str(kk))
-            time.sleep(0.001)
-            kk = kk + 1
-
-        if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-            self.pause_scan = True
-            # The following should be optimized
-            self.lockin_status_warning_signal.emit(str(lia_status))
-
-        print('Pausing for Lock-in settling...')
-        print('lockin_delay: ' + str(self.lockin_delay))
-        time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-
-        if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-            print('Optimizing Lock-in Sensitivity...')
-            self.lockin.auto_sens()
-
-        print('Collecting Data....')
-        if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
-            print('From X/Y or R/Theta or Aux In 1')
-            if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
-                ch1, ch2 = self.lockin.collect_snapshot()
-            elif self.is_averaging_pts and not self.is_recording_transient:    # If averaging lockin results
-                ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-                                                              record_both_channels=True)
-                print('Averaging New Data...')
-                ch1 = np.average(ch1_data)
-                ch2 = np.average(ch2_data)
-            elif self.is_recording_transient:
-                ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
-                                                    record_both_channels=True)
-        # elif self.settings.lia.outputs == 2:
-        #     print('From Aux in 1')
-        #     if self.is_averaging_pts:  # Single snapshot measurement at each point
-        #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
-        #     elif not self.is_averaging_pts:    # If averaging lockin results
-        #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-        #                                                       record_both_channels=True)
-        #         print('Averaging New Data...')
-        #         ch1 = np.average(ch1_data)
-        #         ch2 = np.average(ch2_data)
-
-        return ch1, ch2
-
-    @helpers.measure_time
-    def get_lockin_results_uhfli(self):
-        print('Checking for lock-in issues...')
-        # As in overloads, phase locking to reference, etc.
-
-        # lia_status = self.lockin.check_status()
-        # kk = 0
-        # It may take some time for the lockin internal oscillator  to lock to the reference freq
-        # Not yet sure how to check if PLL is locked with UHFLI
-        # while not lia_status == 0 and kk < 200:
-        #     lia_status = self.lockin.check_status()
-        #     if lia_status == -1:  # Comm failure
-        #         return
-        #     # print('lia error' + str(lia_error))
-        #     # print('loop iteration: ' + str(kk))
-        #     time.sleep(0.001)
-        #     kk = kk + 1
-
-        # if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-        #     self.pause_scan = True
-        #     # The following should be optimized
-        #     self.lockin_status_warning_signal.emit(str(lia_status))
-
         print('Pausing for Lock-in settling...')
         print('lockin_delay: ' + str(self.lockin_delay))
         time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
 
         # Perform a "global synchronization"
-        self.lockin.daq.sync()
+        # self.lockin.daq.sync()
 
         if self.settings.ui.scan_auto_sens_checkbox.isChecked():
             print('Optimizing Lock-in Sensitivity...')
             self.lockin.auto_sens()
 
         print('Collecting Data....')
-        if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
-            print('From X/Y or R/Theta or Aux In 1')
-            if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
-                sample = self.lockin.collect_sample()
 
-            elif self.is_averaging_pts and not self.is_recording_transient:  # If averaging lockin results
-                pass
-                # ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time,
-                #                                               self.settings.lia.sampling_rate_idx,
-                #                                               record_both_channels=True)
-                # print('Averaging New Data...')
-                # ch1 = np.average(ch1_data)
-                # ch2 = np.average(ch2_data)
-            elif self.is_recording_transient:
-                pass
-                # ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
-                #                                     record_both_channels=True)
+        if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
+            sample = self.lockin.collect_sample()
+
+        elif self.is_averaging_pts and not self.is_recording_transient:  # If averaging lockin results
+            pass
+            # ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time,
+            #                                               self.settings.lia.sampling_rate_idx,
+            #                                               record_both_channels=True)
+            # print('Averaging New Data...')
+            # ch1 = np.average(ch1_data)
+            # ch2 = np.average(ch2_data)
+        elif self.is_recording_transient:
+            pass
+            # ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
+            #                                     record_both_channels=True)
 
         return sample
 
@@ -1072,15 +1148,24 @@ class MainWindow(QMainWindow):
         self.current_scan.loc[step_num, self.abscissa_name[0]] = self.current_position[0]
         self.ave_data_df.loc[step_num, self.column_headers[0]] = self.current_position[0]
 
-        self.current_scan.loc[step_num, 'X (Vrms)'] = self.current_sample["x"][0]
-        self.current_scan.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"][0]
-        self.current_scan.loc[step_num, 'R (Vrms)'] = self.current_sample["R"][0]
-        self.current_scan.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"][0]
-        self.current_scan.loc[step_num, 'Aux In 1'] = self.current_sample["auxin0"][0]
-        self.current_scan.loc[step_num, 'Aux In 2'] = self.current_sample["auxin1"][0]
-        self.current_scan.loc[step_num, 'Frequency'] = self.current_sample["frequency"][0]
-        self.current_scan.loc[step_num, 'Phase'] = self.current_sample["phase"][0]
-        self.all_scans[scan_num] = self.current_scan
+        if 'X (Vrms)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
+        if 'Y (Vrms)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
+        if 'R (Vrms)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
+        if 'Theta (deg)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
+        if 'Aux In 1' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Aux In 1'] = self.current_sample["auxin0"]
+        if 'Aux In 2' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Aux In 2'] = self.current_sample["auxin1"]
+        if 'Frequency' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
+        if 'Phase' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Phase'] = self.current_sample["phase"]
+
+        # self.all_scans_dim1[scan_num] = self.current_scan
         if scan_num == 0:
             # self.actual_x_values[step_num] = self.current_position[0]
             #
@@ -1099,8 +1184,8 @@ class MainWindow(QMainWindow):
         for ii in range(0, num_cols):
             for jj in range(0, step_num+1):
                 cur_sum = 0
-                for kk in range(0, len(self.all_scans)):
-                    cur_sum = cur_sum + self.all_scans[kk].loc[jj, self.column_headers[ii]]
+                for kk in range(0, len(self.stored_data.scans_2d[dim2_scan_num][dim2_step_num])):
+                    cur_sum = cur_sum + self.stored_data.scans_2d[dim2_scan_num][dim2_step_num][kk].loc[jj, self.column_headers[ii]]
                 self.ave_data_df.loc[jj, self.column_headers[ii]] = cur_sum / (scan_num + 1)
 
         # Before UHFLI:
@@ -1122,32 +1207,32 @@ class MainWindow(QMainWindow):
         # print('self.ave_data_df:')
         # print(self.ave_data_df)
 
-    @helpers.measure_time
-    def distribute_results(self, ii, jj, ll, mm):
-        if jj == 0:
-            self.actual_x_values[ii] = self.current_position[0]
-            self.ch1_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
-            self.ch2_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
-            self.ave_data_df.loc[ii, self.column_headers[0]] = self.current_position[0]
-            if self.num_dims == 2:
-                self.ave_data_ch1_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
-                self.ave_data_ch2_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
-
-        ch1_df_mean = self.ch1_scans_df.iloc[:, 1:].mean(axis=1)  # Average all columns except the first
-        ch2_df_mean = self.ch2_scans_df.iloc[:, 1:].mean(axis=1)
-
-        self.ave_data_df.loc[:, self.output_name[0]] = ch1_df_mean
-        self.ave_data_df.loc[:, self.output_name[1]] = ch2_df_mean
-
-        if self.num_dims == 2:
-            # self.ave_data_ch1_df[mm].loc[:, self.current_position[1]] = ch1_df_mean
-            # self.ave_data_ch2_df[mm].loc[:, self.current_position[1]] = ch2_df_mean
-
-            self.ave_data_ch1_df[mm].iloc[:, ll + 1] = ch1_df_mean
-            self.ave_data_ch2_df[mm].iloc[:, ll + 1] = ch2_df_mean
-
-        print('self.ave_data_df:')
-        print(self.ave_data_df)
+    # @helpers.measure_time
+    # def distribute_results(self, ii, jj, ll, mm):
+    #     if jj == 0:
+    #         self.actual_x_values[ii] = self.current_position[0]
+    #         self.ch1_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+    #         self.ch2_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+    #         self.ave_data_df.loc[ii, self.column_headers[0]] = self.current_position[0]
+    #         if self.num_dims == 2:
+    #             self.ave_data_ch1_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+    #             self.ave_data_ch2_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+    #
+    #     ch1_df_mean = self.ch1_scans_df.iloc[:, 1:].mean(axis=1)  # Average all columns except the first
+    #     ch2_df_mean = self.ch2_scans_df.iloc[:, 1:].mean(axis=1)
+    #
+    #     self.ave_data_df.loc[:, self.output_name[0]] = ch1_df_mean
+    #     self.ave_data_df.loc[:, self.output_name[1]] = ch2_df_mean
+    #
+    #     if self.num_dims == 2:
+    #         # self.ave_data_ch1_df[mm].loc[:, self.current_position[1]] = ch1_df_mean
+    #         # self.ave_data_ch2_df[mm].loc[:, self.current_position[1]] = ch2_df_mean
+    #
+    #         self.ave_data_ch1_df[mm].iloc[:, ll + 1] = ch1_df_mean
+    #         self.ave_data_ch2_df[mm].iloc[:, ll + 1] = ch2_df_mean
+    #
+    #     print('self.ave_data_df:')
+    #     print(self.ave_data_df)
 
     def clear_plots(self):
         if self.plot1 is not None:
@@ -1169,7 +1254,7 @@ class MainWindow(QMainWindow):
         print('inside plot results 2')
         color1 = '#0000FF'  # Blue
         color2 = '#FF0000'  # Red
-        if jj > 0 and ii == 0:
+        if ii == 0:
             print('Cleared Plots')
             self.ui.PlotWidget.clear()
             self.ui.PlotWidget2.clear()
@@ -1177,27 +1262,20 @@ class MainWindow(QMainWindow):
             # self.ui.PlotWidget2.update()
         # self.set_1d_plot_properties()
         if not self.is_recording_transient:
-            # ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
-            # ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
             upper_plot_y_axis = self.ui.upper_plot_obs_cmbx.currentText()
             lower_plot_y_axis = self.ui.lower_plot_obs_cmbx.currentText()
+            self.ui.PlotWidget.setLabels(left=upper_plot_y_axis)
+            self.ui.PlotWidget2.setLabels(left=lower_plot_y_axis)
+
             cur_scan = self.current_scan.to_numpy(np.float32)
             cur_x = cur_scan[:, 0]
+
             cur_ch1 = self.current_scan.loc[:, upper_plot_y_axis].to_numpy(np.float32)
             cur_ch2 = self.current_scan.loc[:, lower_plot_y_axis].to_numpy(np.float32)
-            # cur_x = ch1_scans[:, 0]
-            # cur_ch1 = ch1_scans[:, jj + 1]
-            # cur_ch2 = ch2_scans[:, jj + 1]
-            # ave_data = self.ave_data_df.to_numpy(np.float32)
+
             ave_ch1 = self.ave_data_df.loc[:, upper_plot_y_axis].to_numpy(np.float32)
             ave_ch2 = self.ave_data_df.loc[:, lower_plot_y_axis].to_numpy(np.float32)
-            # Before UHFLI:
-            # ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
-            # ch2_scans = self.ch2_scans_df.to_numpy(np.float32)
-            # cur_x = ch1_scans[:, 0]
-            # cur_ch1 = ch1_scans[:, jj+1]
-            # cur_ch2 = ch2_scans[:, jj+1]
-            # ave_data = self.ave_data_df.to_numpy(np.float32)
+
         else:
             pass
             # ch1_scans = self.ch1_scans_df.to_numpy(np.float32)
@@ -1213,9 +1291,6 @@ class MainWindow(QMainWindow):
             # cur_x = np.linspace(0, actual_dur, cur_length)
             # ave_data = self.ave_data_df.to_numpy(np.float32)
 
-        # I think this should go in set_1d_plot_properties, but I'm not sure right now
-        # self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
-        # self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0], left=self.output_name[1])
 
         if jj == 0 and ii == 0:
             color_plot1 = '#0000FF'  # Blue
@@ -1301,58 +1376,58 @@ class MainWindow(QMainWindow):
             self.plot4.setData(self.actual_x_values, ave_ch2)
         return
 
-    @helpers.measure_time
-    def save_stuff(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
-        if self.data_details is None:
-            self.status_message_signal.emit('No stored data to save')
-            return
-
-        obs1, obs2 = self.data_details.output_names[:]      # as in observable 1 and 2 (R/Theta or X/Y)
-        # If the user requested to save AFTER collecting the data, then a directory will need to be created
-        if manual is True:
-            filename, filetype = self.save_file_dialog()
-
-            if filename is not None:
-                os.mkdir(filename)
-                filename = filename + '\\'
-            else:
-                return
-
-        # If the user didn't cancel saving
-        if filename is not None:
-            if loop_index == 'jj' or manual is True:
-                # After each 1D scan, save that scan
-                if self.data_details.num_dims == 1:
-                    # Overwrite file to create growing data matrix (number of points (rows) x number of scans (cols)
-                    fname = filename + 'Scans - '
-                    self.save_data(data_frame=self.ch1_scans_df, filename=(fname + obs1), filetype=filetype)
-                    self.save_data(data_frame=self.ch2_scans_df, filename=(fname + obs2), filetype=filetype)
-                    if sc_idx_1d > 0 or (manual is True and self.data_details.num_scans[0] > 0):
-                        # If more than one scan has occurred, save the average. Overwrite that file after add'l scans
-                        self.save_data(data_frame=self.ave_data_df, filename=(filename + 'Ave Data'), filetype=filetype)
-                        self.status_message_signal.emit('Updated and Saved Average Data........')
-                elif self.data_details.num_dims == 2 and manual is False:
-                    # Overwrite file to create growing matrix (number of 1st-D pts (rows) x number of 1st-D scans (cols)
-                    # Each 2nd-D pt gets its own file with a distinct name.
-                    fname = (filename + str(self.current_position[1]) + self.units[1] + ', Scans - ')
-                    self.save_data(data_frame=self.ch1_scans_df, filetype=filetype, filename=fname + obs1)
-                    self.save_data(data_frame=self.ch2_scans_df, filetype=filetype, filename=fname + obs2)
-                self.status_message_signal.emit('Saved Scan Data.......')
-
-            if self.data_details.num_dims == 2 and (loop_index == 'll' or manual is True):
-                # Save each 2D scan (each one is a matrix)
-                if manual is False:
-                    fn = filename + '2D Scan ' + str(sc_idx_2d) + ' - '
-                    self.save_data(data_frame=self.ave_data_ch1_df[sc_idx_2d], filetype=filetype, filename=(fn + obs1))
-                    self.save_data(data_frame=self.ave_data_ch2_df[sc_idx_2d], filetype=filetype, filename=(fn + obs2))
-                    self.status_message_signal.emit('Saved 2D Scan Data........')
-                    # Ideally we would add an if statement to average together multiple 2D scans. But idk how yet
-                elif manual is True:
-                    fn = filename + '2D Scan ' + str(sc_idx_2d) + ' - '
-                    for scan in range(0, len(self.ave_data_ch1_df)):
-                        self.save_data(data_frame=self.ave_data_ch1_df[scan], filetype=filetype, filename=(fn + obs1))
-                        self.save_data(data_frame=self.ave_data_ch2_df[scan], filetype=filetype, filename=(fn + obs2))
-                    self.status_message_signal.emit('Saved 2D Scan Data........')
+    # @helpers.measure_time
+    # def save_stuff(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
+    #     if self.data_details is None:
+    #         self.status_message_signal.emit('No stored data to save')
+    #         return
+    #
+    #     obs1, obs2 = self.data_details.output_names[:]      # as in observable 1 and 2 (R/Theta or X/Y)
+    #     # If the user requested to save AFTER collecting the data, then a directory will need to be created
+    #     if manual is True:
+    #         filename, filetype = self.save_file_dialog()
+    #
+    #         if filename is not None:
+    #             os.mkdir(filename)
+    #             filename = filename + '\\'
+    #         else:
+    #             return
+    #
+    #     # If the user didn't cancel saving
+    #     if filename is not None:
+    #         if loop_index == 'jj' or manual is True:
+    #             # After each 1D scan, save that scan
+    #             if self.data_details.num_dims == 1:
+    #                 # Overwrite file to create growing data matrix (number of points (rows) x number of scans (cols)
+    #                 fname = filename + 'Scans - '
+    #                 self.save_data(data_frame=self.ch1_scans_df, filename=(fname + obs1), filetype=filetype)
+    #                 self.save_data(data_frame=self.ch2_scans_df, filename=(fname + obs2), filetype=filetype)
+    #                 if sc_idx_1d > 0 or (manual is True and self.data_details.num_scans[0] > 0):
+    #                     # If more than one scan has occurred, save the average. Overwrite that file after add'l scans
+    #                     self.save_data(data_frame=self.ave_data_df, filename=(filename + 'Ave Data'), filetype=filetype)
+    #                     self.status_message_signal.emit('Updated and Saved Average Data........')
+    #             elif self.data_details.num_dims == 2 and manual is False:
+    #                 # Overwrite file to create growing matrix (number of 1st-D pts (rows) x number of 1st-D scans (cols)
+    #                 # Each 2nd-D pt gets its own file with a distinct name.
+    #                 fname = (filename + str(self.current_position[1]) + self.units[1] + ', Scans - ')
+    #                 self.save_data(data_frame=self.ch1_scans_df, filetype=filetype, filename=fname + obs1)
+    #                 self.save_data(data_frame=self.ch2_scans_df, filetype=filetype, filename=fname + obs2)
+    #             self.status_message_signal.emit('Saved Scan Data.......')
+    #
+    #         if self.data_details.num_dims == 2 and (loop_index == 'll' or manual is True):
+    #             # Save each 2D scan (each one is a matrix)
+    #             if manual is False:
+    #                 fn = filename + '2D Scan ' + str(sc_idx_2d) + ' - '
+    #                 self.save_data(data_frame=self.ave_data_ch1_df[sc_idx_2d], filetype=filetype, filename=(fn + obs1))
+    #                 self.save_data(data_frame=self.ave_data_ch2_df[sc_idx_2d], filetype=filetype, filename=(fn + obs2))
+    #                 self.status_message_signal.emit('Saved 2D Scan Data........')
+    #                 # Ideally we would add an if statement to average together multiple 2D scans. But idk how yet
+    #             elif manual is True:
+    #                 fn = filename + '2D Scan ' + str(sc_idx_2d) + ' - '
+    #                 for scan in range(0, len(self.ave_data_ch1_df)):
+    #                     self.save_data(data_frame=self.ave_data_ch1_df[scan], filetype=filetype, filename=(fn + obs1))
+    #                     self.save_data(data_frame=self.ave_data_ch2_df[scan], filetype=filetype, filename=(fn + obs2))
+    #                 self.status_message_signal.emit('Saved 2D Scan Data........')
 
     @helpers.measure_time
     def save_stuff_uhfli(self, filename=None, filetype=None, loop_index=None, sc_idx_1d=0, sc_idx_2d=0, manual=False):
@@ -1379,19 +1454,33 @@ class MainWindow(QMainWindow):
                     # Create a new file for each scan
                     fname = filename + 'Scan ' + str(sc_idx_1d)
                     self.save_data(data_frame=self.current_scan, filename=fname, filetype=filetype)
-                    # self.save_data(data_frame=self.ch1_scans_df, filename=(fname + obs1), filetype=filetype)
-                    # self.save_data(data_frame=self.ch2_scans_df, filename=(fname + obs2), filetype=filetype)
+
                     if sc_idx_1d > 0 or (manual is True and self.data_details.num_scans[0] > 0):
                         # If more than one scan has occurred, save the average. Overwrite that file after add'l scans
                         self.save_data(data_frame=self.ave_data_df, filename=(filename + 'Ave Data'), filetype=filetype)
                         self.status_message_signal.emit('Updated and Saved Average Data........')
                 elif self.data_details.num_dims == 2 and manual is False:
+                    # Create a folder for each 2D scan
+                    fname_2d = filename + '\\2D Scan ' + str(sc_idx_2d)
+                    if not os.path.isdir(fname_2d):
+                        os.mkdir(fname_2d)
+                    filename = fname_2d + '\\'
+
                     # Overwrite file to create growing matrix (number of 1st-D pts (rows) x number of 1st-D scans (cols)
                     # Each 2nd-D pt gets its own file with a distinct name.
                     print('2D Data Under Construction')
-                    # fname = (filename + str(self.current_position[1]) + self.units[1] + ', Scans - ')
+                    fname = (filename + str(self.current_position[1]) + self.units[1] + ', Sweep ' + str(sc_idx_1d))
                     # self.save_data(data_frame=self.ch1_scans_df, filetype=filetype, filename=fname + obs1)
                     # self.save_data(data_frame=self.ch2_scans_df, filetype=filetype, filename=fname + obs2)
+                    self.save_data(data_frame=self.current_scan, filename=fname, filetype=filetype)
+
+                    if sc_idx_1d > 0 or (manual is True and self.data_details.num_scans[0] > 0):
+                        dir_name_ave = filename + '\\Average'
+                        if not os.path.isdir(dir_name_ave):
+                            os.mkdir(dir_name_ave)
+                        # If more than one scan has occurred, save the average. Overwrite that file after add'l scans
+                        self.save_data(data_frame=self.ave_data_df, filename=(dir_name_ave + '\\' + str(self.current_position[1]) + self.units[1]), filetype=filetype)
+                        self.status_message_signal.emit('Updated and Saved Average Data........')
                 self.status_message_signal.emit('Saved Scan Data.......')
 
             if self.data_details.num_dims == 2 and (loop_index == 'll' or manual is True):
@@ -1409,53 +1498,6 @@ class MainWindow(QMainWindow):
                         self.save_data(data_frame=self.ave_data_ch2_df[scan], filetype=filetype, filename=(fn + obs2))
                     self.status_message_signal.emit('Saved 2D Scan Data........')
 
-    # @helpers.measure_time
-    # def save_stuff(self, filename=None, filetype=None, loop_index='ii', loop_iteration=0, scan_idx_2d=0, manual=False):
-    #
-    #     if manual is True:
-    #         filename, filetype = self.save_file_dialog()
-    #
-    #         if filename is not None:
-    #             os.mkdir(filename)
-    #             filename = filename + '\\'
-    #         else:
-    #             return
-    #
-    #     if filename is not None:
-    #         if (loop_index == 'jj' or manual is True) and self.data_details.num_scans[0] > 1:
-    #             if self.data_details.num_dims == 1:
-    #                 self.save_data(data_frame=self.ch1_scans_df,
-    #                                filename=(filename + 'Scans - ' + self.data_details.output_names[0]), filetype=filetype)
-    #                 self.save_data(data_frame=self.ch2_scans_df,
-    #                                filename=(filename + 'Scans - ' + self.data_details.output_names[1]), filetype=filetype)
-    #             elif self.data_details.num_dims == 2 and manual is False:
-    #                 self.save_data(data_frame=self.ch1_scans_df, filetype=filetype,
-    #                                filename=(filename + str(self.current_position[1]) + self.units[1] +
-    #                                          ', Scans - ' + self.data_details.output_names[0]))
-    #                 self.save_data(data_frame=self.ch2_scans_df, filetype=filetype,
-    #                                filename=(filename + str(self.current_position[1]) + self.units[1] +
-    #                                          ', Scans - ' + self.data_details.output_names[1]))
-    #             print('-------------------------------Saved Scan Data-----------------------------------------')
-    #
-    #         elif loop_index == 'll':
-    #             if self.data_details.num_dims == 2 and self.data_details.num_scans[1] > 1:
-    #                 self.save_data(data_frame=self.ave_data_ch1_df[scan_idx_2d], filetype=filetype,
-    #                                filename=(filename + '2D Scan ' + str(loop_iteration) + ' - ' + self.data_details.output_names[0]))
-    #                 self.save_data(data_frame=self.ave_data_ch2_df[scan_idx_2d], filetype=filetype,
-    #                                filename=(filename + '2D Scan ' + str(loop_iteration) + ' - ' + self.data_details.output_names[1]))
-    #                 print('-------------------------------Saved 2D Scan Data--------------------------------------')
-    #
-    #         elif loop_index == 'end' or manual is True:
-    #             if self.data_details.num_dims == 1:
-    #                 self.save_data(data_frame=self.ave_data_df, filename=(filename + 'Ave Data'), filetype=filetype)
-    #             # elif self.data_details.num_dims == 2 and self.data_details.num_scans[1] <= 1:
-    #             #     self.save_data(data_frame=self.ave_data_ch1_df[mm], filetype=filetype,
-    #             #                    filename=(filename + 'Ave Data Matrix - ' + self.data_details.output_names[0]))
-    #             #     self.save_data(data_frame=self.ave_data_ch2_df[mm], filetype=filetype,
-    #             #                    filename=(filename + 'Ave Data Matrix - ' + self.data_details.output_names[1]))
-    #             print('--------------------------------------- DATA SAVED---------------------------------------------')
-    #         else:
-    #             raise ValueError('Invalid loop index for saving data')
 
     @QtCore.pyqtSlot()
     def save_data(self, data_frame=None, filename=None, filetype=None):
@@ -1638,8 +1680,11 @@ class MainWindow(QMainWindow):
         # self.ui.PlotWidget.setLogMode(x=self.is_x_log_scaled[0])
         # self.ui.PlotWidget2.setLogMode(x=self.is_x_log_scaled[0])
 
-        self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
-        self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0], left=self.output_name[1])
+        # self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0], left=self.output_name[0])
+        # self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0], left=self.output_name[1])
+
+        self.ui.PlotWidget.setLabels(bottom=self.abscissa_name[0])
+        self.ui.PlotWidget2.setLabels(bottom=self.abscissa_name[0])
         # self.axis_1.set_xscale(self.is_x_log_scaled[0])
         print('set xscale')
         if self.step_count[0] != 1:
@@ -2498,7 +2543,7 @@ class MainWindow(QMainWindow):
         self.settings.ui.harmonic_spbx.valueChanged[int].connect(self.lockin.update_harmonic)
         self.settings.ui.phase_spbx.valueChanged[float].connect(self.lockin.update_phase)
         self.settings.ui.input_impedance_cbx.activated[int].connect(self.lockin.update_input_impedance)
-        self.settings.ui.outputs_cbx.activated[int].connect(self.lockin.update_outputs)
+        # self.settings.ui.outputs_cbx.activated[int].connect(self.lockin.update_outputs)
         self.settings.ui.ref_impedance_cbx.activated[int].connect(self.lockin.update_ref_impedance)
         self.settings.ui.ref_source_cbx.activated[int].connect(self.lockin.update_ref_source)
         self.settings.ui.sampling_rate_cbx.activated[int].connect(self.lockin.update_sampling_rate)

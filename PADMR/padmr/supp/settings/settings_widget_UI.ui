@@ -38,8 +38,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>587</width>
-            <height>605</height>
+            <width>566</width>
+            <height>611</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
@@ -565,17 +565,10 @@
        <string>Lock-in</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lockin_model_lnedt">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_17">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_49">
          <property name="text">
-          <string>Lock-in Model</string>
+          <string>Settling Delay (# of TCs)</string>
          </property>
         </widget>
        </item>
@@ -589,645 +582,657 @@
            <string>Zurich Instruments</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_11">
-           <item row="7" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_coupling_cbx_2">
-             <item>
-              <property name="text">
-               <string>DC</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AC</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="12" column="3" colspan="2">
-            <widget class="QSpinBox" name="uhfli_harm_spbx_2">
-             <property name="minimum">
-              <number>1</number>
+           <item row="0" column="0" colspan="2">
+            <widget class="QScrollArea" name="scrollArea_4">
+             <property name="widgetResizable">
+              <bool>true</bool>
              </property>
-             <property name="maximum">
-              <number>1023</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_41">
-             <property name="text">
-              <string>Input Impedance</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3" colspan="2">
-            <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx_2"/>
-           </item>
-           <item row="13" column="1" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_phase_spbx">
-             <property name="minimum">
-              <double>-180.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>180.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_cbx_2">
-             <item>
-              <property name="text">
-               <string>Sig In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Sig In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Trig In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Trig In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 3</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 4</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Phi of Demod 4</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Phi of Demod 8</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_44">
-             <property name="text">
-              <string>Range</string>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="0">
-            <widget class="QLabel" name="label_62">
-             <property name="text">
-              <string>Harmonic</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="uhfli_demod2_label">
-             <property name="text">
-              <string>Secondary Demodulator</string>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="1" colspan="2">
-            <widget class="QSpinBox" name="uhfli_harm_spbx">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>1023</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_30">
-             <property name="text">
-              <string>Demodulator Index</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_45">
-             <property name="font">
-              <font>
-               <italic>true</italic>
-              </font>
-             </property>
-             <property name="text">
-              <string>Signal Input</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="3" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_freq_spbx_2"/>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_42">
-             <property name="text">
-              <string>Coupling</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="3" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_phase_spbx_2">
-             <property name="minimum">
-              <double>-180.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>180.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="3" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_range_spbx_2"/>
-           </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="label_60">
-             <property name="text">
-              <string>Oscillator</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_ref_mode_cbx_2">
-             <item>
-              <property name="text">
-               <string>Manual</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Mod</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>PLL</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref Low BW</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref High BW</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="15" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>Filter Order</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_ref_mode_cbx">
-             <item>
-              <property name="text">
-               <string>Manual</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Mod</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>PLL</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref Low BW</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>External Ref High BW</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="16" column="1" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx"/>
-           </item>
-           <item row="15" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_filter_order_cbx_2">
-             <item>
-              <property name="text">
-               <string>1 (6 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2 (12 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>3 (18 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>4 (24 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>5 (30 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>6 (36 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>7 (42 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>8 (48 dB/Oct)</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="16" column="0">
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>Time Constant</string>
-             </property>
-            </widget>
-           </item>
-           <item row="14" column="0">
-            <widget class="QLabel" name="label_58">
-             <property name="font">
-              <font>
-               <italic>true</italic>
-              </font>
-             </property>
-             <property name="text">
-              <string>Low Pass Filter</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_cbx">
-             <item>
-              <property name="text">
-               <string>Sig In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Sig In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Trig In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Trig In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 3</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 4</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux In 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux In 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Phi of Demod 4</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Phi of Demod 8</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="5" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_impedance_cbx_2">
-             <item>
-              <property name="text">
-               <string>50 Ω</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1 MΩ</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="16" column="3" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx_2"/>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_61">
-             <property name="text">
-              <string>Frequency</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="1" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_freq_spbx"/>
-           </item>
-           <item row="10" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_osc_idx_cbx_2">
-             <item>
-              <property name="text">
-               <string>1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_59">
-             <property name="font">
-              <font>
-               <italic>true</italic>
-              </font>
-             </property>
-             <property name="text">
-              <string>Reference Oscillators</string>
-             </property>
-            </widget>
-           </item>
-           <item row="15" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_filter_order_cbx">
-             <item>
-              <property name="text">
-               <string>1 (6 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2 (12 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>3 (18 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>4 (24 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>5 (30 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>6 (36 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>7 (42 dB/Oct)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>8 (48 dB/Oct)</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="label_64">
-             <property name="text">
-              <string>Mode</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1" colspan="2">
-            <widget class="QDoubleSpinBox" name="uhfli_range_spbx"/>
-           </item>
-           <item row="5" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_impedance_cbx">
-             <item>
-              <property name="text">
-               <string>50 Ω</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1 MΩ</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="10" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_osc_idx_cbx">
-             <item>
-              <property name="text">
-               <string>1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="label_31">
-             <property name="text">
-              <string>Primary Demodulator</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QCheckBox" name="uhfli_demod2_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::RightToLeft</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx"/>
-           </item>
-           <item row="7" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_input_coupling_cbx">
-             <item>
-              <property name="text">
-               <string>DC</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AC</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_40">
-             <property name="text">
-              <string>Input Signal</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="0">
-            <widget class="QLabel" name="label_63">
-             <property name="text">
-              <string>Phase (deg.)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="17" column="0">
-            <widget class="QLabel" name="label_39">
-             <property name="text">
-              <string>Output</string>
-             </property>
-            </widget>
-           </item>
-           <item row="17" column="1" colspan="2">
-            <widget class="QComboBox" name="uhfli_output">
-             <item>
-              <property name="text">
-               <string>to PC</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 3</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 4</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="17" column="3" colspan="2">
-            <widget class="QComboBox" name="uhfli_output_2">
-             <item>
-              <property name="text">
-               <string>to PC</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 3</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Aux Out 4</string>
-              </property>
-             </item>
+             <widget class="QWidget" name="scrollAreaWidgetContents_4">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>538</width>
+                <height>500</height>
+               </rect>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_15">
+               <item row="14" column="0">
+                <widget class="QLabel" name="label_58">
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Low Pass Filter</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QComboBox" name="uhfli_input_coupling_cbx">
+                 <item>
+                  <property name="text">
+                   <string>DC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>AC</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="15" column="0">
+                <widget class="QLabel" name="label_14">
+                 <property name="text">
+                  <string>Filter Order</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="1">
+                <widget class="QComboBox" name="uhfli_filter_order_cbx">
+                 <item>
+                  <property name="text">
+                   <string>1 (6 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2 (12 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>3 (18 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>4 (24 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>5 (30 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>6 (36 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>7 (42 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>8 (48 dB/Oct)</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="16" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx"/>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="label_44">
+                 <property name="text">
+                  <string>Range</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QComboBox" name="uhfli_input_impedance_cbx">
+                 <item>
+                  <property name="text">
+                   <string>50 Ω</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1 MΩ</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="8" column="3">
+                <widget class="QComboBox" name="uhfli_ref_mode_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>Manual</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Mod</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>PLL</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref Low BW</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref High BW</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QComboBox" name="uhfli_ref_mode_cbx">
+                 <item>
+                  <property name="text">
+                   <string>Manual</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Mod</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>PLL</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref Low BW</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref High BW</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="4" column="3">
+                <widget class="QComboBox" name="uhfli_input_impedance_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>50 Ω</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1 MΩ</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_range_spbx"/>
+               </item>
+               <item row="12" column="1">
+                <widget class="QSpinBox" name="uhfli_harm_spbx">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1023</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx">
+                 <property name="minimum">
+                  <double>-180.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>180.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="3">
+                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx_2"/>
+               </item>
+               <item row="11" column="0">
+                <widget class="QLabel" name="label_61">
+                 <property name="text">
+                  <string>Frequency</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_40">
+                 <property name="text">
+                  <string>Input Signal</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_45">
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Signal Input</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0">
+                <widget class="QLabel" name="label_63">
+                 <property name="text">
+                  <string>Phase (deg.)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_60">
+                 <property name="text">
+                  <string>Oscillator</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="17" column="3">
+                <widget class="QComboBox" name="uhfli_output_2">
+                 <item>
+                  <property name="text">
+                   <string>to PC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 4</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="12" column="3">
+                <widget class="QSpinBox" name="uhfli_harm_spbx_2">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1023</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="3">
+                <widget class="QComboBox" name="uhfli_filter_order_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>1 (6 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2 (12 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>3 (18 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>4 (24 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>5 (30 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>6 (36 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>7 (42 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>8 (48 dB/Oct)</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QComboBox" name="uhfli_osc_idx_cbx">
+                 <item>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="11" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx_2"/>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_42">
+                 <property name="text">
+                  <string>Coupling</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label_59">
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Reference Oscillators</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx_2">
+                 <property name="minimum">
+                  <double>-180.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>180.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="12" column="0">
+                <widget class="QLabel" name="label_62">
+                 <property name="text">
+                  <string>Harmonic</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_30">
+                 <property name="text">
+                  <string>Demodulator Index</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="3">
+                <widget class="QComboBox" name="uhfli_osc_idx_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="17" column="0">
+                <widget class="QLabel" name="label_39">
+                 <property name="text">
+                  <string>Output</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_41">
+                 <property name="text">
+                  <string>Input Impedance</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QCheckBox" name="uhfli_demod2_checkbox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>Secondary Demodulator</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="0">
+                <widget class="QLabel" name="label_16">
+                 <property name="text">
+                  <string>Time Constant</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="label_31">
+                 <property name="text">
+                  <string>Primary Demodulator</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="3">
+                <widget class="QComboBox" name="uhfli_input_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>Sig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Sig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 8</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx"/>
+               </item>
+               <item row="6" column="3">
+                <widget class="QComboBox" name="uhfli_input_coupling_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>DC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>AC</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QComboBox" name="uhfli_input_cbx">
+                 <item>
+                  <property name="text">
+                   <string>Sig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Sig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 8</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx"/>
+               </item>
+               <item row="5" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_range_spbx_2"/>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_64">
+                 <property name="text">
+                  <string>Mode</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="17" column="1">
+                <widget class="QComboBox" name="uhfli_output">
+                 <item>
+                  <property name="text">
+                   <string>to PC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 4</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="16" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx_2"/>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>
@@ -1248,32 +1253,32 @@
                 <x>0</x>
                 <y>0</y>
                 <width>538</width>
-                <height>575</height>
+                <height>546</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout">
-               <item row="6" column="0">
+               <item row="5" column="0">
                 <widget class="QLabel" name="label_3">
                  <property name="text">
                   <string>Sensitivity</string>
                  </property>
                 </widget>
                </item>
-               <item row="11" column="0">
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>Close Reserve (SR844)</string>
-                 </property>
+               <item row="16" column="1">
+                <widget class="CustomComboBox" name="sr844_harmonic_cbx">
+                 <item>
+                  <property name="text">
+                   <string>Off</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>On</string>
+                  </property>
+                 </item>
                 </widget>
                </item>
-               <item row="20" column="0">
-                <widget class="QLabel" name="label_8">
-                 <property name="text">
-                  <string>Expand</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="1">
+               <item row="9" column="1">
                 <widget class="CustomComboBox" name="wide_reserve_cbx">
                  <item>
                   <property name="text">
@@ -1292,32 +1297,46 @@
                  </item>
                 </widget>
                </item>
-               <item row="13" column="0">
+               <item row="12" column="0">
                 <widget class="QLabel" name="label_5">
                  <property name="text">
                   <string>Sampling Rate</string>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="label_2">
+               <item row="4" column="2">
+                <widget class="QPushButton" name="auto_offset_btn">
                  <property name="text">
-                  <string>Outputs</string>
+                  <string>Auto Offset R</string>
                  </property>
                 </widget>
                </item>
-               <item row="8" column="0">
-                <widget class="QLabel" name="label_15">
+               <item row="11" column="0">
+                <widget class="QLabel" name="label_18">
                  <property name="text">
-                  <string>Filter Slope</string>
+                  <string>Dynamic Reserve (SR830)</string>
                  </property>
                 </widget>
                </item>
-               <item row="12" column="1">
-                <widget class="CustomComboBox" name="dynamic_reserve_cbx">
+               <item row="18" column="2">
+                <widget class="QPushButton" name="auto_phase_btn">
+                 <property name="text">
+                  <string>Auto Phase</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="0">
+                <widget class="QLabel" name="label_9">
+                 <property name="text">
+                  <string>Ref Impedance (SR844)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="CustomComboBox" name="close_reserve_cbx">
                  <item>
                   <property name="text">
-                   <string>High Reserve (Max)</string>
+                   <string>High</string>
                   </property>
                  </item>
                  <item>
@@ -1327,43 +1346,172 @@
                  </item>
                  <item>
                   <property name="text">
-                   <string>Low Noise (Min)</string>
+                   <string>Low Noise</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Auto</string>
                   </property>
                  </item>
                 </widget>
                </item>
-               <item row="3" column="1">
-                <widget class="CustomComboBox" name="outputs_cbx">
+               <item row="14" column="1">
+                <widget class="CustomComboBox" name="ref_impedance_cbx">
                  <item>
                   <property name="text">
-                   <string>R / θ (V/degrees)</string>
+                   <string>50 Ω</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>X / Y</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux In 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Manual</string>
+                   <string>10 kΩ / 40 pF</string>
                   </property>
                  </item>
                 </widget>
                </item>
-               <item row="21" column="0" colspan="2">
+               <item row="12" column="1">
+                <widget class="CustomComboBox" name="sampling_rate_cbx">
+                 <item>
+                  <property name="text">
+                   <string>0.0625 (16 s)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>0.125 (8 s)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>0.250 (4 s)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>0.500 (2 s)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>8</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>16</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>32</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>64</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>128</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>256</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>512</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trigger</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>Time Constant</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Wide Reserve (SR844)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="19" column="0">
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string>Expand</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="2">
+                <widget class="QPushButton" name="auto_wreserve_btn">
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="0">
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Reference Source</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="20" column="0" colspan="2">
                 <widget class="QPushButton" name="save_as_dflt_btn">
                  <property name="text">
                   <string>Save as Default Values</string>
                  </property>
                 </widget>
                </item>
-               <item row="20" column="1">
+               <item row="18" column="1">
+                <widget class="CustomDoubleSpinBox" name="phase_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <double>-180.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>180.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="2">
+                <widget class="QPushButton" name="auto_creserve_btn">
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="19" column="1">
                 <widget class="CustomComboBox" name="expand_cbx">
                  <item>
                   <property name="text">
@@ -1382,56 +1530,84 @@
                  </item>
                 </widget>
                </item>
-               <item row="17" column="1">
-                <widget class="CustomComboBox" name="sr844_harmonic_cbx">
+               <item row="5" column="1">
+                <widget class="CustomComboBox" name="sensitivity_cbx">
                  <item>
                   <property name="text">
-                   <string>Off</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>On</string>
+                   <string>UNDER CONSTRUCTION</string>
                   </property>
                  </item>
                 </widget>
                </item>
-               <item row="16" column="1">
-                <widget class="CustomComboBox" name="ref_source_cbx">
-                 <item>
-                  <property name="text">
-                   <string>External</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Internal</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="5" column="2">
-                <widget class="QPushButton" name="auto_offset_btn">
+               <item row="7" column="0">
+                <widget class="QLabel" name="label_15">
                  <property name="text">
-                  <string>Auto Offset R</string>
+                  <string>Filter Slope</string>
                  </property>
                 </widget>
                </item>
-               <item row="19" column="2">
-                <widget class="QPushButton" name="auto_phase_btn">
+               <item row="5" column="2">
+                <widget class="QPushButton" name="auto_sens_btn">
                  <property name="text">
-                  <string>Auto Phase</string>
+                  <string>Auto</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="2">
+                <widget class="QPushButton" name="auto_dyn_reserve_btn">
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <widget class="CustomComboBox" name="dynamic_reserve_cbx">
+                 <item>
+                  <property name="text">
+                   <string>High Reserve (Max)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Normal</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Low Noise (Min)</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="13" column="1">
+                <widget class="CustomComboBox" name="input_impedance_cbx">
+                 <item>
+                  <property name="text">
+                   <string>50 Ω</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1 MΩ / 30 pF</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Close Reserve (SR844)</string>
                  </property>
                 </widget>
                </item>
                <item row="17" column="0">
-                <widget class="QLabel" name="label_19">
+                <widget class="QLabel" name="label_20">
                  <property name="text">
-                  <string>2F Detect Mode (SR844)</string>
+                  <string>Harmonic (SR830)</string>
                  </property>
                 </widget>
                </item>
-               <item row="9" column="1">
+               <item row="8" column="1">
                 <widget class="CustomComboBox" name="time_constant_cbx">
                  <item>
                   <property name="text">
@@ -1525,21 +1701,14 @@
                  </item>
                 </widget>
                </item>
-               <item row="15" column="0">
-                <widget class="QLabel" name="label_9">
+               <item row="21" column="0" colspan="2">
+                <widget class="QLabel" name="label_12">
                  <property name="text">
-                  <string>Ref Impedance (SR844)</string>
+                  <string>Note: Sensitivity default cannot be changed (damage risk)</string>
                  </property>
                 </widget>
                </item>
-               <item row="16" column="0">
-                <widget class="QLabel" name="label_10">
-                 <property name="text">
-                  <string>Reference Source</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="1">
+               <item row="7" column="1">
                 <widget class="CustomComboBox" name="filter_slope_cbx">
                  <item>
                   <property name="text">
@@ -1568,240 +1737,45 @@
                  </item>
                 </widget>
                </item>
-               <item row="15" column="1">
-                <widget class="CustomComboBox" name="ref_impedance_cbx">
-                 <item>
-                  <property name="text">
-                   <string>50 Ω</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>10 kΩ / 40 pF</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="14" column="1">
-                <widget class="CustomComboBox" name="input_impedance_cbx">
-                 <item>
-                  <property name="text">
-                   <string>50 Ω</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1 MΩ / 30 pF</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="6" column="1">
-                <widget class="CustomComboBox" name="sensitivity_cbx">
-                 <item>
-                  <property name="text">
-                   <string>UNDER CONSTRUCTION</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="13" column="1">
-                <widget class="CustomComboBox" name="sampling_rate_cbx">
-                 <item>
-                  <property name="text">
-                   <string>0.0625 (16 s)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>0.125 (8 s)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>0.250 (4 s)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>0.500 (2 s)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>4</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>8</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>16</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>32</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>64</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>128</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>256</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>512</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Trigger</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="10" column="2">
-                <widget class="QPushButton" name="auto_wreserve_btn">
-                 <property name="text">
-                  <string>Auto</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="18" column="0">
-                <widget class="QLabel" name="label_20">
-                 <property name="text">
-                  <string>Harmonic (SR830)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="1">
-                <widget class="CustomComboBox" name="close_reserve_cbx">
-                 <item>
-                  <property name="text">
-                   <string>High</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Normal</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Low Noise</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Auto</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="6" column="2">
-                <widget class="QPushButton" name="auto_sens_btn">
-                 <property name="text">
-                  <string>Auto</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="19" column="1">
-                <widget class="CustomDoubleSpinBox" name="phase_spbx">
-                 <property name="keyboardTracking">
-                  <bool>false</bool>
-                 </property>
-                 <property name="minimum">
-                  <double>-180.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>180.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="2">
-                <widget class="QPushButton" name="auto_creserve_btn">
-                 <property name="text">
-                  <string>Auto</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="12" column="2">
-                <widget class="QPushButton" name="auto_dyn_reserve_btn">
-                 <property name="text">
-                  <string>Auto</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="14" column="0">
-                <widget class="QLabel" name="label_6">
-                 <property name="text">
-                  <string>Input Impedance (SR844)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="19" column="0">
-                <widget class="QLabel" name="label_11">
-                 <property name="text">
-                  <string>Phase</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="0">
-                <widget class="QLabel" name="label_4">
-                 <property name="text">
-                  <string>Time Constant</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="22" column="0" colspan="2">
-                <widget class="QLabel" name="label_12">
-                 <property name="text">
-                  <string>Note: Sensitivity default cannot be changed (damage risk)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="0">
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>Wide Reserve (SR844)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="18" column="1">
+               <item row="17" column="1">
                 <widget class="CustomSpinBox" name="harmonic_spbx">
                  <property name="keyboardTracking">
                   <bool>false</bool>
                  </property>
                 </widget>
                </item>
-               <item row="12" column="0">
-                <widget class="QLabel" name="label_18">
+               <item row="13" column="0">
+                <widget class="QLabel" name="label_6">
                  <property name="text">
-                  <string>Dynamic Reserve (SR830)</string>
+                  <string>Input Impedance (SR844)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="0">
+                <widget class="QLabel" name="label_19">
+                 <property name="text">
+                  <string>2F Detect Mode (SR844)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="1">
+                <widget class="CustomComboBox" name="ref_source_cbx">
+                 <item>
+                  <property name="text">
+                   <string>External</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Internal</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="18" column="0">
+                <widget class="QLabel" name="label_11">
+                 <property name="text">
+                  <string>Phase</string>
                  </property>
                 </widget>
                </item>
@@ -1813,6 +1787,20 @@
          </widget>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lockin_model_lnedt">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Lock-in Model</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="1">
         <widget class="CustomDoubleSpinBox" name="lockin_delay_scale_spbx">
          <property name="keyboardTracking">
@@ -1820,12 +1808,75 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_49">
-         <property name="text">
-          <string>Settling Delay (# of TCs)</string>
-         </property>
-        </widget>
+       <item row="3" column="0" colspan="2">
+        <layout class="QGridLayout" name="gridLayout_16">
+         <item row="1" column="2">
+          <widget class="QCheckBox" name="is_record_auxin1">
+           <property name="text">
+            <string>Aux In 1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="is_record_y">
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="is_record_r">
+           <property name="text">
+            <string>R</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="is_record_x">
+           <property name="text">
+            <string>X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QCheckBox" name="is_record_auxin2">
+           <property name="text">
+            <string>Aux In 2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="is_record_theta">
+           <property name="text">
+            <string>Theta</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QCheckBox" name="is_record_freq">
+           <property name="text">
+            <string>Frequency</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QCheckBox" name="is_record_phase">
+           <property name="text">
+            <string>Phase</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="4">
+          <widget class="QLabel" name="label_81">
+           <property name="text">
+            <string>Observables to Record</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
