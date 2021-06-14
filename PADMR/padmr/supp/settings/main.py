@@ -248,7 +248,7 @@ class SettingsWindowForm(QWidget):
         self.uhfli.demod1.range = float(param_lines[144].split('#')[0].split()[2])
         self.uhfli.demod1.coupling = int(param_lines[145].split('#')[0].split()[2])
         self.uhfli.demod1.ref_mode = int(param_lines[146].split('#')[0].split()[2])
-        self.uhfli.demod1.osc_idx = int(param_lines[147].split('#')[0].split()[2])
+        # self.uhfli.demod1.osc_idx = int(param_lines[147].split('#')[0].split()[2])
         self.uhfli.demod1.filter_order_idx = int(param_lines[148].split('#')[0].split()[2])
         self.uhfli.demod1.time_constant = float(param_lines[149].split('#')[0].split()[2])
         self.uhfli.demod1.data_out_idx = int(param_lines[150].split('#')[0].split()[2])
@@ -260,7 +260,7 @@ class SettingsWindowForm(QWidget):
         self.uhfli.demod2.range = float(param_lines[157].split('#')[0].split()[2])
         self.uhfli.demod2.coupling = int(param_lines[158].split('#')[0].split()[2])
         self.uhfli.demod2.ref_mode = int(param_lines[159].split('#')[0].split()[2])
-        self.uhfli.demod2.osc_idx = int(param_lines[160].split('#')[0].split()[2])
+        # self.uhfli.demod2.osc_idx = int(param_lines[160].split('#')[0].split()[2])
         self.uhfli.demod2.filter_order_idx = int(param_lines[161].split('#')[0].split()[2])
         self.uhfli.demod2.time_constant = float(param_lines[162].split('#')[0].split()[2])
         self.uhfli.demod2.data_out_idx = int(param_lines[163].split('#')[0].split()[2])
@@ -270,7 +270,7 @@ class SettingsWindowForm(QWidget):
         # self.uhfli.demodulator_idx = int(param_lines[142].split('#')[0].split()[2])
         # self.uhfli.sensitivity = float(param_lines[143].split('#')[0].split()[2])
 
-    def init_lockin_tab(self):
+    def init_lockin_tab(self, tf_block_signals=False):
         # Initialize the lock-in tab
         print('----------------------------------Initializing the lock-in Tab-----------------------------------------')
         self.ui.lockin_model_lnedt.setDisabled(True)
@@ -298,29 +298,72 @@ class SettingsWindowForm(QWidget):
             self.ui.sr844_harmonic_cbx.setDisabled(True)
 
             # Now set the relevant items
+            if tf_block_signals:
+                self.ui.uhfli_demodulator_idx_spbx.blockSignals(True)
+                self.ui.uhfli_input_cbx.blockSignals(True)
+                self.ui.uhfli_input_impedance_cbx.blockSignals(True)
+                self.ui.uhfli_range_spbx.blockSignals(True)
+                self.ui.uhfli_input_coupling_cbx.blockSignals(True)
+                self.ui.uhfli_ref_mode_cbx.blockSignals(True)
+                # self.ui.uhfli_osc_idx_cbx.blockSignals(True)
+                self.ui.uhfli_harm_spbx.blockSignals(True)
+                self.ui.uhfli_filter_order_cbx.blockSignals(True)
+                self.ui.uhfli_time_constant_spbx.blockSignals(True)
+
+                self.ui.uhfli_demodulator_idx_spbx_2.blockSignals(True)
+                self.ui.uhfli_input_cbx_2.blockSignals(True)
+                self.ui.uhfli_time_constant_spbx_2.blockSignals(True)
+                self.ui.uhfli_filter_order_cbx_2.blockSignals(True)
+                self.ui.uhfli_harm_spbx_2.blockSignals(True)
+                # self.ui.uhfli_osc_idx_cbx_2.blockSignals(True)
+                self.ui.uhfli_ref_mode_cbx_2.blockSignals(True)
+                self.ui.uhfli_input_coupling_cbx_2.blockSignals(True)
+                self.ui.uhfli_range_spbx_2.blockSignals(True)
+                self.ui.uhfli_input_impedance_cbx_2.blockSignals(True)
+
             self.ui.uhfli_demodulator_idx_spbx.setValue(self.uhfli.demod1.idx + 1)
             self.ui.uhfli_input_cbx.setCurrentIndex(self.uhfli.demod1.sigin)
             self.ui.uhfli_input_impedance_cbx.setCurrentIndex(self.uhfli.demod1.inpz)
             self.ui.uhfli_range_spbx.setValue(self.uhfli.demod1.range)
+            self.ui.uhfli_harm_spbx.setValue(1)
             self.ui.uhfli_input_coupling_cbx.setCurrentIndex(self.uhfli.demod1.coupling)
             self.ui.uhfli_ref_mode_cbx.setCurrentIndex(self.uhfli.demod1.ref_mode)
-            self.ui.uhfli_osc_idx_cbx.setCurrentIndex(self.uhfli.demod1.osc_idx)
-            self.ui.uhfli_harm_spbx.setValue(1)
+            # self.ui.uhfli_osc_idx_cbx.setCurrentIndex(self.uhfli.demod1.osc_idx)
             self.ui.uhfli_filter_order_cbx.setCurrentIndex(self.uhfli.demod1.filter_order_idx)
             self.ui.uhfli_time_constant_spbx.setValue(self.uhfli.demod1.time_constant)
-            self.ui.uhfli_output.setCurrentIndex(self.uhfli.demod1.data_out_idx)
 
-            self.ui.uhfli_demodulator_idx_spbx_2.setValue(self.uhfli.demod2.idx + 1)
             self.ui.uhfli_input_cbx_2.setCurrentIndex(self.uhfli.demod2.sigin)
+            self.ui.uhfli_demodulator_idx_spbx_2.setValue(self.uhfli.demod2.idx + 1)
             self.ui.uhfli_input_impedance_cbx_2.setCurrentIndex(self.uhfli.demod2.inpz)
             self.ui.uhfli_range_spbx_2.setValue(self.uhfli.demod2.range)
             self.ui.uhfli_input_coupling_cbx_2.setCurrentIndex(self.uhfli.demod2.coupling)
             self.ui.uhfli_ref_mode_cbx_2.setCurrentIndex(self.uhfli.demod2.ref_mode)
-            self.ui.uhfli_osc_idx_cbx_2.setCurrentIndex(self.uhfli.demod2.osc_idx)
+            # self.ui.uhfli_osc_idx_cbx_2.setCurrentIndex(self.uhfli.demod2.osc_idx)
             self.ui.uhfli_harm_spbx_2.setValue(1)
             self.ui.uhfli_filter_order_cbx_2.setCurrentIndex(self.uhfli.demod2.filter_order_idx)
             self.ui.uhfli_time_constant_spbx_2.setValue(self.uhfli.demod2.time_constant)
-            self.ui.uhfli_output_2.setCurrentIndex(self.uhfli.demod2.data_out_idx)
+
+            self.ui.uhfli_demodulator_idx_spbx.blockSignals(False)
+            self.ui.uhfli_input_cbx.blockSignals(False)
+            self.ui.uhfli_input_impedance_cbx.blockSignals(False)
+            self.ui.uhfli_range_spbx.blockSignals(False)
+            self.ui.uhfli_input_coupling_cbx.blockSignals(False)
+            self.ui.uhfli_ref_mode_cbx.blockSignals(False)
+            # self.ui.uhfli_osc_idx_cbx.blockSignals(False)
+            self.ui.uhfli_harm_spbx.blockSignals(False)
+            self.ui.uhfli_filter_order_cbx.blockSignals(False)
+            self.ui.uhfli_time_constant_spbx.blockSignals(False)
+
+            self.ui.uhfli_demodulator_idx_spbx_2.blockSignals(False)
+            self.ui.uhfli_input_cbx_2.blockSignals(False)
+            self.ui.uhfli_input_impedance_cbx_2.blockSignals(False)
+            self.ui.uhfli_range_spbx_2.blockSignals(False)
+            self.ui.uhfli_input_coupling_cbx_2.blockSignals(False)
+            self.ui.uhfli_ref_mode_cbx_2.blockSignals(False)
+            # self.ui.uhfli_osc_idx_cbx_2.blockSignals(False)
+            self.ui.uhfli_harm_spbx_2.blockSignals(False)
+            self.ui.uhfli_filter_order_cbx_2.blockSignals(False)
+            self.ui.uhfli_time_constant_spbx_2.blockSignals(False)
             # Disable demodulator 2 if checkbox unselected
             if self.uhfli.demod2.enable:
                 self.ui.uhfli_demod2_checkbox.setChecked(True)
@@ -512,7 +555,7 @@ class SettingsWindowForm(QWidget):
 
         self.check_com_ports()
 
-        self.init_lockin_tab()
+        self.init_lockin_tab(tf_block_signals=True)
         self.check_observables()
         self.update_md2000_tab()
 
@@ -557,10 +600,9 @@ class SettingsWindowForm(QWidget):
         self.ui.uhfli_freq_spbx_2.setDisabled(enable)
         self.ui.uhfli_phase_spbx_2.setDisabled(enable)
         self.ui.uhfli_ref_mode_cbx_2.setDisabled(enable)
-        self.ui.uhfli_osc_idx_cbx_2.setDisabled(enable)
+        # self.ui.uhfli_osc_idx_cbx_2.setDisabled(enable)
         self.ui.uhfli_harm_spbx_2.setDisabled(enable)
         self.ui.uhfli_time_constant_spbx_2.setDisabled(enable)
-        self.ui.uhfli_output_2.setDisabled(enable)
 
     @QtCore.pyqtSlot(str, int)
     def instrument_status_changed(self, which_instrument, new_status):
@@ -657,6 +699,59 @@ class SettingsWindowForm(QWidget):
     @QtCore.pyqtSlot()
     def toptica_set_main_power_btn_clicked(self):
         pass
+
+    @QtCore.pyqtSlot(dict)
+    def set_uhfli_settings_states(self, current_settings_dict):
+
+        # Block signals to prevent infinite recursion
+        self.ui.uhfli_input_cbx.blockSignals(True)
+        self.ui.uhfli_input_impedance_cbx.blockSignals(True)
+        self.ui.uhfli_range_spbx.blockSignals(True)
+        self.ui.uhfli_input_coupling_cbx.blockSignals(True)
+        self.ui.uhfli_freq_spbx.blockSignals(True)
+        self.ui.uhfli_harm_spbx.blockSignals(True)
+        self.ui.uhfli_phase_spbx.blockSignals(True)
+        self.ui.uhfli_filter_order_cbx.blockSignals(True)
+        self.ui.uhfli_time_constant_spbx.blockSignals(True)
+        self.ui.uhfli_sinc_filtering_chkbx.blockSignals(True)
+        self.ui.uhfli_ref_mode_cbx.blockSignals(True)
+
+        # Set the ui object states to the values in the dict.
+        self.ui.uhfli_input_cbx.setCurrentIndex(current_settings_dict["input_idx"])
+        self.ui.uhfli_input_impedance_cbx.setCurrentIndex(int(not(current_settings_dict["tf_50ohm"])))
+        self.ui.uhfli_range_spbx.setValue(current_settings_dict["range"])
+        self.ui.uhfli_input_coupling_cbx.setCurrentIndex(current_settings_dict["coupling"])
+        self.ui.uhfli_freq_spbx.setValue(current_settings_dict["ref_freq"])
+        self.ui.uhfli_harm_spbx.setValue(current_settings_dict["harmonic"])
+        self.ui.uhfli_phase_spbx.setValue(current_settings_dict["phase"])
+        self.ui.uhfli_filter_order_cbx.setCurrentIndex(current_settings_dict["filter_order"])
+        self.ui.uhfli_time_constant_spbx.setValue(current_settings_dict["time_constant"])
+        self.ui.uhfli_sinc_filtering_chkbx.setChecked(current_settings_dict["tf_sinc_filter"])
+
+        if not current_settings_dict["tf_ext_trig"]:
+            trig_idx = 0
+        else:
+            if current_settings_dict["automode_idx"] == 4:
+                trig_idx = 1
+            elif current_settings_dict["automode_idx"] == 2:
+                trig_idx = 2
+            elif current_settings_dict["automode_idx"] == 3:
+                trig_idx = 3
+
+        self.ui.uhfli_ref_mode_cbx.setCurrentIndex(trig_idx)
+
+        # Unblock signals so that user actions have an effect again
+        self.ui.uhfli_input_cbx.blockSignals(False)
+        self.ui.uhfli_input_impedance_cbx.blockSignals(False)
+        self.ui.uhfli_range_spbx.blockSignals(False)
+        self.ui.uhfli_input_coupling_cbx.blockSignals(False)
+        self.ui.uhfli_freq_spbx.blockSignals(False)
+        self.ui.uhfli_harm_spbx.blockSignals(False)
+        self.ui.uhfli_phase_spbx.blockSignals(False)
+        self.ui.uhfli_filter_order_cbx.blockSignals(False)
+        self.ui.uhfli_time_constant_spbx.blockSignals(False)
+        self.ui.uhfli_sinc_filtering_chkbx.blockSignals(False)
+        self.ui.uhfli_ref_mode_cbx.blockSignals(False)
 
     @QtCore.pyqtSlot()
     def toptica_ext_en_btn_clicked(self):

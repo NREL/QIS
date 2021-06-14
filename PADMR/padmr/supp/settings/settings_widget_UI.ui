@@ -575,14 +575,35 @@
        <item row="2" column="0" colspan="2">
         <widget class="QTabWidget" name="lockin_manufacturer_tabwidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="zurich_instr_tab">
           <attribute name="title">
            <string>Zurich Instruments</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_11">
-           <item row="0" column="0" colspan="2">
+           <item row="1" column="2">
+            <widget class="QPushButton" name="uhfli_save_settings_btn">
+             <property name="text">
+              <string>Save Settings to File</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="uhfli_load_settings_btn">
+             <property name="text">
+              <string>Load Settings from File</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="uhfli_get_current_settings_btn">
+             <property name="text">
+              <string>Get Current Settings</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
             <widget class="QScrollArea" name="scrollArea_4">
              <property name="widgetResizable">
               <bool>true</bool>
@@ -593,11 +614,248 @@
                 <x>0</x>
                 <y>0</y>
                 <width>538</width>
-                <height>500</height>
+                <height>496</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_15">
-               <item row="14" column="0">
+               <item row="15" column="0">
+                <widget class="QLabel" name="label_16">
+                 <property name="text">
+                  <string>Time Constant (ms)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QComboBox" name="uhfli_input_cbx">
+                 <item>
+                  <property name="text">
+                   <string>Sig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Sig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Trig In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux Out 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Aux In 2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 4</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Phi of Demod 8</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QCheckBox" name="uhfli_demod2_checkbox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>Secondary Demodulator</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx">
+                 <property name="toolTip">
+                  <string>Demodulators 1-4 use Oscillator 1
+Demodulators 5-8 use Oscillator 2</string>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="maximum">
+                  <double>600000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label_59">
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Reference Oscillators</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="3">
+                <widget class="QComboBox" name="uhfli_input_impedance_cbx_2">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;50 &lt;/span&gt;&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:10pt; color:#202124;&quot;&gt;Ω - DC-600MHZ&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;1 M&lt;/span&gt;&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:10pt; color:#202124;&quot;&gt;Ω - DC-100MHZ&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>50 Ω</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1 MΩ</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="16" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_filter_bandwidth_spbx">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="maximum">
+                  <double>100000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_45">
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Signal Input</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <widget class="QSpinBox" name="uhfli_harm_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1023</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="17" column="3">
+                <widget class="QCheckBox" name="uhfli_sinc_filtering_chkbx_2">
+                 <property name="toolTip">
+                  <string>Filters signal components at higher harmonics of reference frequency. 
+Use when filter bandwidth is larger than or comparable to reference frequency.</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="3">
+                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx_2">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx_2">
+                 <property name="toolTip">
+                  <string>Demodulators 1-4 use Oscillator 1
+Demodulators 5-8 use Oscillator 2</string>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="maximum">
+                  <double>600000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="suffix">
+                  <string/>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="maximum">
+                  <double>100000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_42">
+                 <property name="text">
+                  <string>Coupling</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="3">
+                <widget class="QSpinBox" name="uhfli_harm_spbx_2">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1023</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0">
                 <widget class="QLabel" name="label_58">
                  <property name="font">
                   <font>
@@ -609,8 +867,29 @@
                  </property>
                 </widget>
                </item>
-               <item row="6" column="1">
-                <widget class="QComboBox" name="uhfli_input_coupling_cbx">
+               <item row="17" column="1">
+                <widget class="QCheckBox" name="uhfli_sinc_filtering_chkbx">
+                 <property name="toolTip">
+                  <string>Filters signal components at higher harmonics of reference frequency. 
+Use when filter bandwidth is larger than or comparable to reference frequency.</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_61">
+                 <property name="text">
+                  <string>Frequency</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="3">
+                <widget class="QComboBox" name="uhfli_input_coupling_cbx_2">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AC Coupling Cutoff Frequency:&lt;/p&gt;&lt;p&gt;320 kHz (50&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:16px; color:#202124;&quot;&gt;Ω&lt;/span&gt; Termination)&lt;/p&gt;&lt;p&gt;80 Hz (1 M&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:16px; color:#202124;&quot;&gt;Ω&lt;/span&gt; Termination)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <item>
                   <property name="text">
                    <string>DC</string>
@@ -623,14 +902,167 @@
                  </item>
                 </widget>
                </item>
-               <item row="15" column="0">
+               <item row="8" column="1">
+                <widget class="QComboBox" name="uhfli_ref_mode_cbx">
+                 <item>
+                  <property name="text">
+                   <string>Manual (Internal)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref Low BW</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>External Ref High BW</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="14" column="0">
                 <widget class="QLabel" name="label_14">
                  <property name="text">
                   <string>Filter Order</string>
                  </property>
                 </widget>
                </item>
-               <item row="15" column="1">
+               <item row="5" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_range_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_64">
+                 <property name="text">
+                  <string>Mode</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QComboBox" name="uhfli_input_impedance_cbx">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;50 &lt;/span&gt;&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:10pt; color:#202124;&quot;&gt;Ω - DC-600MHZ&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;1 M&lt;/span&gt;&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:10pt; color:#202124;&quot;&gt;Ω - DC-100MHZ&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>50 Ω</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>1 MΩ</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QComboBox" name="uhfli_input_coupling_cbx">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AC Coupling Cutoff Frequency:&lt;/p&gt;&lt;p&gt;320 kHz (50&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:16px; color:#202124;&quot;&gt;Ω&lt;/span&gt; Termination)&lt;/p&gt;&lt;p&gt;80 Hz (1 M&lt;span style=&quot; font-family:'Roboto','arial','sans-serif'; font-size:16px; color:#202124;&quot;&gt;Ω&lt;/span&gt; Termination)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>DC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>AC</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="12" column="1">
+                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <double>-180.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>180.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx_2">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="maximum">
+                  <double>100000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Bandwidth</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="label_31">
+                 <property name="text">
+                  <string>Primary Demodulator</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="12" column="0">
+                <widget class="QLabel" name="label_63">
+                 <property name="text">
+                  <string>Phase (deg.)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_filter_bandwidth_spbx_2">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="maximum">
+                  <double>100000000.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_30">
+                 <property name="text">
+                  <string>Demodulator Index</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_41">
+                 <property name="text">
+                  <string>Input Impedance</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="0">
+                <widget class="QLabel" name="label_62">
+                 <property name="text">
+                  <string>Harmonic</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="1">
                 <widget class="QComboBox" name="uhfli_filter_order_cbx">
                  <item>
                   <property name="text">
@@ -674,142 +1106,10 @@
                  </item>
                 </widget>
                </item>
-               <item row="16" column="1">
-                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx"/>
-               </item>
-               <item row="5" column="0">
-                <widget class="QLabel" name="label_44">
-                 <property name="text">
-                  <string>Range</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QComboBox" name="uhfli_input_impedance_cbx">
-                 <item>
-                  <property name="text">
-                   <string>50 Ω</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1 MΩ</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="8" column="3">
-                <widget class="QComboBox" name="uhfli_ref_mode_cbx_2">
-                 <item>
-                  <property name="text">
-                   <string>Manual</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Mod</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>PLL</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref Low BW</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref High BW</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="8" column="1">
-                <widget class="QComboBox" name="uhfli_ref_mode_cbx">
-                 <item>
-                  <property name="text">
-                   <string>Manual</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Mod</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>PLL</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref Low BW</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>External Ref High BW</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="4" column="3">
-                <widget class="QComboBox" name="uhfli_input_impedance_cbx_2">
-                 <item>
-                  <property name="text">
-                   <string>50 Ω</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1 MΩ</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="5" column="1">
-                <widget class="QDoubleSpinBox" name="uhfli_range_spbx"/>
-               </item>
-               <item row="12" column="1">
-                <widget class="QSpinBox" name="uhfli_harm_spbx">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <number>1023</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="13" column="1">
-                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx">
-                 <property name="minimum">
-                  <double>-180.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>180.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="3">
-                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx_2"/>
-               </item>
-               <item row="11" column="0">
-                <widget class="QLabel" name="label_61">
-                 <property name="text">
-                  <string>Frequency</string>
+               <item row="5" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_range_spbx_2">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -817,227 +1117,6 @@
                 <widget class="QLabel" name="label_40">
                  <property name="text">
                   <string>Input Signal</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_45">
-                 <property name="font">
-                  <font>
-                   <italic>true</italic>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Signal Input</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="13" column="0">
-                <widget class="QLabel" name="label_63">
-                 <property name="text">
-                  <string>Phase (deg.)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="0">
-                <widget class="QLabel" name="label_60">
-                 <property name="text">
-                  <string>Oscillator</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="17" column="3">
-                <widget class="QComboBox" name="uhfli_output_2">
-                 <item>
-                  <property name="text">
-                   <string>to PC</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 3</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 4</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="12" column="3">
-                <widget class="QSpinBox" name="uhfli_harm_spbx_2">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <number>1023</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="15" column="3">
-                <widget class="QComboBox" name="uhfli_filter_order_cbx_2">
-                 <item>
-                  <property name="text">
-                   <string>1 (6 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2 (12 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3 (18 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>4 (24 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>5 (30 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>6 (36 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>7 (42 dB/Oct)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>8 (48 dB/Oct)</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="10" column="1">
-                <widget class="QComboBox" name="uhfli_osc_idx_cbx">
-                 <item>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="11" column="3">
-                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx_2"/>
-               </item>
-               <item row="6" column="0">
-                <widget class="QLabel" name="label_42">
-                 <property name="text">
-                  <string>Coupling</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="0">
-                <widget class="QLabel" name="label_59">
-                 <property name="font">
-                  <font>
-                   <italic>true</italic>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Reference Oscillators</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="13" column="3">
-                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx_2">
-                 <property name="minimum">
-                  <double>-180.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>180.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="12" column="0">
-                <widget class="QLabel" name="label_62">
-                 <property name="text">
-                  <string>Harmonic</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_30">
-                 <property name="text">
-                  <string>Demodulator Index</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="3">
-                <widget class="QComboBox" name="uhfli_osc_idx_cbx_2">
-                 <item>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="17" column="0">
-                <widget class="QLabel" name="label_39">
-                 <property name="text">
-                  <string>Output</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="0">
-                <widget class="QLabel" name="label_41">
-                 <property name="text">
-                  <string>Input Impedance</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="3">
-                <widget class="QCheckBox" name="uhfli_demod2_checkbox">
-                 <property name="layoutDirection">
-                  <enum>Qt::RightToLeft</enum>
-                 </property>
-                 <property name="text">
-                  <string>Secondary Demodulator</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="16" column="0">
-                <widget class="QLabel" name="label_16">
-                 <property name="text">
-                  <string>Time Constant</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLabel" name="label_31">
-                 <property name="text">
-                  <string>Primary Demodulator</string>
                  </property>
                 </widget>
                </item>
@@ -1105,133 +1184,146 @@
                  </item>
                 </widget>
                </item>
-               <item row="11" column="1">
-                <widget class="QDoubleSpinBox" name="uhfli_freq_spbx"/>
-               </item>
-               <item row="6" column="3">
-                <widget class="QComboBox" name="uhfli_input_coupling_cbx_2">
-                 <item>
-                  <property name="text">
-                   <string>DC</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>AC</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QComboBox" name="uhfli_input_cbx">
-                 <item>
-                  <property name="text">
-                   <string>Sig In 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Sig In 2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Trig In 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Trig In 2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 3</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 4</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux In 1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux In 2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Phi of Demod 4</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Phi of Demod 8</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QSpinBox" name="uhfli_demodulator_idx_spbx"/>
-               </item>
-               <item row="5" column="3">
-                <widget class="QDoubleSpinBox" name="uhfli_range_spbx_2"/>
-               </item>
-               <item row="8" column="0">
-                <widget class="QLabel" name="label_64">
-                 <property name="text">
-                  <string>Mode</string>
+               <item row="12" column="3">
+                <widget class="QDoubleSpinBox" name="uhfli_phase_spbx_2">
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <double>-180.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>180.000000000000000</double>
                  </property>
                 </widget>
                </item>
-               <item row="17" column="1">
-                <widget class="QComboBox" name="uhfli_output">
+               <item row="8" column="3">
+                <widget class="QComboBox" name="uhfli_ref_mode_cbx_2">
                  <item>
                   <property name="text">
-                   <string>to PC</string>
+                   <string>Manual (Internal)</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>Aux Out 1</string>
+                   <string>External Ref</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>Aux Out 2</string>
+                   <string>External Ref Low BW</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>Aux Out 3</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Aux Out 4</string>
+                   <string>External Ref High BW</string>
                   </property>
                  </item>
                 </widget>
                </item>
-               <item row="16" column="3">
-                <widget class="QDoubleSpinBox" name="uhfli_time_constant_spbx_2"/>
+               <item row="17" column="0">
+                <widget class="QLabel" name="label_60">
+                 <property name="text">
+                  <string>Sinc Filtering</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="label_44">
+                 <property name="text">
+                  <string>Range</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="3">
+                <widget class="QComboBox" name="uhfli_filter_order_cbx_2">
+                 <item>
+                  <property name="text">
+                   <string>1 (6 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2 (12 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>3 (18 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>4 (24 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>5 (30 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>6 (36 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>7 (42 dB/Oct)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>8 (48 dB/Oct)</string>
+                  </property>
+                 </item>
+                </widget>
                </item>
               </layout>
+              <zorder>uhfli_time_constant_spbx_2</zorder>
+              <zorder>label_58</zorder>
+              <zorder>uhfli_input_coupling_cbx</zorder>
+              <zorder>label_14</zorder>
+              <zorder>uhfli_filter_order_cbx</zorder>
+              <zorder>uhfli_time_constant_spbx</zorder>
+              <zorder>label_44</zorder>
+              <zorder>uhfli_input_impedance_cbx</zorder>
+              <zorder>uhfli_ref_mode_cbx_2</zorder>
+              <zorder>uhfli_ref_mode_cbx</zorder>
+              <zorder>uhfli_input_impedance_cbx_2</zorder>
+              <zorder>uhfli_range_spbx</zorder>
+              <zorder>uhfli_harm_spbx</zorder>
+              <zorder>uhfli_phase_spbx</zorder>
+              <zorder>uhfli_demodulator_idx_spbx_2</zorder>
+              <zorder>label_61</zorder>
+              <zorder>label_40</zorder>
+              <zorder>label_45</zorder>
+              <zorder>label_63</zorder>
+              <zorder>uhfli_harm_spbx_2</zorder>
+              <zorder>uhfli_filter_order_cbx_2</zorder>
+              <zorder>uhfli_freq_spbx_2</zorder>
+              <zorder>label_42</zorder>
+              <zorder>label_59</zorder>
+              <zorder>uhfli_phase_spbx_2</zorder>
+              <zorder>label_62</zorder>
+              <zorder>label_30</zorder>
+              <zorder>label_41</zorder>
+              <zorder>uhfli_demod2_checkbox</zorder>
+              <zorder>label_16</zorder>
+              <zorder>label_31</zorder>
+              <zorder>uhfli_input_cbx_2</zorder>
+              <zorder>uhfli_freq_spbx</zorder>
+              <zorder>uhfli_input_coupling_cbx_2</zorder>
+              <zorder>uhfli_input_cbx</zorder>
+              <zorder>uhfli_demodulator_idx_spbx</zorder>
+              <zorder>uhfli_range_spbx_2</zorder>
+              <zorder>label_64</zorder>
+              <zorder>label_2</zorder>
+              <zorder>uhfli_filter_bandwidth_spbx</zorder>
+              <zorder>uhfli_filter_bandwidth_spbx_2</zorder>
+              <zorder>label_60</zorder>
+              <zorder>uhfli_sinc_filtering_chkbx</zorder>
+              <zorder>uhfli_sinc_filtering_chkbx_2</zorder>
              </widget>
             </widget>
            </item>
@@ -1252,7 +1344,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>538</width>
+                <width>453</width>
                 <height>546</height>
                </rect>
               </property>

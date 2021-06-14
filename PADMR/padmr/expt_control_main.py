@@ -6,10 +6,12 @@
 # 4. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 5. Finish setting up 2D experiments
 # Various:
+# -102. Get bandwidth to update along with the other settings.
+# -101. Eliminate redundant updating of UHFLI settings
+# -100. Get secondary demodulator in line with primary.
 # -99. Get SR830 working again with new code
 # -98. Fix transient measurements
 # -97. Modify so that settings.main ONLY sets up the settings window? (i.e. does not affect the actual settings).
-# -96. Make a setting so the user doesn't have to record ALL UHFLI sample outputs.
 # -95. Fix labelling of plots for transient measurement
 # -92. Make an option for non-50% duty cycles (SMB100a)
 # -91. Make RnS source Modulation Trigger Impedance changeable
@@ -23,12 +25,10 @@
 # -83. Add an option to only auto adjust the sensitivity if specifically overloaded (for data with large dynamic range)
 # -81. Add a "hide Average" and "Hide Current Scan" checkbox for the plots
 # -80. Add a "record baseline signal" for zero correction (I'm thinking for T scans, but probably it will apply to others)
-# -79. Make it so "aux in" measurement doesn't also record channel 2
 # -76. Attempting to restart experiment after aborting due to lock-in not locking, caused crash
 # -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
 # -74. Move number of scans to the respective abscissa block (ui objects)
 # -73. Change saving so that if only 1 scan, Ave Data is saved (rather than scans)
-# -72. Retest saving data (including 2D with > 1 scan)
 # -70. Figure out the settings window laser buttons (they seem to be redundant)
 # -69. Find a good way to average multiple 2d scans together (perhaps create the "Scans" file, and treat both
 # scan dimensions the same as is currently done for 1d scans)
@@ -117,6 +117,7 @@ from pyvisa.constants import VI_READ_BUF_DISCARD, VI_WRITE_BUF_DISCARD, StopBits
 from decorator import decorator
 import PyQt5
 import pyqtgraph as pg
+import zhinst
 from pyqtgraph import PlotWidget, plot
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -185,7 +186,7 @@ class StoredData:
         self.scans_2d[scan_2d_idx][step_2d_idx][scan_idx] = sweep_results_dataframe
 
 class MainWindow(QMainWindow):
-    lockin_status_warning_signal = QtCore.pyqtSignal(str)
+    sr_lockin_status_warning_signal = QtCore.pyqtSignal(str)
     general_error_signal = QtCore.pyqtSignal(dict)
     status_message_signal = QtCore.pyqtSignal(str)
     results_are_in_signal = QtCore.pyqtSignal([int, int])
@@ -289,9 +290,10 @@ class MainWindow(QMainWindow):
         self.settings = SettingsWindowForm()
         self.toptica = TopticaInstr()
         self.toptica.settings = self.settings.toptica
-        #TODO: Can I delete the next two lines? They are misleading if the UHFLI is used.
-        self.lockin = PrologixAdaptedSRLockin()
-        self.lockin.settings = self.settings.lia
+        self.sr_lockin = PrologixAdaptedSRLockin()
+        self.sr_lockin.settings = self.settings.lia
+        self.zi_lockin = ZiLIA()
+        print('Lockins Instantiated...')
         self.cg635 = CG635Instrument()
         self.md2000 = MonoDriver()
         self.cryostat = CryostatInstr()
@@ -375,21 +377,20 @@ class MainWindow(QMainWindow):
         print(self.settings.lockin_model)
         self.settings.prologix_com_port = self.settings.ui.prologix_com_port_cmb.currentText()
         if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
-            # self.lockin = PrologixAdaptedSRLockin()
+            # self.sr_lockin = PrologixAdaptedSRLockin()
             if self.settings.lockin_model == 'SR844':
                 self.settings.lia.gpib_address = self.settings.ui.sr844_gpib_address_spbx.value()
             else:
                 self.settings.lia.gpib_address = self.settings.ui.sr830_gpib_address_spbx.value()
 
-            did_comms_fail = self.lockin.start_comms(self.settings.prologix_com_port,
+            did_comms_fail = self.sr_lockin.start_comms(self.settings.prologix_com_port,
                                                      gpib_address=self.settings.lia.gpib_address,
                                                      model=self.settings.lockin_model)
             print('Comms_failed? ' + str(did_comms_fail))
         elif self.settings.lockin_model == 'UHFLI':
             print('UHFLI chosen')
-            self.lockin = ZiLIA()
-            print('instantiated')
-            did_comms_fail = self.lockin.start_comms(device_id='dev2025')
+
+            did_comms_fail = self.zi_lockin.start_comms(device_id='dev2025')
         else:
             raise ValueError('Invalid Lock-in Model Selected')
 
@@ -408,25 +409,24 @@ class MainWindow(QMainWindow):
         elif self.settings.lockin_model == 'UHFLI':
             if did_comms_fail is True:
                 self.settings.ui.status_ind_uhfli.setText(self.label_strings.red_led_str)
+
+                self.zi_lockin.settings = self.settings.lia  # This needs to be changed so that settings.uhfli contains t
+                self.zi_lockin.update_all()
+                self.zi_lockin_delay = self.settings.settling_delay_factor * self.zi_lockin.settings.time_constant_value
+                self.settings.ui.is_record_phase.setChecked(False)
+                self.settings.ui.is_record_phase.setDisabled(True)
             elif did_comms_fail is False:
                 self.settings.ui.uhfli_checkbox.setChecked(True)
                 self.settings.ui.status_ind_uhfli.setText(self.label_strings.grn_led_str)
+
+                self.zi_lockin.settings = self.settings.uhfli  # This needs to be changed so that settings.uhfli contains t
+                self.zi_lockin.update_all()
+                self.zi_lockin_delay = self.settings.settling_delay_factor * self.settings.uhfli.time_constant_value
+                self.settings.ui.is_record_phase.setDisabled(False)
+                # self.settings.init_lockin_tab()
         else:
             raise ValueError('Invalid Lock-in Model Selected')
 
-        if did_comms_fail is False:
-            if self.settings.lockin_model == 'UHFLI':
-                self.lockin.settings = self.settings.uhfli  # This needs to be changed so that settings.uhfli contains t
-                self.lockin.update_all()
-                self.lockin_delay = self.settings.settling_delay_factor * self.settings.uhfli.time_constant_value
-                self.settings.ui.is_record_phase.setDisabled(False)
-            else:
-                self.lockin.settings = self.settings.lia  # This needs to be changed so that settings.uhfli contains t
-                self.lockin.update_all()
-                self.lockin_delay = self.settings.settling_delay_factor * self.lockin.settings.time_constant_value
-                self.settings.ui.is_record_phase.setChecked(False)
-                self.settings.ui.is_record_phase.setDisabled(True)
-            print('Lockin Settings Set')
 
     def connect_md2000(self):
         # self.md2000.establish_comms(self.settings.md2000.com_port)
@@ -487,7 +487,7 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def start_experiment(self):
         # TODO: Save notes and details to file before the worker
-        if self.lockin.connected:
+        if self.sr_lockin.connected or self.zi_lockin.connected:
             self.experiment_in_progress = True
             self.status_message_signal.emit('Getting Ready to Start Experiment...........')
 
@@ -530,7 +530,7 @@ class MainWindow(QMainWindow):
             if self.settings.lia.model == 'SR844' or self.settings.lia.model == 'SR830':
                 self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             elif self.settings.lia.model == 'UHFLI':
-                # self.lockin_delay = 0.1
+                # self.sr_lockin_delay = 0.1
                 self.lockin_delay = self.settings.settling_delay_factor * self.settings.time_constant_value
             print('lockin_delay: ' + str(self.lockin_delay))
 
@@ -859,18 +859,21 @@ class MainWindow(QMainWindow):
             print('This case has not been coded yet')
         elif self.abscissae[wa] == 6:  # Lock-in Internal Ref Frequency
             print('Attempting to set internal reference frequency...')
-            if self.lockin.error.status:
-                print('Lock-in had a pre-existing error')
-                self.general_error_signal.emit({'Title': ' - Warning - ',
-                                                'Text': ' Experiment Aborted',
-                                                'Informative Text': 'Cryostat Error Found',
-                                                'Details': ('Error Code: ' + str(self.lockin.error.code))})
-                self.abort_scan = True
-                return None
-            else:
-                self.lockin.update_freq(target_freq=next_step)
-                actual_pos = self.lockin.settings.frequency
-                print('Actual pos: ' + str(actual_pos))
+            if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+                if self.sr_lockin.error.status:
+                    print('Lock-in had a pre-existing error')
+                    self.general_error_signal.emit({'Title': ' - Warning - ',
+                                                    'Text': ' Experiment Aborted',
+                                                    'Informative Text': 'Cryostat Error Found',
+                                                    'Details': ('Error Code: ' + str(self.sr_lockin.error.code))})
+                    self.abort_scan = True
+                    return None
+                else:
+                    self.sr_lockin.update_freq(target_freq=next_step)
+                    actual_pos = self.sr_lockin.settings.frequency
+                    print('Actual pos: ' + str(actual_pos))
+            elif self.settings.lockin_model == 'UHFLI':
+                print('UHFLI Not set up for internal reference sweeps')
 
         else:
             print('there are this many possible abscissae?')
@@ -897,115 +900,22 @@ class MainWindow(QMainWindow):
             print('No instruments have pre-scan requirements except the magnet yet.')
 
 
-    # @helpers.measure_time
-    # def get_lockin_results(self):
-    #     print('Checking for lock-in issues...')
-    #     # As in overloads, phase locking to reference, etc.
-    #     self.lockin.open_comms()  # Open also sets the correct GPIB address
-    #     self.lockin.comms.write('*CLS\n')
-    #     self.lockin.clear_buffers()
-    #
-    #     if self.offset_each is True:
-    #
-    #         self.toptica.laser_disable()
-    #
-    #         lia_status = self.lockin.check_status()
-    #         kk = 0
-    #         while not lia_status == 0 and kk < 200:
-    #             lia_status = self.lockin.check_status()
-    #             if lia_status == -1:  # Comm failure
-    #                 return
-    #             # print('lia error' + str(lia_error))
-    #             # print('loop iteration: ' + str(kk))
-    #             time.sleep(0.001)
-    #             kk = kk + 1
-    #
-    #         if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-    #             self.pause_scan = True
-    #             # The following should be optimized
-    #             self.lockin_status_warning_signal.emit(str(lia_status))
-    #
-    #         self.status_message_signal.emit('Pausing for Lock-in settling...')
-    #         print('lockin_delay: ' + str(self.lockin_delay))
-    #         time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-    #
-    #         if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-    #             print('Optimizing Lock-in Sensitivity...')
-    #             self.lockin.auto_sens()
-    #
-    #         self.lockin.comms.write('AOFF 1, 1\n')
-    #         self.toptica.laser_enable()
-    #         self.toptica.laser_start()
-    #
-    #     lia_status = self.lockin.check_status()
-    #     kk = 0
-    #     # It may take some time for the lockin internal oscillator  to lock to the reference freq
-    #     while not lia_status == 0 and kk < 200:
-    #         lia_status = self.lockin.check_status()
-    #         if lia_status == -1:  # Comm failure
-    #             return
-    #         # print('lia error' + str(lia_error))
-    #         # print('loop iteration: ' + str(kk))
-    #         time.sleep(0.001)
-    #         kk = kk + 1
-    #
-    #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-    #         self.pause_scan = True
-    #         # The following should be optimized
-    #         self.lockin_status_warning_signal.emit(str(lia_status))
-    #
-    #     print('Pausing for Lock-in settling...')
-    #     print('lockin_delay: ' + str(self.lockin_delay))
-    #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-    #
-    #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-    #         print('Optimizing Lock-in Sensitivity...')
-    #         self.lockin.auto_sens()
-    #
-    #     print('Collecting Data....')
-    #     if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
-    #         print('From X/Y or R/Theta or Aux In 1')
-    #         if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
-    #             ch1, ch2 = self.lockin.collect_snapshot()
-    #         elif self.is_averaging_pts and not self.is_recording_transient:    # If averaging lockin results
-    #             ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-    #                                                           record_both_channels=True)
-    #             print('Averaging New Data...')
-    #             ch1 = np.average(ch1_data)
-    #             ch2 = np.average(ch2_data)
-    #         elif self.is_recording_transient:
-    #             ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
-    #                                                 record_both_channels=True)
-    #     # elif self.settings.lia.outputs == 2:
-    #     #     print('From Aux in 1')
-    #     #     if self.is_averaging_pts:  # Single snapshot measurement at each point
-    #     #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
-    #     #     elif not self.is_averaging_pts:    # If averaging lockin results
-    #     #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-    #     #                                                       record_both_channels=True)
-    #     #         print('Averaging New Data...')
-    #     #         ch1 = np.average(ch1_data)
-    #     #         ch2 = np.average(ch2_data)
-    #
-    #     return ch1, ch2
-
     @helpers.measure_time
     def get_lockin_results(self):
         print('Checking for lock-in issues...')
         # As in overloads, phase locking to reference, etc.
 
-
         if self.settings.lockin_model == 'SR830' or self.settings.lockin_model == 'SR844':
-            self.lockin.open_comms()  # Open also sets the correct GPIB address
-            self.lockin.comms.write('*CLS\n')
-            self.lockin.clear_buffers()
+            self.sr_lockin.open_comms()  # Open also sets the correct GPIB address
+            self.sr_lockin.comms.write('*CLS\n')
+            self.sr_lockin.clear_buffers()
 
-            lia_status = self.lockin.check_status()
+            lia_status = self.sr_lockin.check_status()
             kk = 0
             # It may take some time for the lockin internal oscillator  to lock to the reference freq
             # Not yet sure how to check if PLL is locked with UHFLI
             while not lia_status == 0 and kk < 200:
-                lia_status = self.lockin.check_status()
+                lia_status = self.sr_lockin.check_status()
                 if lia_status == -1:  # Comm failure
                     return
                 # print('lia error' + str(lia_error))
@@ -1016,130 +926,52 @@ class MainWindow(QMainWindow):
             if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
                 self.pause_scan = True
                 # The following should be optimized
-                self.lockin_status_warning_signal.emit(str(lia_status))
+                self.sr_lockin_status_warning_signal.emit(str(lia_status))
 
         print('Pausing for Lock-in settling...')
         print('lockin_delay: ' + str(self.lockin_delay))
         time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
 
         # Perform a "global synchronization"
-        # self.lockin.daq.sync()
+        # self.sr_lockin.daq.sync()
 
         if self.settings.ui.scan_auto_sens_checkbox.isChecked():
             print('Optimizing Lock-in Sensitivity...')
-            self.lockin.auto_sens()
+            if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+                self.sr_lockin.auto_sens()
+            elif self.settings.lockin_model == 'UHFLI':
+                self.zi_lockin.auto_sens()
 
         print('Collecting Data....')
 
         if not self.is_averaging_pts and not self.is_recording_transient:  # Single snapshot measurement at each point
-            sample = self.lockin.collect_sample()
+            if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+                sample = self.sr_lockin.collect_sample()
+            elif self.settings.lockin_model == 'UHFLI':
+                sample = self.zi_lockin.collect_sample()
 
         elif self.is_averaging_pts and not self.is_recording_transient:  # If averaging lockin results
-            pass
-            # ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time,
-            #                                               self.settings.lia.sampling_rate_idx,
-            #                                               record_both_channels=True)
-            # print('Averaging New Data...')
-            # ch1 = np.average(ch1_data)
-            # ch2 = np.average(ch2_data)
+            print('Averaging Results under construction')
+            # if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+            #     ch1_data, ch2_data = self.sr_lockin.collect_data(self.averaging_time,
+            #                                                   self.settings.lia.sampling_rate_idx,
+            #                                                   record_both_channels=True)
+            #     print('Averaging New Data...')
+            #     ch1 = np.average(ch1_data)
+            #     ch2 = np.average(ch2_data)
+            # elif self.settings.lockin_model == 'UHFLI':
+            #     print('Averaging Results not set up on UHFLI')
+
         elif self.is_recording_transient:
-            pass
-            # ch1, ch2 = self.lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
-            #                                     record_both_channels=True)
+            print('Transient Measurements under construction')
+            # if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
+            #     ch1, ch2 = self.sr_lockin.collect_data(self.transient_duration, self.settings.lia.sampling_rate_idx,
+            #                                         record_both_channels=True)
+            # elif self.settings.lockin_model == 'UHFLI':
+            #     print('Transient measurements not set up on UHFLI')
 
         return sample
 
-    # @helpers.measure_time
-    # def get_lockin_transient(self):
-    #     print('Checking for lock-in issues...')
-    #     # As in overloads, phase locking to reference, etc.
-    #     self.lockin.open_comms()  # Open also sets the correct GPIB address
-    #     self.lockin.comms.write('*CLS\n')
-    #     self.lockin.clear_buffers()
-    #
-    #     # if self.offset_each is True:
-    #     #
-    #     #     self.toptica.laser_disable()
-    #     #
-    #     #     lia_status = self.lockin.check_status()
-    #     #     kk = 0
-    #     #     while not lia_status == 0 and kk < 200:
-    #     #         lia_status = self.lockin.check_status()
-    #     #         if lia_status == -1:  # Comm failure
-    #     #             return
-    #     #         # print('lia error' + str(lia_error))
-    #     #         # print('loop iteration: ' + str(kk))
-    #     #         time.sleep(0.001)
-    #     #         kk = kk + 1
-    #     #
-    #     #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-    #     #         self.pause_scan = True
-    #     #         # The following should be optimized
-    #     #         self.lockin_status_warning_signal.emit(str(lia_status))
-    #     #
-    #     #     print('Pausing for Lock-in settling...')
-    #     #     print('lockin_delay: ' + str(self.lockin_delay))
-    #     #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-    #     #
-    #     #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-    #     #         print('Optimizing Lock-in Sensitivity...')
-    #     #         self.lockin.auto_sens()
-    #     #
-    #     #     self.lockin.comms.write('AOFF 1, 1\n')
-    #     #     self.toptica.laser_enable()
-    #     #     self.toptica.laser_start()
-    #
-    #     lia_status = self.lockin.check_status()
-    #     kk = 0
-    #     # It may take some time for the lockin internal oscillator  to lock to the reference freq
-    #     while not lia_status == 0 and kk < 200:
-    #         lia_status = self.lockin.check_status()
-    #         if lia_status == -1:  # Comm failure
-    #             return
-    #         # print('lia error' + str(lia_error))
-    #         # print('loop iteration: ' + str(kk))
-    #         time.sleep(0.001)
-    #         kk = kk + 1
-    #
-    #     if not lia_status == 0:  # -1 cases (comm errors) should be removed by now
-    #         self.pause_scan = True
-    #         # The following should be optimized
-    #         self.lockin_status_warning_signal.emit(str(lia_status))
-    #
-    #     print('Pausing for Lock-in settling...')
-    #     print('lockin_delay: ' + str(self.lockin_delay))
-    #     time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
-    #
-    #     if self.settings.ui.scan_auto_sens_checkbox.isChecked():
-    #         print('Optimizing Lock-in Sensitivity...')
-    #         self.lockin.auto_sens()
-    #
-    #     print('Collecting Data....')
-    #     if self.settings.lia.outputs == 0 or self.settings.lia.outputs == 1 or self.settings.lia.outputs == 2:
-    #         print('From X/Y or R/Theta or Aux In 1')
-    #         if not self.is_averaging_pts and not self.is_recording_transient :  # Single snapshot measurement at each point
-    #             ch1, ch2 = self.lockin.collect_single_point()
-    #         elif self.is_averaging_pts and not self.is_recording_transient:  # If averaging lockin results
-    #             ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-    #                                                           record_both_channels=True)
-    #             print('Averaging New Data...')
-    #             ch1 = np.average(ch1_data)
-    #             ch2 = np.average(ch2_data)
-    #         elif self.is_recording_transient:
-    #             ch1, ch2 = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-    #                                                 record_both_channels=True)
-    #     # elif self.settings.lia.outputs == 2:
-    #     #     print('From Aux in 1')
-    #     #     if self.is_averaging_pts:  # Single snapshot measurement at each point
-    #     #         ch1, ch2 = self.lockin.collect_single_point(record_both_channels=True)
-    #     #     elif not self.is_averaging_pts:    # If averaging lockin results
-    #     #         ch1_data, ch2_data = self.lockin.collect_data(self.averaging_time, self.settings.lia.sampling_rate_idx,
-    #     #                                                       record_both_channels=True)
-    #     #         print('Averaging New Data...')
-    #     #         ch1 = np.average(ch1_data)
-    #     #         ch2 = np.average(ch2_data)
-
-        # return ch1, ch2
 
     @helpers.measure_time
     def distribute_results(self, step_num, scan_num, dim2_step_num, dim2_scan_num):
@@ -1539,6 +1371,18 @@ class MainWindow(QMainWindow):
         #     self.save_data(data_frame=self.ch1_scans_df,
         #                                filename=(filename + 'Scans - ' + self.output_name[0]), filetype=filetype)
 
+    def load_file_dialog(self):
+        print('inside save file dialog')
+        # tc = self.thread_pool.activeThreadCount()
+        # print('Active threads: ' + str(tc))
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+
+        file_name, _ = QFileDialog.getOpenFileName(self, "Load File:", r'C:\Users\padmr\Desktop\Data', options=options)
+
+        return file_name
+
+
     def save_file_dialog(self):
         #TODO: Check what happens when no file is selected
         print('inside save file dialog')
@@ -1548,8 +1392,9 @@ class MainWindow(QMainWindow):
         options |= QFileDialog.DontUseNativeDialog
 
         file_name, file_type = QFileDialog.getSaveFileName(self, "Save File As:", "",
-                                                           "CSV Files (*.csv);;Text Files (*.txt);;All Files (*.*)",
-                                                           options=options)
+                                                       "CSV Files (*.csv);;Text Files (*.txt);;All Files (*.*)",
+                                                       options=options)
+
         file_name = file_name.split('.txt')[0].split('.csv')[0]  # In case the user included the extension
         return file_name, file_type
 
@@ -1593,7 +1438,7 @@ class MainWindow(QMainWindow):
         self.general_error_window(window_details)
 
     @QtCore.pyqtSlot(str)
-    def lockin_status_warning_window(self, error_message):
+    def sr_lockin_status_warning_window(self, error_message):
         print('Trying to generate error_message_window')
 
         msg = QtWidgets.QMessageBox()
@@ -1614,10 +1459,6 @@ class MainWindow(QMainWindow):
 
     # ----------------------------------------- Other Window Slots ---------------------------------------------------
 
-    # @QtCore.pyqtSlot()
-    # def open_lockin_window(self):
-    #     self.lockin_window = LockinWidget()
-    #     self.lockin_window.show()
 
     @QtCore.pyqtSlot()
     def open_help_window(self):
@@ -1915,30 +1756,6 @@ class MainWindow(QMainWindow):
         self.expt_duration()
         self.set_1d_plot_properties()
 
-    # def expt_duration(self):
-    #     #TODO:
-    #     # 1. This estimate is only valid for the CG635/Lockin experiments. Incorporate the others
-    #     # 2. The condition is kind of stupid at the moment but prevents crashes at least
-    #     if self.lockin_delay is not None and self.settings.lia.sampling_rate_idx is not None:
-    #         averaging_time = self.ui.averaging_time_spbx.value()
-    #         data_transfer_time = self.settings.lia.sampling_rate_idx * averaging_time * 0.00132  # This estimate is good
-    #         # 0.00132 is for transferring both channels using TRCL (1.32 ms per sample)
-    #         freq_set_delay = 0.44  # Estimated using the CG635
-    #         check_lia_delay = 0.44  # Very rough estimate. This one depends a lot on situation
-    #         plot_data_delay = 0.16
-    #         record_data_delay = self.lockin_delay + averaging_time + data_transfer_time + 0.139
-    #         self.num_scans[0] = self.ui.num_scans_spbx.value()
-    #         print('--------------------- Expt Duration Estimate-----------------')
-    #         print('lockin_delay: ' + str(self.lockin_delay))
-    #         print('ave_time: ' + str(averaging_time))
-    #         print('Sampling rate: ' + str(self.settings.lia.sampling_rate_idx))
-    #         print("num_scans: " + str(num_scans))
-    #         print('self.step_count: ' + str(self.step_count))
-    #         expt_duration_estimate = self.step_count[0] * self.num_scans[0] * (freq_set_delay + check_lia_delay +
-    #                                                                 record_data_delay + plot_data_delay)
-    #         self.ui.experiment_duration_lnedt.setText(time.strftime('%H:%M:%S', time.gmtime(expt_duration_estimate)))
-    #     else:
-    #         self.ui.experiment_duration_lnedt.setText('Connect to Instruments...')
 
     @helpers.measure_time
     def expt_duration(self):
@@ -2268,7 +2085,8 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def clear_instr_errors(self):
-        self.lockin.error = ErrorCluster(status=False, code=0, details='')
+        self.sr_lockin.error = ErrorCluster(status=False, code=0, details='')
+        self.zi_lockin.error = ErrorCluster(status=False, code=0, details='')
         self.cg635.error = ErrorCluster(status=False, code=0, details='')
         self.md2000.error = ErrorCluster(status=False, code=0, details='')
         self.toptica.error = ErrorCluster(status=False, code=0, details='')
@@ -2287,12 +2105,51 @@ class MainWindow(QMainWindow):
             self.marker_size = (self.line_width / 1.2)
             self.line_style = QtCore.Qt.SolidLine
 
+    @QtCore.pyqtSlot(bool, float)
+    def update_tc_bandwidth(self, tf_primary, time_constant):
+
+        order = self.settings.ui.uhfli_filter_order_cbx.currentIndex() + 1
+        scaling_factor = zhinst.utils.bwtc_scaling_factor(order)
+        bw_3db = scaling_factor / (time_constant * 2 * np.pi)
+
+        if tf_primary:
+            self.settings.ui.uhfli_filter_bandwidth_spbx.setValue(bw_3db)
+        elif not tf_primary:
+            self.settings.ui.uhfli_filter_bandwidth_spbx_2.setValue(bw_3db)
+
+    @QtCore.pyqtSlot()
+    def save_or_load_uhfli_settings(self, tf_save):
+        if tf_save:
+            filename, _ = self.save_file_dialog()
+            if filename == '':
+                filename = None
+            if filename is not None:
+                self.zi_lockin.save_settings(filename)
+        elif not tf_save:
+            filename = self.load_file_dialog()
+            if filename == '':
+                filename = None
+            if filename is not None:
+                self.zi_lockin.load_settings(filename)
+
+    @QtCore.pyqtSlot(object, int)
+    def toggle_item_enabled(self, object_name, determiner_value):
+        if object_name == self.settings.ui.uhfli_freq_spbx:
+            print('object name comparison worked')
+            if determiner_value == 0:
+                self.settings.ui.uhfli_freq_spbx.setDisabled(False)
+            elif determiner_value > 0:
+                self.settings.ui.uhfli_freq_spbx.setDisabled(True)
+
     @QtCore.pyqtSlot(str, str, float)  # This is called "overloading" a signal and slot. This is now TWO slots
     @QtCore.pyqtSlot(str, str, int)  # Which require different variable type inputs. str, int is default if unspec'd
     def update_instr_property(self, instr, prop_name, new_val):
         print('Attempting to update ' + instr + ' ' + prop_name + ' to value: ' + str(new_val) + '\n')
-        if instr == 'lockin':
-            setattr(self.lockin.settings, prop_name, new_val)
+        if instr == 'sr_lockin':
+            setattr(self.sr_lockin.settings, prop_name, new_val)
+            setattr(self.settings.lia, prop_name, new_val)
+        elif instr == 'zi_lockin':
+            setattr(self.zi_lockin.settings, prop_name, new_val)
             setattr(self.settings.lia, prop_name, new_val)
         elif instr == 'md2000':
             setattr(self.md2000.settings, prop_name, new_val)
@@ -2408,19 +2265,21 @@ class MainWindow(QMainWindow):
         # TODO:
         # 1. CG635_write_btn could be potentially replaced with the lnedt "Text Edited"
         # -------------------------------------------- ERRORS AND WARNINGS ---------------------------------------------
-        self.lockin_status_warning_signal.connect(self.lockin_status_warning_window)
+        self.sr_lockin_status_warning_signal.connect(self.sr_lockin_status_warning_window)
         self.general_error_signal.connect(self.general_error_window)
 
         self.settings.ui.clear_instr_errors_btn.clicked.connect(self.clear_instr_errors)
-        self.lockin.send_error_signal.connect(self.receive_error_signal)
+        self.sr_lockin.send_error_signal.connect(self.receive_error_signal)
         self.cg635.send_error_signal.connect(self.receive_error_signal)
         self.toptica.send_error_signal.connect(self.receive_error_signal)
         self.md2000.send_error_signal.connect(self.receive_error_signal)
         self.cryostat.send_error_signal.connect(self.receive_error_signal)
 
         # ----------------------------------------- PROPERTIES UPDATED -------------------------------------------------
-        self.lockin.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('lockin', i, j))
-        self.lockin.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('lockin', i, j))
+        self.zi_lockin.settings_checked_signal[dict].connect(lambda i: self.settings.set_uhfli_settings_states(i))
+
+        self.sr_lockin.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('sr_lockin', i, j))
+        self.sr_lockin.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('sr_lockin', i, j))
 
         self.cg635.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('cg635', i, j))
         self.cg635.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('cg635', i, j))
@@ -2459,7 +2318,7 @@ class MainWindow(QMainWindow):
                        self.settings.ui.status_ind_toptica.setText(self.label_strings.off_led_str)])
 
         self.settings.ui.lockin_delay_scale_spbx.valueChanged[float].connect(
-            lambda i: self.update_instr_property('lockin', 'settling_delay_factor', i))
+            lambda i: self.update_instr_property('sr_lockin', 'settling_delay_factor', i))
 
         self.settings.ui.connect_instr_btn.clicked.connect(self.connect_instruments)
         self.ui.log_spacing_checkbox.toggled['bool'].connect(lambda i: self.log_spacing_checkbox_toggled(i, dim_idx=0))
@@ -2529,27 +2388,27 @@ class MainWindow(QMainWindow):
         # ---------------------------------------- SRS LOCK-IN ---------------------------------------------------------
 
         # Single parameter changes:
-        self.settings.ui.auto_creserve_btn.clicked.connect(self.lockin.auto_crsrv)
-        self.settings.ui.auto_dyn_reserve_btn.clicked.connect(self.lockin.auto_dyn_rsrv)
-        self.settings.ui.auto_wreserve_btn.clicked.connect(self.lockin.auto_wrsrv)
-        self.settings.ui.auto_offset_btn.clicked.connect(self.lockin.auto_offset)
-        self.settings.ui.auto_phase_btn.clicked.connect(self.lockin.auto_phase)
-        self.settings.ui.auto_sens_btn.clicked.connect(self.lockin.auto_sens)
-        self.settings.ui.close_reserve_cbx.activated[int].connect(self.lockin.update_crsrv)
-        self.settings.ui.wide_reserve_cbx.activated[int].connect(self.lockin.update_wrsrv)
-        self.settings.ui.dynamic_reserve_cbx.activated[int].connect(self.lockin.update_dyn_rsrv)
-        self.settings.ui.expand_cbx.activated[int].connect(self.lockin.update_expand)
-        self.settings.ui.filter_slope_cbx.activated[int].connect(self.lockin.update_filter_slope)
-        self.settings.ui.sr844_harmonic_cbx.activated[int].connect(self.lockin.update_2f)
-        self.settings.ui.harmonic_spbx.valueChanged[int].connect(self.lockin.update_harmonic)
-        self.settings.ui.phase_spbx.valueChanged[float].connect(self.lockin.update_phase)
-        self.settings.ui.input_impedance_cbx.activated[int].connect(self.lockin.update_input_impedance)
-        # self.settings.ui.outputs_cbx.activated[int].connect(self.lockin.update_outputs)
-        self.settings.ui.ref_impedance_cbx.activated[int].connect(self.lockin.update_ref_impedance)
-        self.settings.ui.ref_source_cbx.activated[int].connect(self.lockin.update_ref_source)
-        self.settings.ui.sampling_rate_cbx.activated[int].connect(self.lockin.update_sampling_rate)
-        self.settings.ui.sensitivity_cbx.activated[int].connect(self.lockin.update_sensitivity)
-        self.settings.ui.time_constant_cbx.activated[int].connect(self.lockin.update_time_constant)
+        self.settings.ui.auto_creserve_btn.clicked.connect(self.sr_lockin.auto_crsrv)
+        self.settings.ui.auto_dyn_reserve_btn.clicked.connect(self.sr_lockin.auto_dyn_rsrv)
+        self.settings.ui.auto_wreserve_btn.clicked.connect(self.sr_lockin.auto_wrsrv)
+        self.settings.ui.auto_offset_btn.clicked.connect(self.sr_lockin.auto_offset)
+        self.settings.ui.auto_phase_btn.clicked.connect(self.sr_lockin.auto_phase)
+        self.settings.ui.auto_sens_btn.clicked.connect(self.sr_lockin.auto_sens)
+        self.settings.ui.close_reserve_cbx.activated[int].connect(self.sr_lockin.update_crsrv)
+        self.settings.ui.wide_reserve_cbx.activated[int].connect(self.sr_lockin.update_wrsrv)
+        self.settings.ui.dynamic_reserve_cbx.activated[int].connect(self.sr_lockin.update_dyn_rsrv)
+        self.settings.ui.expand_cbx.activated[int].connect(self.sr_lockin.update_expand)
+        self.settings.ui.filter_slope_cbx.activated[int].connect(self.sr_lockin.update_filter_slope)
+        self.settings.ui.sr844_harmonic_cbx.activated[int].connect(self.sr_lockin.update_2f)
+        self.settings.ui.harmonic_spbx.valueChanged[int].connect(self.sr_lockin.update_harmonic)
+        self.settings.ui.phase_spbx.valueChanged[float].connect(self.sr_lockin.update_phase)
+        self.settings.ui.input_impedance_cbx.activated[int].connect(self.sr_lockin.update_input_impedance)
+        # self.settings.ui.outputs_cbx.activated[int].connect(self.sr_lockin.update_outputs)
+        self.settings.ui.ref_impedance_cbx.activated[int].connect(self.sr_lockin.update_ref_impedance)
+        self.settings.ui.ref_source_cbx.activated[int].connect(self.sr_lockin.update_ref_source)
+        self.settings.ui.sampling_rate_cbx.activated[int].connect(self.sr_lockin.update_sampling_rate)
+        self.settings.ui.sensitivity_cbx.activated[int].connect(self.sr_lockin.update_sensitivity)
+        self.settings.ui.time_constant_cbx.activated[int].connect(self.sr_lockin.update_time_constant)
 
         # ---------------------------------- MOno ----------------------------------------------------------------------
         self.md2000.status_message_signal[str].connect(lambda i: self.ui.statusbar.showMessage(i))
@@ -2586,6 +2445,92 @@ class MainWindow(QMainWindow):
             lambda i: self.update_instr_property('smb100a', 'mod_source', i))
         self.settings.ui.smb100a_mod_source_cmb.activated[str].connect(
             lambda i: self.smb100a.set_pulse_mod_settings(i))
+
+        # --------------------------------------------------------------------------------------------------------------
+        # ----------------------------------- UHFLI (Zurich Instr Lockin) ----------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+        # React to UI interactions
+        self.settings.ui.uhfli_get_current_settings_btn.clicked.connect(
+            lambda: self.zi_lockin.get_current_settings(
+                demodulator=self.settings.ui.uhfli_demodulator_idx_spbx.value()
+            )
+        )
+
+        self.settings.ui.uhfli_save_settings_btn.clicked.connect(lambda: self.save_or_load_uhfli_settings(tf_save=True))
+
+        self.settings.ui.uhfli_load_settings_btn.clicked.connect(lambda: self.save_or_load_uhfli_settings(tf_save=False))
+        self.settings.ui.uhfli_input_cbx.currentIndexChanged[int].connect(
+            lambda i: self.zi_lockin.set_input(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), input_idx=i))
+        self.settings.ui.uhfli_range_spbx.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_range(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(), input_range=i))
+        self.settings.ui.uhfli_range_spbx_2.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_range(input_idx=self.settings.ui.uhfli_input_cbx_2.currentIndex(), input_range=i))
+        self.settings.ui.uhfli_input_impedance_cbx.activated.connect(
+            lambda i: self.zi_lockin.set_input_impedance(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(),
+                                                         desired_imp_idx=self.settings.ui.uhfli_input_impedance_cbx.currentIndex()))
+        self.settings.ui.uhfli_input_coupling_cbx.activated.connect(
+            lambda i: self.zi_lockin.set_input_coupling(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(),
+                                                        desired_coupling_idx=self.settings.ui.uhfli_input_coupling_cbx.currentIndex()))
+
+        # Reference mode manual (internal) vs external. Disable Frequency spinbox if external control
+        self.settings.ui.uhfli_ref_mode_cbx.activated[int].connect(
+            lambda i: [
+                self.zi_lockin.set_mode(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), trigger_mode_idx=i),
+                self.toggle_item_enabled(object_name=self.settings.ui.uhfli_freq_spbx, determiner_value=i)
+            ]
+        )
+
+        self.settings.ui.uhfli_freq_spbx.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_ref_freq(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), target_freq=i)
+        )
+
+        self.settings.ui.uhfli_harm_spbx.valueChanged[int].connect(
+            lambda i: self.zi_lockin.set_harmonic(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), harmonic=i)
+        )
+
+        self.settings.ui.uhfli_phase_spbx.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_phase(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), target_phase=i)
+        )
+
+        self.settings.ui.uhfli_filter_order_cbx.activated[int].connect(
+            lambda i: [
+                self.zi_lockin.set_filter_order(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
+                                                      filter_order=i+1),
+                self.update_tc_bandwidth(tf_primary=True, time_constant=self.settings.ui.uhfli_time_constant_spbx.value())
+            ]
+        )
+
+        self.settings.ui.uhfli_time_constant_spbx.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_time_constant(tf_primary=True,
+                                                       demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
+                                                       target_tc=i/1000)
+        )
+
+        self.settings.ui.uhfli_time_constant_spbx_2.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_time_constant(tf_primary=False,
+                                                       demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(),
+                                                       target_tc=i/1000)
+        )
+
+        self.settings.ui.uhfli_sinc_filtering_chkbx.toggled[bool].connect(
+            lambda i: self.zi_lockin.toggle_sinc_filter(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
+                                                        tf_enable_sinc=i)
+        )
+
+        # Update UI based on emitted signals (e.g. responses from the device)
+        self.zi_lockin.tc_updated_primary_signal_zi[float].connect(
+                lambda i: [
+                    self.settings.ui.uhfli_time_constant_spbx.setValue(i*1000),
+                    self.update_tc_bandwidth(tf_primary=True, time_constant=i)
+                ]
+        )
+        self.zi_lockin.tc_updated_secondary_signal_zi[float].connect(
+                lambda i: [
+                 self.settings.ui.uhfli_time_constant_spbx_2.setValue(i*1000),
+                 self.update_tc_bandwidth(tf_primary=False, time_constant=i)
+                ]
+        )
+
 
 # ------------------------------------------------ RUN THE PROGRAM -----------------------------------------------------
 

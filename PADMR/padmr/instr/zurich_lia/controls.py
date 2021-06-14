@@ -78,6 +78,9 @@ class ZiLockinSettings:
 class ZiLIA(QtCore.QObject):
     send_error_signal = QtCore.pyqtSignal(object)
     property_updated_signal = QtCore.pyqtSignal([str, int], [str, float])
+    tc_updated_primary_signal_zi = QtCore.pyqtSignal(float)
+    tc_updated_secondary_signal_zi = QtCore.pyqtSignal(float)
+    settings_checked_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(ZiLIA, self).__init__(*args, **kwargs)
@@ -152,8 +155,56 @@ class ZiLIA(QtCore.QObject):
             self.connected = False
         return did_comms_fail
 
-    def get_current_settings(self):
-        pass
+    def get_current_settings(self, demodulator):
+        demod_idx = demodulator - 1
+
+        if demod_idx > 3:
+            osc_idx = 1
+        else:
+            osc_idx = 0
+
+        input_idx = int(self.daq.getDouble("/%s/demods/%d/adcselect" % (self.device, demod_idx)))
+
+        if demod_idx == 3:
+            tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 0)))
+            automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 0)))
+        elif demod_idx == 7:
+            tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 1)))
+            automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 1)))
+        else:
+            tf_ext_trig = False
+            automode_idx = 0
+
+        current_settings = {
+            "input_idx": input_idx,
+            "tf_50ohm": bool(self.daq.getDouble("/%s/sigins/%d/imp50" % (self.device, input_idx))),
+            "range": self.daq.getDouble("/%s/sigins/%d/range" % (self.device, input_idx)),
+            "coupling": int(self.daq.getDouble("/%s/sigins/%d/ac" % (self.device, input_idx))),
+            "tf_ext_trig": tf_ext_trig,
+            "automode_idx": automode_idx,
+            "ref_freq": self.daq.getDouble("/%s/oscs/%d/freq" % (self.device, osc_idx)),
+            "harmonic": int(self.daq.getDouble("/%s/demods/%d/harmonic" % (self.device, demod_idx))),
+            "phase": self.daq.getDouble("/%s/demods/%d/phaseshift" % (self.device, demod_idx)),
+            "filter_order": int(self.daq.getDouble("/%s/demods/%d/order" % (self.device, demod_idx))) - 1,
+            "time_constant": self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx)),
+            "tf_sinc_filter": bool(self.daq.getDouble("/%s/demods/%d/sinc" % (self.device, demod_idx)))
+        }
+        print('Current Settings\n' + str(current_settings))
+        self.settings_checked_signal.emit(current_settings)
+        return current_settings
+
+    def save_settings(self, filename):
+        if filename is not None:
+            print("Saving settings...")
+            zhinst.utils.save_settings(self.daq, self.device, filename)
+            print("Done.")
+
+    def load_settings(self, filename):
+        # Load settings.
+        if filename is not None:
+            print("Loading settings...")
+            zhinst.utils.load_settings(self.daq, self.device, filename)
+            print("Done.")
 
     def collect_sample(self):
         # Perform a "global synchronization". Must happen AFTER low-pass settling delay
@@ -224,6 +275,126 @@ class ZiLIA(QtCore.QObject):
         command = [["/%s/sigouts/%d/on" % (self.device, which_output), state]]
         self.daq.set(command)
 
+    # def update_tc(self, demod_idx, tc):
+    #     exp_setting = [
+    #         ["/%s/demods/%d/timeconstant" % (self.device, demod_idx), self.settings.time_constant]
+    #     ]
+    #     self.daq.set(exp_setting)
+    #
+    #     tc_out = self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx))
+    #     return tc_out
+
+    def set_input(self, demod_idx, input_idx):
+        exp_setting = [
+            ["/%s/demods/%d/adcselect" % (self.device, demod_idx-1), input_idx],  # Demod input signal
+        ]
+        self.daq.set(exp_setting)
+
+    def set_range(self, input_idx, input_range):
+        exp_setting = [
+            ["/%s/sigins/%d/range" % (self.device, input_idx), input_range]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_input_impedance(self, input_idx, desired_imp_idx):
+        if desired_imp_idx == 0:
+            is_50_ohm = 1
+        elif desired_imp_idx == 1:
+            is_50_ohm = 0
+
+        exp_setting = [
+            ["/%s/sigins/%d/imp50" % (self.device, input_idx), is_50_ohm]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_input_coupling(self, input_idx, desired_coupling_idx):
+        exp_setting = [
+            ["/%s/sigins/%d/ac" % (self.device, input_idx), desired_coupling_idx]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_harmonic(self, demod_idx=4, harmonic=1):
+        exp_setting = [
+            ["/%s/demods/%d/harmonic" % (self.device, demod_idx-1), harmonic]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_phase(self, demod_idx=4, target_phase=0):
+        exp_setting = [
+            ["/%s/demods/%d/phaseshift" % (self.device, demod_idx-1), target_phase]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_filter_order(self, demod_idx=4, filter_order=3):
+        exp_setting = [
+            ["/%s/demods/%d/order" % (self.device, demod_idx - 1), filter_order]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_time_constant(self, tf_primary=True, demod_idx=4, target_tc=0.1):
+        exp_setting = [
+            ["/%s/demods/%d/timeconstant" % (self.device, demod_idx-1), target_tc]
+        ]
+        self.daq.set(exp_setting)
+
+        tc_out = self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx-1))
+
+        if tf_primary:
+            self.tc_updated_primary_signal_zi.emit(tc_out)
+        elif not tf_primary:
+            self.tc_updated_secondary_signal_zi.emit(tc_out)
+
+    def toggle_sinc_filter(self, demod_idx=4, tf_enable_sinc=False):
+        exp_setting = [
+            ["/%s/demods/%d/sinc" % (self.device, demod_idx - 1), tf_enable_sinc]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_ref_freq(self, demod_idx=4, target_freq=100E3):
+        if 1 <= demod_idx <= 4:
+            osc_idx = 0
+        elif 4 < demod_idx:
+            osc_idx = 1
+
+        exp_setting = [
+            ["/%s/oscs/%d/freq" % (self.device, osc_idx), target_freq]
+        ]
+        self.daq.set(exp_setting)
+
+    def set_mode(self, demod_idx=4, trigger_mode_idx=1):
+        """
+        If demodulator 4 is used, external reference must be connected at Ref 1 (ext_ref_idx=0).
+        If demodulator 8 is used, external reference must be connected at Ref 2 (ext_ref_idx=1).
+        """
+        if demod_idx == 4:
+            ext_ref_idx = 0
+        elif demod_idx == 8:
+            ext_ref_idx = 1
+
+        if trigger_mode_idx == 0:
+            # "Manual" (Internal) Triggering
+            exp_setting = [
+                ["/%s/extrefs/%d/enable" % (self.device, ext_ref_idx), 0]
+            ]
+        elif trigger_mode_idx == 1:
+            # External Triggering, automatic bandwidth selection
+            exp_setting = [
+                ["/%s/extrefs/%d/enable" % (self.device, ext_ref_idx), 1],
+                ["/%s/extrefs/%d/automode" % (self.device, ext_ref_idx), 4]
+            ]
+        elif trigger_mode_idx == 2:
+            exp_setting = [
+                ["/%s/extrefs/%d/enable" % (self.device, ext_ref_idx), 1],
+                ["/%s/extrefs/%d/automode" % (self.device, ext_ref_idx), 2]
+            ]
+        elif trigger_mode_idx == 3:
+            exp_setting = [
+                ["/%s/extrefs/%d/enable" % (self.device, ext_ref_idx), 1],
+                ["/%s/extrefs/%d/automode" % (self.device, ext_ref_idx), 3]
+            ]
+
+        self.daq.set(exp_setting)
+
     def update_all(self):
         zhinst.utils.disable_everything(self.daq, self.device)
 
@@ -233,6 +404,7 @@ class ZiLIA(QtCore.QObject):
         demod = self.settings.demod_index
         sig_in = self.settings.in_channel
         exp_setting = [
+            ["/%s/sigins/%d/imp50" % (self.device, sig_in), 1],
             ["/%s/sigins/%d/ac" % (self.device, sig_in), 0],  # not AC coupling (no highpass filter)
             ["/%s/sigins/%d/range" % (self.device, sig_in), 1.5],  # Init to max so no overloads
             ["/%s/demods/%d/enable" % (self.device, demod), 1],  # Enable the demodulator
