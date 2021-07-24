@@ -165,19 +165,34 @@ class ZiLIA(QtCore.QObject):
 
         input_idx = int(self.daq.getDouble("/%s/demods/%d/adcselect" % (self.device, demod_idx)))
 
-        if demod_idx == 3:
+        if input_idx < 2:
+            tf_50ohm = bool(self.daq.getDouble("/%s/sigins/%d/imp50" % (self.device, input_idx)))
+        else:
+            tf_50ohm = False
+
+        if demod_idx <= 3:
             tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 0)))
             automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 0)))
-        elif demod_idx == 7:
+        elif 3 < demod_idx <= 7:
             tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 1)))
             automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 1)))
-        else:
-            tf_ext_trig = False
-            automode_idx = 0
+
+        # if demod_idx == 3:
+        #     tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 0)))
+        #     automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 0)))
+        # elif demod_idx == 7:
+        #     tf_ext_trig = bool(self.daq.getDouble("/%s/extrefs/%d/enable" % (self.device, 1)))
+        #     automode_idx = int(self.daq.getDouble("/%s/extrefs/%d/automode" % (self.device, 1)))
+        # else:
+        #     tf_ext_trig = False
+        #     automode_idx = 0
+
+        filter_order = int(self.daq.getDouble("/%s/demods/%d/order" % (self.device, demod_idx)))
+        time_constant = self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx))
 
         current_settings = {
             "input_idx": input_idx,
-            "tf_50ohm": bool(self.daq.getDouble("/%s/sigins/%d/imp50" % (self.device, input_idx))),
+            "tf_50ohm": tf_50ohm,
             "range": self.daq.getDouble("/%s/sigins/%d/range" % (self.device, input_idx)),
             "coupling": int(self.daq.getDouble("/%s/sigins/%d/ac" % (self.device, input_idx))),
             "tf_ext_trig": tf_ext_trig,
@@ -185,13 +200,14 @@ class ZiLIA(QtCore.QObject):
             "ref_freq": self.daq.getDouble("/%s/oscs/%d/freq" % (self.device, osc_idx)),
             "harmonic": int(self.daq.getDouble("/%s/demods/%d/harmonic" % (self.device, demod_idx))),
             "phase": self.daq.getDouble("/%s/demods/%d/phaseshift" % (self.device, demod_idx)),
-            "filter_order": int(self.daq.getDouble("/%s/demods/%d/order" % (self.device, demod_idx))) - 1,
-            "time_constant": self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx)),
-            "tf_sinc_filter": bool(self.daq.getDouble("/%s/demods/%d/sinc" % (self.device, demod_idx)))
+            "filter_order": filter_order,
+            "time_constant": time_constant,
+            "tf_sinc_filter": bool(self.daq.getDouble("/%s/demods/%d/sinc" % (self.device, demod_idx))),
+            "bw_3db": zhinst.utils.tc2bw(time_constant, filter_order)
         }
         print('Current Settings\n' + str(current_settings))
         self.settings_checked_signal.emit(current_settings)
-        return current_settings
+        return
 
     def save_settings(self, filename):
         if filename is not None:
@@ -206,14 +222,15 @@ class ZiLIA(QtCore.QObject):
             zhinst.utils.load_settings(self.daq, self.device, filename)
             print("Done.")
 
-    def collect_sample(self):
+    def collect_sample(self, demodulator):
+        demod_idx = demodulator-1
         # Perform a "global synchronization". Must happen AFTER low-pass settling delay
         self.daq.sync()
         # Obtain one demodulator sample via ziself.daqServer's low-level getSample()
         # method - for extended data acquisition it's preferable to use
         # ziDAQServer's poll() method or the ziDAQRecorder class.
 
-        sample = self.daq.getSample("/%s/demods/%d/sample" % (self.device, self.settings.demod_index))
+        sample = self.daq.getSample("/%s/demods/%d/sample" % (self.device, demod_idx))
         # Calculate the demodulator's magnitude and phase and add them to the sample
         # dict.
         sample["R"] = np.abs(sample["x"] + 1j * sample["y"])
@@ -366,9 +383,14 @@ class ZiLIA(QtCore.QObject):
         If demodulator 4 is used, external reference must be connected at Ref 1 (ext_ref_idx=0).
         If demodulator 8 is used, external reference must be connected at Ref 2 (ext_ref_idx=1).
         """
-        if demod_idx == 4:
+        # if demod_idx == 4:
+        #     ext_ref_idx = 0
+        # elif demod_idx == 8:
+        #     ext_ref_idx = 1
+
+        if 1 <= demod_idx <= 4:
             ext_ref_idx = 0
-        elif demod_idx == 8:
+        elif 4 < demod_idx:
             ext_ref_idx = 1
 
         if trigger_mode_idx == 0:

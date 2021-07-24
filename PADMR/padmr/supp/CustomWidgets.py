@@ -21,6 +21,10 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.setLayout(vertical_layout)
 
+# class TestCustomDoubleSpinBox(QtWidgets.QDoubleSpinBox):
+#     def __init__(self, *args):
+#         super(TestCustomDoubleSpinBox, self).__init__(*args)
+
 
 class CustomDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     def __init__(self, *args):

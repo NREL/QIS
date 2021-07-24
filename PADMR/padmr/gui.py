@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIqfTfTB.ui'
+# Form implementation generated from reading ui file 'C:/Users/padmr/AppData/Local/Temp/1/expt_control_UIRrNKfK.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -149,14 +149,14 @@ class Ui_MainWindow(object):
         self.step_size_display.setMaximumSize(QtCore.QSize(100, 16777215))
         self.step_size_display.setObjectName("step_size_display")
         self.gridLayout_3.addWidget(self.step_size_display, 3, 4, 1, 1)
-        self.sweep_start_spbx = CustomDoubleSpinBox(self.scrollAreaWidgetContents)
-        self.sweep_start_spbx.setMinimum(-100000.0)
-        self.sweep_start_spbx.setMaximum(100000.0)
+        self.sweep_start_spbx = ScienDSpinBox(self.scrollAreaWidgetContents)
+        self.sweep_start_spbx.setMinimum(-10000000000.0)
+        self.sweep_start_spbx.setMaximum(10000000000.0)
         self.sweep_start_spbx.setObjectName("sweep_start_spbx")
         self.gridLayout_3.addWidget(self.sweep_start_spbx, 1, 0, 1, 1)
-        self.sweep_end_spbx = CustomDoubleSpinBox(self.scrollAreaWidgetContents)
-        self.sweep_end_spbx.setMinimum(-100000000.0)
-        self.sweep_end_spbx.setMaximum(100000000.0)
+        self.sweep_end_spbx = ScienDSpinBox(self.scrollAreaWidgetContents)
+        self.sweep_end_spbx.setMinimum(-10000000000.0)
+        self.sweep_end_spbx.setMaximum(10000000000.0)
         self.sweep_end_spbx.setObjectName("sweep_end_spbx")
         self.gridLayout_3.addWidget(self.sweep_end_spbx, 1, 2, 1, 1)
         self.sweep_units_cbx = CustomComboBox(self.scrollAreaWidgetContents)
@@ -649,8 +649,8 @@ class Ui_MainWindow(object):
         self.pause_btn.clicked.connect(MainWindow.pause_btn_clicked)
         self.stop_btn.clicked.connect(MainWindow.stop_btn_clicked)
         self.experiment_presets_cbx.activated['QString'].connect(MainWindow.experiment_preset_cbx_activated)
-        self.sweep_start_spbx.valueChanged['double'].connect(MainWindow.calc_steps_from_num)
-        self.sweep_end_spbx.valueChanged['double'].connect(MainWindow.calc_steps_from_num)
+        self.sweep_start_spbx.editingFinished.connect(MainWindow.calc_steps_from_num)
+        self.sweep_end_spbx.editingFinished.connect(MainWindow.calc_steps_from_num)
         self.num_steps_spbx.valueChanged['int'].connect(MainWindow.calc_steps_from_num)
         self.autosave_checkbox.toggled['bool'].connect(MainWindow.autosave_checkbox_toggled)
         self.actionSettings.triggered.connect(MainWindow.open_settings_window)
@@ -748,4 +748,5 @@ class Ui_MainWindow(object):
         self.actionSave_Data.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.actionConnect_All.setText(_translate("MainWindow", "Initialize Selected Instruments (see Settings)"))
 from padmr.supp.CustomWidgets import CustomComboBox, CustomDoubleSpinBox, CustomSpinBox
+from padmr.supp.scientific_spinbox import ScienDSpinBox
 from pyqtgraph import PlotWidget

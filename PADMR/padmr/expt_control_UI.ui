@@ -393,22 +393,22 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="CustomDoubleSpinBox" name="sweep_start_spbx">
+           <widget class="ScienDSpinBox" name="sweep_start_spbx">
             <property name="minimum">
-             <double>-100000.000000000000000</double>
+             <double>-10000000000.000000000000000</double>
             </property>
             <property name="maximum">
-             <double>100000.000000000000000</double>
+             <double>10000000000.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="CustomDoubleSpinBox" name="sweep_end_spbx">
+           <widget class="ScienDSpinBox" name="sweep_end_spbx">
             <property name="minimum">
-             <double>-100000000.000000000000000</double>
+             <double>-10000000000.000000000000000</double>
             </property>
             <property name="maximum">
-             <double>100000000.000000000000000</double>
+             <double>10000000000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -1659,6 +1659,11 @@
    <header>pyqtgraph</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ScienDSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>padmr.supp.scientific_spinbox.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
@@ -1728,13 +1733,13 @@
   </connection>
   <connection>
    <sender>sweep_start_spbx</sender>
-   <signal>valueChanged(double)</signal>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>139</x>
-     <y>441</y>
+     <x>149</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1744,13 +1749,13 @@
   </connection>
   <connection>
    <sender>sweep_end_spbx</sender>
-   <signal>valueChanged(double)</signal>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>262</x>
-     <y>441</y>
+     <x>282</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1765,8 +1770,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>262</x>
-     <y>498</y>
+     <x>282</x>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
@@ -1829,8 +1834,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>369</x>
-     <y>440</y>
+     <x>379</x>
+     <y>543</y>
     </hint>
     <hint type="destinationlabel">
      <x>512</x>
@@ -1845,8 +1850,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>323</x>
-     <y>601</y>
+     <x>246</x>
+     <y>704</y>
     </hint>
     <hint type="destinationlabel">
      <x>514</x>
@@ -1861,8 +1866,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>169</x>
-     <y>601</y>
+     <x>412</x>
+     <y>1199</y>
     </hint>
     <hint type="destinationlabel">
      <x>516</x>

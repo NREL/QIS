@@ -571,20 +571,28 @@ class SettingsWindowForm(QWidget):
         rm = pyvisa.ResourceManager()
         resources = list(rm.list_resources())
         resources.insert(0, '')
+        self.ui.md2000_com_port_cmb.blockSignals(True)
         self.ui.md2000_com_port_cmb.clear()
         self.ui.md2000_com_port_cmb.addItems(resources)
+        self.ui.md2000_com_port_cmb.blockSignals(False)
         self.ui.md2000_com_port_cmb.setCurrentText(self.md2000.com_port)
 
+        self.ui.toptica_com_port_cmb.blockSignals(True)
         self.ui.toptica_com_port_cmb.clear()
         self.ui.toptica_com_port_cmb.addItems(resources)
+        self.ui.toptica_com_port_cmb.blockSignals(False)
         self.ui.toptica_com_port_cmb.setCurrentText(self.toptica.com_port)
 
+        self.ui.prologix_com_port_cmb.blockSignals(True)
         self.ui.prologix_com_port_cmb.clear()
         self.ui.prologix_com_port_cmb.addItems(resources)
+        self.ui.prologix_com_port_cmb.blockSignals(False)
         self.ui.prologix_com_port_cmb.setCurrentText(self.prologix_com_port)
 
+        self.ui.smb100a_com_port_cmb.blockSignals(True)
         self.ui.smb100a_com_port_cmb.clear()
         self.ui.smb100a_com_port_cmb.addItems(resources)
+        self.ui.smb100a_com_port_cmb.blockSignals(False)
         self.ui.smb100a_com_port_cmb.setCurrentText(self.smb100a_com_port)
 
     @QtCore.pyqtSlot(bool)
@@ -724,8 +732,9 @@ class SettingsWindowForm(QWidget):
         self.ui.uhfli_freq_spbx.setValue(current_settings_dict["ref_freq"])
         self.ui.uhfli_harm_spbx.setValue(current_settings_dict["harmonic"])
         self.ui.uhfli_phase_spbx.setValue(current_settings_dict["phase"])
-        self.ui.uhfli_filter_order_cbx.setCurrentIndex(current_settings_dict["filter_order"])
+        self.ui.uhfli_filter_order_cbx.setCurrentIndex(current_settings_dict["filter_order"] - 1)
         self.ui.uhfli_time_constant_spbx.setValue(current_settings_dict["time_constant"])
+        self.ui.uhfli_filter_bandwidth_spbx.setValue(current_settings_dict["bw_3db"])
         self.ui.uhfli_sinc_filtering_chkbx.setChecked(current_settings_dict["tf_sinc_filter"])
 
         if not current_settings_dict["tf_ext_trig"]:

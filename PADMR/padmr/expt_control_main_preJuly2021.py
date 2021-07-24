@@ -1,15 +1,11 @@
 #TODO:
 # Priorities:
-# 1. Make settings tab for UHFLI less confusing
-# 2. Debug UHFLI
+# 1. Determine optimal delay to use for magnet
+# 2. Get UHFLI set up
+# 3. Toptica signals/slots/error handling
 # 4. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 5. Finish setting up 2D experiments
 # Various:
-# -107. Automatically save Lockin (and other) settings to file when experiment is started
-# -106. Allow adjust UHFLI bandwidth when modulation frequency is swept (so BW is similar on a log scale at each pt)
-# -105. Fix plot scaling so the user doesn't have to manually switch to log scaling (or at least autoscale it)
-# -104. Change all double spin boxes to ScienDSpinBox
-# -102. Add a trigger level adjustment for External Reference
 # -101. Eliminate redundant updating of UHFLI settings
 # -100. Get secondary demodulator in line with primary.
 # -99. Get SR830 working again with new code
@@ -31,6 +27,7 @@
 # -76. Attempting to restart experiment after aborting due to lock-in not locking, caused crash
 # -75. Reset Scan Entries when Abscissa is set to 0 (also rename this to ' - None - ' ?)
 # -74. Move number of scans to the respective abscissa block (ui objects)
+# -73. Change saving so that if only 1 scan, Ave Data is saved (rather than scans)
 # -70. Figure out the settings window laser buttons (they seem to be redundant)
 # -69. Find a good way to average multiple 2d scans together (perhaps create the "Scans" file, and treat both
 # scan dimensions the same as is currently done for 1d scans)
@@ -40,28 +37,42 @@
 # -60. Get all instruments to use statusbar
 # -59. Forbid changing experiment parameters during experiment
 # -58. Improve the start experiment conditionality statement to include all instruments that will be used.
+# -57. 2D data is getting plotted wierdly after the second dimension moves for the first time
+# (because chX_scan is removing the x axis values)
+# -53. Getting a "PLL never locked" error
 # -52. Incorporate a "busy" functionality to prevent fast clickers from crashing the program
+# -51. Change y scales to keep legends out of the way (or place legends outside plot area)
+# -50. Gray out text associated with secondary variable as well so it's not confusing
 # -49. Incorporate a check: check lock-in frequency matches expected frequency (not just that it is locked)
+# -47. Measure function durations as a wrapper around most functions?
 # -46. Why does the lock-in light come on before all the properties are done setting?
-# -44. Figure out this stupid led_icons_rc file issue in a permanent way (instead of commenting line out in gui.py file)
+# -44. Figure out this stupid led_icons_rc file issue
 # -43. Make error handling in Mono_control_module consistent.
 # -42. Put the mono __init__ attributes into the .ini file
 # -41. Consolidate redundant tasks in all scripts (e.g. wrappers)
 # -40. Provide some notification that the experiment is over.
+# -39. Don't save "scan 1" separately from ave if only one scan
 # -38. Update Current frequency in the settings tab to always be the current frequency
 # -37. Make self.....connected consistent between instruments after determining if it is at all useful.
 # -36. Make "instrument_status_changed" consistent between instruments
 # - 35. Move shared classes into a folder and import.
 # -34. Get the current frequency/wl/whatever property displayed above the plot
 # -33. When experiment preset selected, automatically check relevant instrument boxes
+# -32. Get the legends to be less stupid (overlap)
 # -31. Find a way to get the corresponding settings objects to update whenever "property_updated_signal" emitted.
 #   E.g. current freq
+# -30. Break up collect_data into 2 or three sub-functions
+# -29. Figure out a good way to save data when doing 2D experiments
+# -27. Make a "fast" and "slow" mode for lock-in functions (in fast mode, open must be done BEFOREHAND)?
 # -26. Add signals to the relevant com port settings (and others) in settings_window_main
 # -25. Merge all the update...property functions into one
+# -23. Set up signals/slots and error handling for toptica
 # -22. Consolidate connect_lockin (I don't think there needs to be a large if/else statement)
+# -21. Replace signal/slots telephone game with the connect function (improve using lambda. Including CG635 "send" btns)
 # -18. Should the error cluster also contain a type (warning vs error) that determines level of reaction?
 # -16. If error handling works nicely with lockin and cg635, apply also to other modules (including the QObject thing)
 # -15. Does self.connected need to be set to False whenever a communication error occurs?
+# -14. Add a "collect_data_array" function to the lockin control module (so you can look for oscillations)
 # -12. Add docstrings to every function
 # -11. Do I really need the \n in the write commands? It would be nice to be consistent
 # -4. Incorporate the frequency mismatch warning into a window (At the end of the experiment?)
@@ -70,6 +81,7 @@
 # 0. Add laser on indicator light to the MAIN Window as well.
 # 0. Add a "check for connectivity" error handler for functions which require it. (e.g. using self.cg635_connected)
 # 0a. self.cg635_connected may be better as self.cg635.connected (attribute of the instrument)
+# 4. Incorporate a scan probe wavelength (at set pump mod frequency) option (TA Spectrum)
 # 9. Incorporate an "if ...connected" before "set params"
 # -1. Rename variables to decrease length and increase self-consistency
 # 0. Restore to defaults btn
@@ -77,12 +89,18 @@
 # This would be awesome for knowing when to stop an experiment (alternatively, plot all previous scans in pale color?)
 # 2. Live fitting with uncertainties would be a nice feature
 # 3. Add a "hide current scan" and/or "hide average scan" to clean up the plot
-# 4. Add icons to "constants" to simplify experiment setup (like a thermometer for temp, rainbow for wl, etc)
-# 5. Incorporate indicators to show which devices are outputting e.g. laser, u-waves
-# 6. Get displayed steps to print with fewer sig figs
-# 7. Find rounding parameters that work for all experiment configurations
-# 8. Rename com_port and resource_name variables for consistency
-# 9. Format all the control modules in the same way (to the extent that it's possible to do so)
+# 3. Add icons to "constants" to simplify experiment setup (like a thermometer for temp, rainbow for wl, etc)
+# 4. Incorporate indicators to show which devices are outputting e.g. laser, u-waves
+# 5. Get displayed steps to print with fewer sig figs
+# 6. Find rounding parameters that work for all experiment configurations
+# 7. Consider reworking the monocontrol scripts so that everything needed here is in the control module (so importing
+# the mono_control_main is only used for single instrument control) (at the least rename the slots so they make more
+# sense in the context of this program)
+# 8. Get "set_plot_params" fn to do all of the plotting label stuff.
+# 10. Make it so the plot doesn't have insane axis limits when 0s are in start and end
+# 2. Reorganize MainWindow to something logical
+# 3. Rename com_port and resource_name variables for consistency
+# 5. Format all the control modules in the same way (to the extent that it's possible to do so)
 
 import os
 import sys
@@ -253,7 +271,6 @@ class MainWindow(QMainWindow):
         self.ch1_scans_df = None
         self.ch2_scans_df = None
         self.ave_data_df = None
-        self.sum_scans = None
         self.ave_data_ch1_df = None
         self.ave_data_ch2_df = None
 
@@ -623,7 +640,7 @@ class MainWindow(QMainWindow):
         # 1. SAMPLING Rate for the SR844 is currently used no matter which lock-in you choose (bad)
         print('---------------------------------- BEGINNING MAIN EXPERIMENT LOOP -------------------------------------')
         # Create a data storage structure
-        # self.stored_data = StoredData()
+        self.stored_data = StoredData()
 
         # At the beginning of each scan, add that scan to the stored data
         dim2_scan_num = 0
@@ -646,7 +663,6 @@ class MainWindow(QMainWindow):
                     # self.current_scan = pd.DataFrame(columns=self.column_headers)
 
                     self.ave_data_df = pd.DataFrame(columns=self.column_headers)
-                    self.sum_scans = pd.DataFrame(columns=self.column_headers)
 
                 else:
                     self.status_message_signal.emit('Transient Recording Under Construction...')
@@ -678,7 +694,7 @@ class MainWindow(QMainWindow):
                     self.ready_for_new_scan(which_abscissa=0)
                     self.current_scan = pd.DataFrame(columns=self.column_headers)
                     # Before each scan, add the empty scan data to the stored data
-                    # self.stored_data.add_scan(self.current_scan, dim2_scan_num, dim2_step_num)
+                    self.stored_data.add_scan(self.current_scan, dim2_scan_num, dim2_step_num)
 
 
                     # self.all_scans_dim1.append(self.current_scan)
@@ -717,7 +733,7 @@ class MainWindow(QMainWindow):
                             self.plot_results(step_num, scan_num)
 
                         # Update the stored data container
-                        # self.stored_data.replace_scan(self.current_scan, dim2_scan_num, dim2_step_num, scan_num)
+                        self.stored_data.replace_scan(self.current_scan, dim2_scan_num, dim2_step_num, scan_num)
 
                         step_num = step_num + 1
                     # Save data after each scan (add scan)
@@ -853,7 +869,7 @@ class MainWindow(QMainWindow):
                     print('Lock-in had a pre-existing error')
                     self.general_error_signal.emit({'Title': ' - Warning - ',
                                                     'Text': ' Experiment Aborted',
-                                                    'Informative Text': 'Lockin Error Found',
+                                                    'Informative Text': 'Cryostat Error Found',
                                                     'Details': ('Error Code: ' + str(self.sr_lockin.error.code))})
                     self.abort_scan = True
                     return None
@@ -863,26 +879,6 @@ class MainWindow(QMainWindow):
                     print('Actual pos: ' + str(actual_pos))
             elif self.settings.lockin_model == 'UHFLI':
                 print('UHFLI Not set up for internal reference sweeps')
-                if self.zi_lockin.error.status:
-                    print('Lock-in had a pre-existing error')
-                    self.general_error_signal.emit({'Title': ' - Warning - ',
-                                                    'Text': ' Experiment Aborted',
-                                                    'Informative Text': 'Lockin Error Found',
-                                                    'Details': ('Error Code: ' + str(self.zi_lockin.error.code))})
-                    self.abort_scan = True
-                    return None
-                else:
-                    dmi = self.settings.ui.uhfli_demodulator_idx_spbx.value()
-                    self.zi_lockin.set_ref_freq(demod_idx=dmi, target_freq=next_step)
-
-                    if 1 <= dmi <= 4:
-                        osc_idx = 0
-                    elif 4 < dmi:
-                        osc_idx = 1
-
-                    actual_pos = self.zi_lockin.daq.getDouble("/%s/oscs/%d/freq" % (self.zi_lockin.device, osc_idx))
-                    # actual_pos = self.zi_lockin.settings.frequency
-                    print('Actual pos: ' + str(actual_pos))
 
         else:
             print('there are this many possible abscissae?')
@@ -936,27 +932,6 @@ class MainWindow(QMainWindow):
                 self.pause_scan = True
                 # The following should be optimized
                 self.sr_lockin_status_warning_signal.emit(str(lia_status))
-        else:
-            if 1 <= demod <= 4:
-                osc_idx = 0
-            elif 4 < demod:
-                osc_idx = 1
-            lia_locked = bool(self.zi_lockin.daq.getDouble("/%s/extrefs/%d/locked" % (self.zi_lockin.device, osc_idx)))
-
-            kk = 0
-            t0 = time.time()
-            while kk < 200 and not lia_locked:
-                lia_locked = bool(self.zi_lockin.daq.getDouble("/%s/extrefs/%d/locked" % (self.zi_lockin.device, osc_idx)))
-                time.sleep(0.001)
-                kk = kk + 1
-
-            if not lia_locked:  #
-                self.pause_scan = True
-                # The following should be optimized
-                self.sr_lockin_status_warning_signal.emit('NA\n Zurich Instruments LIA could not lock to reference')
-
-            print('Zurich Lock-in locked on ' + str(kk) + 'th iteration (took ' + str(time.time() - t0) + ' seconds')
-
 
         print('Pausing for Lock-in settling...')
         print('lockin_delay: ' + str(self.lockin_delay))
@@ -1006,83 +981,60 @@ class MainWindow(QMainWindow):
     @helpers.measure_time
     def distribute_results(self, step_num, scan_num, dim2_step_num, dim2_scan_num):
         # x = self.sample["x"]
-        t0 = time.time()
         self.actual_x_values[step_num] = self.current_position[0]
 
         self.current_scan.loc[step_num, self.abscissa_name[0]] = self.current_position[0]
-        self.sum_scans.loc[step_num, self.column_headers[0]] = self.current_position[0]
         self.ave_data_df.loc[step_num, self.column_headers[0]] = self.current_position[0]
-        delta_t = time.time() - t0
-        print('Step 1 took ' + str(delta_t) + ' seconds')
 
-        t0 = time.time()
         if 'X (Vrms)' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
-            else:
-                self.sum_scans.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] + \
-                                                           self.current_sample["x"]
-            self.ave_data_df.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] / (scan_num + 1)
         if 'Y (Vrms)' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
-            else:
-                self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] + self.current_sample["y"]
-
-            self.ave_data_df.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] / (scan_num + 1)
         if 'R (Vrms)' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
-            else:
-                self.sum_scans.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] + self.current_sample["R"]
-
-            self.ave_data_df.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] / (scan_num + 1)
         if 'Theta (deg)' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
-            else:
-                self.sum_scans.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] + self.current_sample[
-                "theta"]
-            self.ave_data_df.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] / (scan_num + 1)
         if 'Aux In 1' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Aux In 1'] = self.current_sample["auxin0"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Aux In 1'] = self.current_sample["auxin0"]
-            else:
-                self.sum_scans.loc[step_num, 'Aux In 1'] = self.sum_scans.loc[step_num, 'Aux In 1'] + self.current_sample["auxin0"]
-
-            self.ave_data_df.loc[step_num, 'Aux In 1'] = self.sum_scans.loc[step_num, 'Aux In 1'] / (scan_num + 1)
         if 'Aux In 2' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Aux In 2'] = self.current_sample["auxin1"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Aux In 2'] = self.current_sample["auxin1"]
-            else:
-                self.sum_scans.loc[step_num, 'Aux In 2'] = self.sum_scans.loc[step_num, 'Aux In 2'] + self.current_sample["auxin1"]
-
-            self.ave_data_df.loc[step_num, 'Aux In 2'] = self.sum_scans.loc[step_num, 'Aux In 2'] / (scan_num + 1)
         if 'Frequency' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
-            else:
-                self.sum_scans.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] + self.current_sample["frequency"]
-
-            self.ave_data_df.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] / (scan_num + 1)
         if 'Phase' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Phase'] = self.current_sample["phase"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Phase'] = self.current_sample["phase"]
-            else:
-                self.sum_scans.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] + self.current_sample["phase"]
 
-            self.ave_data_df.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] / (scan_num + 1)
+        # self.all_scans_dim1[scan_num] = self.current_scan
+        if scan_num == 0:
+            # self.actual_x_values[step_num] = self.current_position[0]
+            #
+            # self.current_scan.loc[step_num, self.abscissa_name[0]] = self.current_position[0]
+            # self.ave_data_df.loc[step_num, self.column_headers[0]] = self.current_position[0]
+            # Before UHFLI:
+            # self.ch1_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+            # self.ch2_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+            # self.ave_data_df.loc[ii, self.column_headers[0]] = self.current_position[0]
+            if self.num_dims == 2:
+                pass
+                # Before UHFLI:
+                # self.ave_data_ch1_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+                # self.ave_data_ch2_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+        num_cols = len(self.column_headers)
+        for ii in range(0, num_cols):
+            for jj in range(0, step_num+1):
+                cur_sum = 0
+                for kk in range(0, len(self.stored_data.scans_2d[dim2_scan_num][dim2_step_num])):
+                    cur_sum = cur_sum + self.stored_data.scans_2d[dim2_scan_num][dim2_step_num][kk].loc[jj, self.column_headers[ii]]
+                self.ave_data_df.loc[jj, self.column_headers[ii]] = cur_sum / (scan_num + 1)
 
-        delta_t = time.time() - t0
-        print('Step 2 took ' + str(delta_t) + ' seconds')
+        # Before UHFLI:
+        # ch1_df_mean = self.ch1_scans_df.iloc[:, 1:].mean(axis=1)  # Average all columns except the first
+        # ch2_df_mean = self.ch2_scans_df.iloc[:, 1:].mean(axis=1)
+
+        # ch1_df_mean = self.ch1_scans_df.iloc[:, 1:].mean(axis=1)  # Average all columns except the first
+        # ch2_df_mean = self.ch2_scans_df.iloc[:, 1:].mean(axis=1)
+
+        # self.ave_data_df.loc[:, self.output_name[0]] = ch1_df_mean
+        # self.ave_data_df.loc[:, self.output_name[1]] = ch2_df_mean
 
         if self.num_dims == 2:
             pass
@@ -1092,6 +1044,33 @@ class MainWindow(QMainWindow):
 
         # print('self.ave_data_df:')
         # print(self.ave_data_df)
+
+    # @helpers.measure_time
+    # def distribute_results(self, ii, jj, ll, mm):
+    #     if jj == 0:
+    #         self.actual_x_values[ii] = self.current_position[0]
+    #         self.ch1_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+    #         self.ch2_scans_df.loc[ii, self.abscissa_name[0]] = self.current_position[0]
+    #         self.ave_data_df.loc[ii, self.column_headers[0]] = self.current_position[0]
+    #         if self.num_dims == 2:
+    #             self.ave_data_ch1_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+    #             self.ave_data_ch2_df[mm].loc[ii, self.column_headers_2d] = self.current_position[0]
+    #
+    #     ch1_df_mean = self.ch1_scans_df.iloc[:, 1:].mean(axis=1)  # Average all columns except the first
+    #     ch2_df_mean = self.ch2_scans_df.iloc[:, 1:].mean(axis=1)
+    #
+    #     self.ave_data_df.loc[:, self.output_name[0]] = ch1_df_mean
+    #     self.ave_data_df.loc[:, self.output_name[1]] = ch2_df_mean
+    #
+    #     if self.num_dims == 2:
+    #         # self.ave_data_ch1_df[mm].loc[:, self.current_position[1]] = ch1_df_mean
+    #         # self.ave_data_ch2_df[mm].loc[:, self.current_position[1]] = ch2_df_mean
+    #
+    #         self.ave_data_ch1_df[mm].iloc[:, ll + 1] = ch1_df_mean
+    #         self.ave_data_ch2_df[mm].iloc[:, ll + 1] = ch2_df_mean
+    #
+    #     print('self.ave_data_df:')
+    #     print(self.ave_data_df)
 
     def clear_plots(self):
         if self.plot1 is not None:
